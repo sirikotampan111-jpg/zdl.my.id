@@ -309,7 +309,7 @@ export const faqItems: FAQItem[] = [
   {
     question: "Apa metode pembayaran yang tersedia?",
     answer:
-      "Kami menerima pembayaran melalui transfer bank, QRIS, dan e-wallet. Pembayaran dilakukan 50% di awal dan 50% setelah website selesai dan online.",
+      "Pembayaran dilakukan melalui transfer Bank Seabank dengan nomor rekening 901913604812. DP minimal Rp500.000 untuk paket HTML dan Next.js. Pelunasan dilakukan setelah website selesai dan online.",
   },
 ];
 

@@ -5,7 +5,6 @@ import { useTheme } from "next-themes";
 import { useStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { Menu, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,12 +14,11 @@ const navLinks = [
   { id: "home", label: "Home" },
   { id: "portofolio", label: "Portofolio" },
   { id: "layanan", label: "Layanan" },
-  { id: "keranjang", label: "Keranjang" },
   { id: "kontak", label: "Kontak" },
 ];
 
 export function Navbar() {
-  const { currentPage, setCurrentPage, cartCount } = useStore();
+  const { currentPage, setCurrentPage } = useStore();
   const { theme, setTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -58,8 +56,12 @@ export function Navbar() {
             onClick={() => handleNav("home")}
             className="flex items-center gap-2 group cursor-pointer"
           >
-            <div className="w-9 h-9 bg-gold rounded-lg flex items-center justify-center font-bold text-navy text-sm transition-transform group-hover:scale-105">
-              Z
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
+              <img
+                src="/favicon.png"
+                alt="ZDL"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="font-bold text-lg text-foreground">
               Zheng<span className="text-gold">DigitalLab</span>
@@ -79,14 +81,7 @@ export function Navbar() {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <span className="flex items-center gap-1.5">
-                  {link.label}
-                  {link.id === "keranjang" && mounted && cartCount() > 0 && (
-                    <Badge className="bg-gold text-navy text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
-                      {cartCount()}
-                    </Badge>
-                  )}
-                </span>
+                {link.label}
                 {currentPage === link.id && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-gold rounded-full" />
                 )}
@@ -134,11 +129,6 @@ export function Navbar() {
                       )}
                     >
                       {link.label}
-                      {link.id === "keranjang" && mounted && cartCount() > 0 && (
-                        <Badge className="bg-gold text-navy text-[10px] px-1.5 py-0">
-                          {cartCount()}
-                        </Badge>
-                      )}
                     </button>
                   ))}
                 </div>

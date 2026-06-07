@@ -16,8 +16,12 @@ export function LoadingScreen() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="flex items-center gap-3 mb-8"
       >
-        <div className="w-14 h-14 bg-gold rounded-xl flex items-center justify-center font-bold text-navy text-2xl">
-          Z
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden">
+          <img
+            src="/favicon.png"
+            alt="ZDL"
+            className="w-full h-full object-contain"
+          />
         </div>
         <span className="font-bold text-3xl text-white">
           Zheng<span className="text-gold">DigitalLab</span>

@@ -7,7 +7,6 @@ const footerLinks = [
   { id: "home", label: "Home" },
   { id: "portofolio", label: "Portofolio" },
   { id: "layanan", label: "Layanan" },
-  { id: "keranjang", label: "Keranjang" },
   { id: "kontak", label: "Kontak" },
 ];
 
@@ -26,8 +25,12 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-gold rounded-lg flex items-center justify-center font-bold text-navy text-sm">
-                Z
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src="/favicon.png"
+                  alt="ZDL"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-bold text-lg">
                 Zheng<span className="text-gold">DigitalLab</span>

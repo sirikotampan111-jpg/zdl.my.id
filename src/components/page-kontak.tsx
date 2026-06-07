@@ -17,10 +17,11 @@ import {
 import {
   MessageCircle,
   Mail,
-  MapPin,
   ExternalLink,
   Send,
   Phone,
+  Building2,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -212,24 +213,11 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                 <Card className="hover:border-gold/50 transition-colors">
                   <CardContent className="pt-6 text-center space-y-2">
                     <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center mx-auto">
-                      <Mail className="w-5 h-5 text-gold" />
+                      <Building2 className="w-5 h-5 text-gold" />
                     </div>
-                    <h3 className="font-semibold text-foreground">Website</h3>
-                    <p className="text-sm text-muted-foreground">zdl.web.id</p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      asChild
-                      className="border-gold/30 text-gold hover:bg-gold hover:text-navy"
-                    >
-                      <a
-                        href="https://zdl.web.id"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Kunjungi
-                      </a>
-                    </Button>
+                    <h3 className="font-semibold text-foreground">Pembayaran</h3>
+                    <p className="text-sm text-muted-foreground">Seabank</p>
+                    <p className="text-xs font-mono text-foreground">901913604812</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -253,6 +241,46 @@ Mohon informasi lebih lanjut. Terima kasih.`;
             </Button>
           </motion.div>
         </div>
+
+        {/* Payment Info Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-16"
+        >
+          <Card className="border-gold/30 bg-gold/5">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Building2 className="w-6 h-6 text-gold" />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="font-semibold text-foreground">Informasi Pembayaran</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">Bank: <strong className="text-foreground">Seabank</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">No. Rekening: <strong className="text-foreground">901913604812</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">DP Minimal: <strong className="text-gold">Rp500.000</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">Pelunasan setelah website online</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* FAQ Section */}
         <motion.div

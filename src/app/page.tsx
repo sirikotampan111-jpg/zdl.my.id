@@ -15,7 +15,6 @@ import { HomeTestimoni } from "@/components/home-testimoni";
 import { HomeCta } from "@/components/home-cta";
 import { PagePortofolio } from "@/components/page-portofolio";
 import { PageLayanan } from "@/components/page-layanan";
-import { PageKeranjang } from "@/components/page-keranjang";
 import { PageKontak } from "@/components/page-kontak";
 
 function HomePage() {
@@ -56,8 +55,6 @@ export default function Home() {
         return <PagePortofolio />;
       case "layanan":
         return <PageLayanan />;
-      case "keranjang":
-        return <PageKeranjang />;
       case "kontak":
         return <PageKontak />;
       default:

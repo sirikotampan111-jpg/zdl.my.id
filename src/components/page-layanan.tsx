@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useStore } from "@/store/use-store";
 import {
   htmlServices,
   nextjsServices,
@@ -18,14 +17,16 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Check,
-  ShoppingCart,
+  MessageCircle,
   Code2,
   Rocket,
   Database,
-  Plus,
   Sparkles,
+  Building2,
+  Info,
 } from "lucide-react";
-import { toast } from "sonner";
+
+const DP_MINIMAL = 500000;
 
 const container = {
   hidden: { opacity: 0 },
@@ -40,14 +41,24 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+function generateWhatsAppLink(packageName: string, price: number, category: string) {
+  const dpInfo = category === "html" || category === "nextjs"
+    ? `\nDP Minimal: ${formatPrice(DP_MINIMAL)}`
+    : "";
+
+  const message = `Halo Zheng Digital Lab,
+
+Saya tertarik dengan layanan website.
+
+Paket: ${packageName}
+Harga: ${formatPrice(price)}${dpInfo}
+
+Mohon informasi proses selanjutnya.`;
+
+  return `https://wa.me/6288973745596?text=${encodeURIComponent(message)}`;
+}
+
 export function PageLayanan() {
-  const { addToCart } = useStore();
-
-  const handleAddToCart = (serviceId: string, serviceName: string, price: number, category: string) => {
-    addToCart({ id: serviceId, name: serviceName, price, category });
-    toast.success(`${serviceName} ditambahkan ke keranjang!`);
-  };
-
   return (
     <section className="pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,6 +76,48 @@ export function PageLayanan() {
             Pilih paket yang sesuai dengan kebutuhan bisnis Anda. Semua paket sudah
             termasuk domain, hosting, dan support.
           </p>
+        </motion.div>
+
+        {/* Payment Info Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-12"
+        >
+          <Card className="border-gold/30 bg-gold/5">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Building2 className="w-6 h-6 text-gold" />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2">
+                    <Info className="w-4 h-4 text-gold" />
+                    Informasi Pembayaran
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">Bank: <strong className="text-foreground">Seabank</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">No. Rekening: <strong className="text-foreground">901913604812</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">DP Minimal: <strong className="text-gold">Rp500.000</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-gold shrink-0" />
+                      <span className="text-muted-foreground">Pembayaran DP dilakukan sebelum proses pengerjaan dimulai</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* HTML Package Section */}
@@ -90,13 +143,21 @@ export function PageLayanan() {
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
             {htmlFeatures.map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm">
                 <Check className="w-4 h-4 text-gold shrink-0" />
                 <span className="text-muted-foreground">{f}</span>
               </div>
             ))}
+          </div>
+
+          {/* DP Info */}
+          <div className="flex items-center gap-2 mb-8 p-3 bg-gold/5 border border-gold/20 rounded-lg text-sm">
+            <Info className="w-4 h-4 text-gold shrink-0" />
+            <span className="text-muted-foreground">
+              DP Minimal <strong className="text-gold">Rp500.000</strong> untuk memulai project
+            </span>
           </div>
 
           <motion.div
@@ -119,19 +180,26 @@ export function PageLayanan() {
                       {s.name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3">
                     <p className="text-2xl font-bold text-foreground">
                       {formatPrice(s.price)}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      DP mulai {formatPrice(DP_MINIMAL)}
+                    </p>
                     <Button
                       size="sm"
-                      className="w-full bg-gold hover:bg-gold-hover text-navy"
-                      onClick={() =>
-                        handleAddToCart(s.id, s.name, s.price, s.category)
-                      }
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      asChild
                     >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      Tambah ke Keranjang
+                      <a
+                        href={generateWhatsAppLink(s.name, s.price, s.category)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Pesan via WhatsApp
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>
@@ -174,13 +242,21 @@ export function PageLayanan() {
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
             {nextjsFeatures.map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm">
                 <Check className="w-4 h-4 text-gold shrink-0" />
                 <span className="text-muted-foreground">{f}</span>
               </div>
             ))}
+          </div>
+
+          {/* DP Info */}
+          <div className="flex items-center gap-2 mb-8 p-3 bg-gold/5 border border-gold/20 rounded-lg text-sm">
+            <Info className="w-4 h-4 text-gold shrink-0" />
+            <span className="text-muted-foreground">
+              DP Minimal <strong className="text-gold">Rp500.000</strong> untuk memulai project
+            </span>
           </div>
 
           <motion.div
@@ -209,19 +285,26 @@ export function PageLayanan() {
                       {s.name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3">
                     <p className="text-2xl font-bold text-foreground">
                       {formatPrice(s.price)}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      DP mulai {formatPrice(DP_MINIMAL)}
+                    </p>
                     <Button
                       size="sm"
-                      className="w-full bg-gold hover:bg-gold-hover text-navy"
-                      onClick={() =>
-                        handleAddToCart(s.id, s.name, s.price, s.category)
-                      }
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      asChild
                     >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      Tambah ke Keranjang
+                      <a
+                        href={generateWhatsAppLink(s.name, s.price, s.category)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Pesan via WhatsApp
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>
@@ -280,18 +363,17 @@ export function PageLayanan() {
                 ))}
               </div>
               <Button
-                className="w-full bg-gold hover:bg-gold-hover text-navy"
-                onClick={() =>
-                  handleAddToCart(
-                    adminService.id,
-                    adminService.name,
-                    adminService.price,
-                    adminService.category
-                  )
-                }
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                asChild
               >
-                <ShoppingCart className="w-4 h-4" />
-                Tambah ke Keranjang
+                <a
+                  href={generateWhatsAppLink(adminService.name, adminService.price, adminService.category)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Pesan via WhatsApp
+                </a>
               </Button>
             </CardContent>
           </Card>
@@ -333,20 +415,24 @@ export function PageLayanan() {
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-foreground">{s.name}</h3>
-                      <Plus className="w-4 h-4 text-gold" />
+                      <Rocket className="w-4 h-4 text-gold" />
                     </div>
                     <p className="text-2xl font-bold text-foreground">
                       {formatPrice(s.price)}
                     </p>
                     <Button
                       size="sm"
-                      className="w-full bg-gold hover:bg-gold-hover text-navy"
-                      onClick={() =>
-                        handleAddToCart(s.id, s.name, s.price, s.category)
-                      }
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      asChild
                     >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      Tambah ke Keranjang
+                      <a
+                        href={generateWhatsAppLink(s.name, s.price, s.category)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Pesan via WhatsApp
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>

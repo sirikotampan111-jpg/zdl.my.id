@@ -24,3 +24,31 @@ Stage Summary:
 - Color scheme: Navy Blue (#0A1628), White, Gold Accent (#D4A843)
 - Key features: Dark mode, floating WhatsApp, cart system, Framer Motion animations, responsive design, SEO ready
 - All verification passed
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Update ZDL website - Remove cart, add DP info, update payment & logo
+
+Work Log:
+- Removed entire cart/keranjang system (Zustand store, page-keranjang.tsx, navbar links, footer links)
+- Updated Zustand store to only keep currentPage navigation state
+- Replaced all "Tambah ke Keranjang" buttons with green "Pesan via WhatsApp" buttons
+- Added DP Minimal Rp500.000 info for HTML and Next.js package sections
+- Added payment info banner on Layanan page (Seabank, 901913604812)
+- Updated payment info on Kontak page (replaced Website card with Seabank payment card)
+- Updated FAQ about payment method (Seabank only, DP Rp500.000)
+- Copied uploaded PNG logo to /public/favicon.png
+- Updated layout.tsx favicon reference from /logo.svg to /favicon.png
+- Updated navbar, footer, loading screen to use new logo image
+- Removed page-keranjang.tsx file completely
+- ESLint passes with no errors
+- Browser verification: all changes confirmed working
+
+Stage Summary:
+- Cart system fully removed
+- Direct WhatsApp ordering flow implemented
+- DP Rp500.000 shown for HTML & Next.js packages
+- Payment: Seabank 901913604812 only
+- Logo updated to uploaded PNG image
+- All WhatsApp links generate correct message format with package details
