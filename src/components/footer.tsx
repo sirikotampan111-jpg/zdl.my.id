@@ -72,6 +72,10 @@ export function Footer() {
                 <span className="font-medium text-white">Website:</span>{" "}
                 zdl.web.id
               </li>
+              <li className="leading-relaxed">
+                <span className="font-medium text-white">Alamat:</span>{" "}
+                Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Tangerang, Banten 17510
+              </li>
             </ul>
             <a
               href="https://wa.me/6288973745596"

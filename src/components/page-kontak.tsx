@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/accordion";
 import {
   MessageCircle,
-  Mail,
   ExternalLink,
   Send,
   Phone,
   Building2,
+  MapPin,
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -162,10 +162,42 @@ Mohon informasi lebih lanjut. Terima kasih.`;
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
+            {/* Address */}
+            <Card className="border-gold/20">
+              <CardContent className="pt-5 pb-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="w-5 h-5 text-gold" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Alamat</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kabupaten Tangerang, Banten 17510
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="link"
+                      asChild
+                      className="text-gold hover:text-gold-hover px-0 h-auto py-1 text-sm"
+                    >
+                      <a
+                        href="https://maps.app.goo.gl/xFZmgdisDB2uDjTb6"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Buka di Google Maps
+                        <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Google Maps */}
             <Card className="overflow-hidden">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260322283!2d106.8195613507864!3d-6.194741395493371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5d2e764b12d%3A0x3d2ad6e1e0e9bcc8!2sMonumen%20Nasional!5e0!3m2!1sid!2sid!4v1640000000000!5m2!1sid!2sid"
+                src="https://maps.google.com/maps?q=Kp.+Jawaringan+Mekar+Bakti+Panongan+Tangerang+Banten+17510&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="250"
                 style={{ border: 0 }}
