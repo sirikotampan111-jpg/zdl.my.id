@@ -368,6 +368,18 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
+export const PPN_RATE = 0.11;
+export const TRANSACTION_FEE = 4000;
+export const DP_MINIMAL = 500000;
+
+export const projectStages = [
+  { key: "planning", label: "Planning", icon: "ClipboardList" as const },
+  { key: "design", label: "Design", icon: "Palette" as const },
+  { key: "development", label: "Development", icon: "Code" as const },
+  { key: "testing", label: "Testing", icon: "Bug" as const },
+  { key: "online", label: "Online", icon: "Rocket" as const },
+] as const;
+
 export function generateInvoiceNumber(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -375,4 +387,38 @@ export function generateInvoiceNumber(): string {
   const day = String(now.getDate()).padStart(2, "0");
   const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
   return `ZDL-${year}${month}${day}-${random}`;
+}
+
+export interface PriceBreakdown {
+  basePrice: number;
+  isDP: boolean;
+  dpAmount: number;
+  ppn: number;
+  transactionFee: number;
+  total: number;
+}
+
+export function calculatePriceBreakdown(
+  price: number,
+  isDPEligible: boolean
+): PriceBreakdown {
+  const dpRate = 0.5; // 50% DP
+  const ppnRate = 0.11; // 11% PPN
+  const transactionFee = 4000;
+
+  const basePrice = price;
+  const isDP = isDPEligible && price >= 1000000;
+  const dpAmount = isDP ? Math.ceil(basePrice * dpRate) : basePrice;
+  const chargeable = dpAmount;
+  const ppn = Math.ceil(chargeable * ppnRate);
+  const total = chargeable + ppn + transactionFee;
+
+  return {
+    basePrice,
+    isDP,
+    dpAmount,
+    ppn,
+    transactionFee,
+    total,
+  };
 }
