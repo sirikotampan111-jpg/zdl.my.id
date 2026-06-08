@@ -27,43 +27,50 @@ model User {
 }
 
 model Order {
-  id             String        @id @default(cuid())
-  orderId        String        @unique
-  userId         String
-  packageName    String
+  id              String        @id @default(cuid())
+  orderId         String        @unique
+  userId          String
+  packageName     String
   packageCategory String
-  packagePrice   Float
-  ppnAmount      Float         @default(0)
-  transactionFee Float         @default(0)
-  payAmount      Float         @default(0)
-  dpMinimal      Float         @default(0)
-  isDP           Boolean       @default(false)
-  customerName   String
-  customerEmail  String
-  customerPhone  String
-  businessName   String?
-  notes          String?
-  status         String        @default("pending")
-  paymentMethod  String?
-  paymentType    String?
-  paidAt         DateTime?
-  expiredAt      DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  user           User          @relation(fields: [userId], references: [id])
-  transactions   Transaction[]
-  project        Project?
+  packagePrice    Float
+  ppnAmount       Float         @default(0)
+  transactionFee  Float         @default(0)
+  payAmount       Float         @default(0)
+  dpMinimal       Float         @default(0)
+  isDP            Boolean       @default(false)
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  businessName    String?
+  notes           String?
+  status          String        @default("pending")
+  paymentMethod   String?
+  paymentType     String?
+  snapToken       String?
+  snapRedirectUrl String?
+  paidAt          DateTime?
+  expiredAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id])
+  transactions    Transaction[]
+  project         Project?
 }
 
 model Transaction {
-  id               String   @id @default(cuid())
-  orderId          String
-  transactionId    String?
+  id                String   @id @default(cuid())
+  orderId           String
+  transactionId     String?
   transactionStatus String?
-  paymentType      String?
-  grossAmount      Float?
-  createdAt        DateTime @default(now())
-  order            Order    @relation(fields: [orderId], references: [id])
+  transactionTime   DateTime?
+  paymentType       String?
+  grossAmount       Float?
+  currency          String?
+  fraudStatus       String?
+  signatureKey      String?
+  rawResponse       String?
+  createdAt         DateTime @default(now())
+  order             Order    @relation(fields: [orderId], references: [id])
 }
 
 model Project {

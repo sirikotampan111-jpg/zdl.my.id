@@ -2,11 +2,20 @@
 
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+import { useSession, signOut } from "next-auth/react";
 import { useStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Sun, Moon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Menu, Sun, Moon, LogIn, LayoutDashboard, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const emptySubscribe = () => () => {};
 
@@ -20,6 +29,8 @@ const navLinks = [
 export function Navbar() {
   const { currentPage, setCurrentPage } = useStore();
   const { theme, setTheme } = useTheme();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const mounted = useSyncExternalStore(
@@ -106,6 +117,45 @@ export function Navbar() {
               <span className="sr-only">Toggle theme</span>
             </Button>
 
+            {/* Login / Dashboard / User Menu */}
+            {status === "authenticated" && session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 border-gold/30 hover:bg-gold/10">
+                    <div className="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center">
+                      <User className="w-3 h-3 text-gold" />
+                    </div>
+                    <span className="hidden sm:inline max-w-[100px] truncate text-sm">
+                      {session.user?.name || "User"}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => router.push("/dashboard")} className="cursor-pointer">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Keluar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => router.push("/login")}
+                className="bg-gold hover:bg-gold-hover text-navy font-semibold gap-1.5"
+              >
+                <LogIn className="w-4 h-4" />
+                <span className="hidden sm:inline">Masuk</span>
+              </Button>
+            )}
+
             {/* Mobile menu */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -131,6 +181,31 @@ export function Navbar() {
                       {link.label}
                     </button>
                   ))}
+                  <div className="border-t pt-3 mt-2">
+                    {status === "authenticated" && session ? (
+                      <>
+                        <button
+                          onClick={() => { setMobileOpen(false); router.push("/dashboard"); }}
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                        >
+                          <LayoutDashboard className="w-4 h-4" /> Dashboard
+                        </button>
+                        <button
+                          onClick={() => { setMobileOpen(false); signOut({ callbackUrl: "/" }); }}
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4" /> Keluar
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => { setMobileOpen(false); router.push("/login"); }}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left text-gold hover:bg-gold/10 cursor-pointer"
+                      >
+                        <LogIn className="w-4 h-4" /> Masuk
+                      </button>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

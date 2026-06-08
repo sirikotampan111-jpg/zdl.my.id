@@ -116,10 +116,32 @@ export async function POST(req: NextRequest) {
     const expiredAt = new Date();
     expiredAt.setHours(expiredAt.getHours() + 24);
 
+    // Resolve userId: if not provided or invalid, find or create a guest user
+    let resolvedUserId = userId;
+    if (!resolvedUserId || resolvedUserId === "guest") {
+      const guestUser = await db.user.findFirst({ where: { email: customerEmail } });
+      if (guestUser) {
+        resolvedUserId = guestUser.id;
+      } else {
+        // Auto-register as customer
+        const newGuest = await db.user.create({
+          data: {
+            email: customerEmail,
+            name: customerName,
+            phone: customerPhone,
+            businessName: businessName || null,
+            role: "customer",
+            provider: "checkout",
+          },
+        });
+        resolvedUserId = newGuest.id;
+      }
+    }
+
     const order = await db.order.create({
       data: {
         orderId,
-        userId: userId || "guest",
+        userId: resolvedUserId,
         packageName,
         packageCategory,
         packagePrice,
@@ -153,8 +175,8 @@ export async function POST(req: NextRequest) {
 
       await db.project.create({
         data: {
-          orderId: order.orderId,
-          userId: userId || "guest",
+          orderId: order.id,
+          userId: resolvedUserId,
           projectName: packageName,
           packageCategory,
           status: "planning",

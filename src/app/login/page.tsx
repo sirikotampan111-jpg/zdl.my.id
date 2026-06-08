@@ -114,10 +114,17 @@ function LoginForm() {
     }
   };
 
+  const [googleAvailable, setGoogleAvailable] = useState(false);
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     await signIn("google", { callbackUrl });
   };
+
+  useEffect(() => {
+    // Check if Google OAuth is configured
+    setGoogleAvailable(!!process.env.NEXT_PUBLIC_GOOGLE_AVAILABLE);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy via-navy-light to-navy px-4 pt-20">
@@ -326,7 +333,8 @@ function LoginForm() {
               )}
             </AnimatePresence>
 
-            {/* Google OAuth */}
+            {/* Google OAuth - only show if configured */}
+            {googleAvailable && (
             <div className="mt-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -347,6 +355,7 @@ function LoginForm() {
                 <Chrome className="w-4 h-4 mr-2" /> Masuk dengan Google
               </Button>
             </div>
+            )}
 
             {/* Toggle */}
             <p className="text-center text-sm text-muted-foreground mt-4">
