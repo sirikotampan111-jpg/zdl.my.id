@@ -64,17 +64,18 @@ export async function GET() {
       return NextResponse.json({ message: "Demo data sudah ada", admin: { email: existingAdmin.email } });
     }
 
-    const hashedPassword = await bcrypt.hash("admin123", 12);
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAILS?.split(",")[0]?.trim() || "sirikotampan111@gmail.com";
+    const hashedPassword = await bcrypt.hash("zdl123", 12);
 
     // Create super admin
     const admin = await db.user.create({
       data: {
-        email: "admin@zdl.com",
-        name: "ZDL Admin",
+        email: superAdminEmail,
+        name: "Riko Setiadi",
         password: hashedPassword,
         role: "super-admin",
-        provider: "credentials",
-        phone: "081234567890",
+        provider: "google",
+        phone: "088973745596",
         businessName: "Zheng Digital Lab",
       },
     });
@@ -163,7 +164,7 @@ export async function GET() {
     return NextResponse.json({
       message: "Demo data berhasil dibuat!",
       credentials: {
-        admin: { email: "admin@zdl.com", password: "admin123" },
+        superAdmin: { email: superAdminEmail, password: "zdl123", name: "Riko Setiadi" },
         customer: { email: "customer@demo.com", password: "customer123" },
       },
     });

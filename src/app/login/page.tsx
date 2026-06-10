@@ -3,8 +3,10 @@
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -12,11 +14,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 function LoginForm() {
   const [loading, setLoading] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -27,6 +32,33 @@ function LoginForm() {
       await signIn("google", { callbackUrl });
     } catch {
       toast.error("Gagal masuk dengan Google");
+      setLoading(false);
+    }
+  };
+
+  const handleCredentialLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Email dan password harus diisi");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        callbackUrl,
+        redirect: false,
+      });
+      if (result?.error) {
+        toast.error("Email atau password salah");
+        setLoading(false);
+      } else {
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch {
+      toast.error("Terjadi kesalahan saat masuk");
       setLoading(false);
     }
   };
@@ -67,17 +99,17 @@ function LoginForm() {
               Selamat Datang
             </CardTitle>
             <CardDescription className="text-base">
-              Masuk ke Zheng Digital Lab dengan akun Google
+              Masuk ke Zheng Digital Lab
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Google Login Button */}
+          <CardContent className="space-y-5">
+            {/* Google Login Button - Primary */}
             <Button
               onClick={handleGoogleLogin}
               disabled={loading}
               className="w-full h-12 bg-white hover:bg-gray-50 text-gray-800 font-medium border border-gray-300 rounded-xl transition-all hover:shadow-md"
             >
-              {loading ? (
+              {loading && !showCredentials ? (
                 <Loader2 className="w-5 h-5 animate-spin mr-2 text-gray-600" />
               ) : (
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -102,13 +134,107 @@ function LoginForm() {
               Masuk dengan Google
             </Button>
 
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/50" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-card px-3 text-muted-foreground">atau</span>
+              </div>
+            </div>
+
+            {/* Toggle credential form */}
+            <AnimatePresence mode="wait">
+              {!showCredentials ? (
+                <motion.div
+                  key="toggle"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCredentials(true)}
+                    className="w-full h-11 border-gold/30 text-gold hover:bg-gold/10 rounded-xl"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Masuk dengan Email & Password
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="form"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onSubmit={handleCredentialLogin}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm text-muted-foreground">
+                      Email
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="admin@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10 h-11 rounded-xl border-gold/20 focus:border-gold"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm text-muted-foreground">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 h-11 rounded-xl border-gold/20 focus:border-gold"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-11 bg-gold hover:bg-gold-dark text-navy font-semibold rounded-xl transition-all"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    ) : null}
+                    Masuk
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCredentials(false)}
+                    className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Kembali ke Google Sign In
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
             {/* Info text */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-2 pt-1">
               <p className="text-sm text-muted-foreground">
                 Dengan masuk, Anda menyetujui ketentuan layanan kami
               </p>
               <p className="text-xs text-muted-foreground/60">
-                Hanya akun Google tertentu yang ditunjuk sebagai Super Admin
+                Pendaftaran otomatis melalui akun Google
               </p>
             </div>
           </CardContent>
