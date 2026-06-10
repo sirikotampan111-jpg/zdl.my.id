@@ -3,10 +3,8 @@
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,117 +12,24 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
-  Phone,
-  Building2,
-  Chrome,
-  Loader2,
-  ArrowLeft,
-} from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 function LoginForm() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-  // Login state
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-
-  // Register state
-  const [regName, setRegName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regBusiness, setRegBusiness] = useState("");
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginEmail || !loginPassword) {
-      toast.error("Email dan password harus diisi");
-      return;
-    }
-    setLoading(true);
-    try {
-      const result = await signIn("credentials", {
-        email: loginEmail,
-        password: loginPassword,
-        redirect: false,
-      });
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Login berhasil!");
-        router.push(callbackUrl);
-        router.refresh();
-      }
-    } catch {
-      toast.error("Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!regEmail || !regPassword) {
-      toast.error("Email dan password harus diisi");
-      return;
-    }
-    if (regPassword.length < 6) {
-      toast.error("Password minimal 6 karakter");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: regName,
-          email: regEmail,
-          password: regPassword,
-          phone: regPhone,
-          businessName: regBusiness,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Registrasi berhasil! Silakan login.");
-        setIsLogin(true);
-        setLoginEmail(regEmail);
-        setLoginPassword("");
-      } else {
-        toast.error(data.error || "Registrasi gagal");
-      }
-    } catch {
-      toast.error("Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [googleAvailable, setGoogleAvailable] = useState(false);
-
   const handleGoogleLogin = async () => {
     setLoading(true);
-    await signIn("google", { callbackUrl });
+    try {
+      await signIn("google", { callbackUrl });
+    } catch {
+      toast.error("Gagal masuk dengan Google");
+      setLoading(false);
+    }
   };
-
-  useEffect(() => {
-    // Check if Google OAuth is configured
-    setGoogleAvailable(!!process.env.NEXT_PUBLIC_GOOGLE_AVAILABLE);
-  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy via-navy-light to-navy px-4 pt-20">
@@ -151,222 +56,61 @@ function LoginForm() {
 
         <Card className="border-gold/20 shadow-2xl shadow-gold/5 bg-card/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
-            <div className="w-14 h-14 bg-gold/10 rounded-xl flex items-center justify-center mx-auto mb-3 border border-gold/20">
+            <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gold/20">
               <img
                 src="/favicon.png"
                 alt="ZDL"
-                className="w-10 h-10 object-contain"
+                className="w-12 h-12 object-contain"
               />
             </div>
-            <CardTitle className="text-xl text-foreground">
-              {isLogin ? "Masuk ke Akun" : "Buat Akun Baru"}
+            <CardTitle className="text-2xl text-foreground">
+              Selamat Datang
             </CardTitle>
-            <CardDescription>
-              {isLogin
-                ? "Selamat datang kembali di ZDL"
-                : "Bergabung dengan Zheng Digital Lab"}
+            <CardDescription className="text-base">
+              Masuk ke Zheng Digital Lab dengan akun Google
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <AnimatePresence mode="wait">
-              {isLogin ? (
-                <motion.form
-                  key="login"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                  onSubmit={handleLogin}
-                  className="space-y-4"
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="email@contoh.com"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        className="pl-10 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gold hover:bg-gold-hover text-navy font-semibold"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}{" "}
-                    Masuk
-                  </Button>
-                </motion.form>
+          <CardContent className="space-y-6">
+            {/* Google Login Button */}
+            <Button
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full h-12 bg-white hover:bg-gray-50 text-gray-800 font-medium border border-gray-300 rounded-xl transition-all hover:shadow-md"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin mr-2 text-gray-600" />
               ) : (
-                <motion.form
-                  key="register"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  onSubmit={handleRegister}
-                  className="space-y-4"
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-name">Nama Lengkap</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="reg-name"
-                        placeholder="Nama Anda"
-                        value={regName}
-                        onChange={(e) => setRegName(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="reg-email"
-                        type="email"
-                        placeholder="email@contoh.com"
-                        value={regEmail}
-                        onChange={(e) => setRegEmail(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="reg-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Minimal 6 karakter"
-                        value={regPassword}
-                        onChange={(e) => setRegPassword(e.target.value)}
-                        className="pl-10 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="reg-phone">WhatsApp</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="reg-phone"
-                          placeholder="08xx"
-                          value={regPhone}
-                          onChange={(e) => setRegPhone(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reg-business">Nama Bisnis</Label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="reg-business"
-                          placeholder="Opsional"
-                          value={regBusiness}
-                          onChange={(e) => setRegBusiness(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gold hover:bg-gold-hover text-navy font-semibold"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}{" "}
-                    Daftar
-                  </Button>
-                </motion.form>
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    fill="#EA4335"
+                  />
+                </svg>
               )}
-            </AnimatePresence>
+              Masuk dengan Google
+            </Button>
 
-            {/* Google OAuth - only show if configured */}
-            {googleAvailable && (
-            <div className="mt-4">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    atau
-                  </span>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full mt-4"
-                onClick={handleGoogleLogin}
-                disabled={loading}
-              >
-                <Chrome className="w-4 h-4 mr-2" /> Masuk dengan Google
-              </Button>
+            {/* Info text */}
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Dengan masuk, Anda menyetujui ketentuan layanan kami
+              </p>
+              <p className="text-xs text-muted-foreground/60">
+                Hanya akun Google tertentu yang ditunjuk sebagai Super Admin
+              </p>
             </div>
-            )}
-
-            {/* Toggle */}
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-gold hover:underline font-medium ml-1"
-              >
-                {isLogin ? "Daftar" : "Masuk"}
-              </button>
-            </p>
           </CardContent>
         </Card>
       </motion.div>
@@ -376,7 +120,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-spin w-8 h-8 border-2 border-gold border-t-transparent rounded-full" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center pt-20">
+          <div className="animate-spin w-8 h-8 border-2 border-gold border-t-transparent rounded-full" />
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
