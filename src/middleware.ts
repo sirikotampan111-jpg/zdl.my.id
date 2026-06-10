@@ -9,7 +9,7 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/dashboard")) {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET || "zdl-secret-key-change-in-production",
+      secret: process.env.NEXTAUTH_SECRET,
     });
     if (!token) {
       const loginUrl = new URL("/login", req.url);
@@ -22,7 +22,7 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/setup")) {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET || "zdl-secret-key-change-in-production",
+      secret: process.env.NEXTAUTH_SECRET,
     });
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

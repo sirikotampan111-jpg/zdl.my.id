@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const orderId = generateInvoiceNumber();
     const serverKey = process.env.MIDTRANS_SERVER_KEY;
-    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+    const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
 
     let snapToken: string | null = null;
     let snapRedirectUrl: string | null = null;
@@ -81,9 +81,9 @@ export async function POST(req: NextRequest) {
           phone: customerPhone,
         },
         callbacks: {
-          finish: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.web.id"}/dashboard?payment=finish`,
-          error: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.web.id"}/dashboard?payment=error`,
-          pending: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.web.id"}/dashboard?payment=pending`,
+          finish: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id"}/dashboard?payment=finish`,
+          error: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id"}/dashboard?payment=error`,
+          pending: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id"}/dashboard?payment=pending`,
         },
       };
 

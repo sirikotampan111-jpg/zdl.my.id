@@ -17,7 +17,7 @@ Maintenance: Basic Rp150K/bln, Pro Rp300K/bln, Premium Rp500K/bln
 
 Pembayaran: DP minimal Rp500K, PPN 11% + Rp4.000 biaya transaksi. Seabank: 901913604812. QRIS, Bank Transfer, E-Wallet, CC.
 
-Kontak: WhatsApp 0889-7374-5596, zdl.web.id
+Kontak: WhatsApp 0889-7374-5596, zdl.my.id
 Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangerang, Banten 17510
 
 Panduan: Sapa ramah, jika ditanya harga berikan range, jika mau order arahkan ke WhatsApp, gunakan emoji secukupnya.`;

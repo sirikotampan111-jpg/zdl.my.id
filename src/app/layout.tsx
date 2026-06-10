@@ -16,10 +16,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
+const SITE_NAME = "Zheng Digital Lab";
+const SITE_DESCRIPTION =
+  "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.";
+
 export const metadata: Metadata = {
-  title: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
-  description:
-    "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
+    template: "%s | Zheng Digital Lab",
+  },
+  description: SITE_DESCRIPTION,
   keywords: [
     "website profesional",
     "jasa pembuatan website",
@@ -31,25 +39,45 @@ export const metadata: Metadata = {
     "ZDL",
     "website bisnis",
     "jasa website murah",
+    "website modern",
+    "website siap SEO",
+    "paket website Indonesia",
   ],
-  authors: [{ name: "Zheng Digital Lab" }],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/favicon.png",
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
+  },
   openGraph: {
     title: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
-    description:
-      "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.",
-    url: "https://zdl.web.id",
-    siteName: "Zheng Digital Lab",
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: "website",
     locale: "id_ID",
   },
   twitter: {
     card: "summary_large_image",
     title: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
-    description:
-      "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.",
+    description: SITE_DESCRIPTION,
+  },
+  alternates: {
+    canonical: SITE_URL,
   },
 };
 
@@ -62,7 +90,11 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <head>
         <script
-          src="https://app.sandbox.midtrans.com/snap/v2/assets/snap.js"
+          src={
+            process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true"
+              ? "https://app.midtrans.com/snap/v2/assets/snap.js"
+              : "https://app.sandbox.midtrans.com/snap/v2/assets/snap.js"
+          }
           data-client-key={
             process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
             "SB-Mid-client-PLACEHOLDER"

@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Create transaction record
     await db.transaction.create({
       data: {
-        orderId: order.orderId,
+        orderId: order.id,
         transactionId: transaction_id || null,
         transactionTime: transaction_time
           ? new Date(transaction_time)

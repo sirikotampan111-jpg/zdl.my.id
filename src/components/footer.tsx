@@ -70,7 +70,7 @@ export function Footer() {
               </li>
               <li>
                 <span className="font-medium text-white">Website:</span>{" "}
-                zdl.web.id
+                zdl.my.id
               </li>
               <li className="leading-relaxed">
                 <span className="font-medium text-white">Alamat:</span>{" "}
@@ -94,7 +94,7 @@ export function Footer() {
         <Separator className="my-8 bg-white/10" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <p>&copy; 2024 Zheng Digital Lab. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Zheng Digital Lab. All rights reserved.</p>
           <p>Crafted with precision & passion</p>
         </div>
       </div>
