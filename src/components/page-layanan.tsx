@@ -10,7 +10,9 @@ import {
   nextjsFeatures,
   adminFeatures,
   formatPrice,
+  DP_MINIMAL,
 } from "@/lib/data";
+import { WHATSAPP_LINK, BANK_NAME, BANK_ACCOUNT } from "@/lib/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,8 +27,6 @@ import {
   Building2,
   Info,
 } from "lucide-react";
-
-const DP_MINIMAL = 500000;
 
 const container = {
   hidden: { opacity: 0 },
@@ -55,7 +55,7 @@ Harga: ${formatPrice(price)}${dpInfo}
 
 Mohon informasi proses selanjutnya.`;
 
-  return `https://wa.me/6288973745596?text=${encodeURIComponent(message)}`;
+  return `${WHATSAPP_LINK}?text=${encodeURIComponent(message)}`;
 }
 
 export function PageLayanan() {
@@ -99,11 +99,11 @@ export function PageLayanan() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-gold shrink-0" />
-                      <span className="text-muted-foreground">Bank: <strong className="text-foreground">Seabank</strong></span>
+                      <span className="text-muted-foreground">Bank: <strong className="text-foreground">{BANK_NAME}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-gold shrink-0" />
-                      <span className="text-muted-foreground">No. Rekening: <strong className="text-foreground">901913604812</strong></span>
+                      <span className="text-muted-foreground">No. Rekening: <strong className="text-foreground">{BANK_ACCOUNT}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-gold shrink-0" />

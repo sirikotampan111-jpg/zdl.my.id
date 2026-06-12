@@ -371,6 +371,7 @@ export function formatPrice(price: number): string {
 export const PPN_RATE = 0.11;
 export const TRANSACTION_FEE = 4000;
 export const DP_MINIMAL = 500000;
+export const DP_RATE = 0.5;
 
 export const projectStages = [
   { key: "planning", label: "Planning", icon: "ClipboardList" as const },
@@ -402,23 +403,19 @@ export function calculatePriceBreakdown(
   price: number,
   isDPEligible: boolean
 ): PriceBreakdown {
-  const dpRate = 0.5; // 50% DP
-  const ppnRate = 0.11; // 11% PPN
-  const transactionFee = 4000;
-
   const basePrice = price;
   const isDP = isDPEligible && price >= 1000000;
-  const dpAmount = isDP ? Math.ceil(basePrice * dpRate) : basePrice;
+  const dpAmount = isDP ? Math.ceil(basePrice * DP_RATE) : basePrice;
   const chargeable = dpAmount;
-  const ppn = Math.ceil(chargeable * ppnRate);
-  const total = chargeable + ppn + transactionFee;
+  const ppn = Math.ceil(chargeable * PPN_RATE);
+  const total = chargeable + ppn + TRANSACTION_FEE;
 
   return {
     basePrice,
     isDP,
     dpAmount,
     ppn,
-    transactionFee,
+    transactionFee: TRANSACTION_FEE,
     total,
   };
 }

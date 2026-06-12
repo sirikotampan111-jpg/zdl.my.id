@@ -5,6 +5,7 @@ import { useStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, ExternalLink, Zap, Search, Globe, Smartphone } from "lucide-react";
+import { WHATSAPP_LINK } from "@/lib/config";
 
 const badges = [
   { icon: Search, label: "SEO Friendly" },
@@ -90,7 +91,7 @@ export function HomeHero() {
               className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-navy font-semibold"
             >
               <a
-                href="https://wa.me/6288973745596"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
               >

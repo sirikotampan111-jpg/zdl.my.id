@@ -2,6 +2,7 @@
 
 import { useStore } from "@/store/use-store";
 import { Separator } from "@/components/ui/separator";
+import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, WHATSAPP_LINK, BUSINESS_ADDRESS, SITE_DOMAIN, COMPANY_NAME } from "@/lib/config";
 
 const footerLinks = [
   { id: "home", label: "Home" },
@@ -66,19 +67,19 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-gray-300">
               <li>
                 <span className="font-medium text-white">WhatsApp:</span>{" "}
-                0889-7374-5596
+                {WHATSAPP_DISPLAY}
               </li>
               <li>
                 <span className="font-medium text-white">Website:</span>{" "}
-                zdl.my.id
+                {SITE_DOMAIN}
               </li>
               <li className="leading-relaxed">
                 <span className="font-medium text-white">Alamat:</span>{" "}
-                Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Tangerang, Banten 17510
+                {BUSINESS_ADDRESS}
               </li>
             </ul>
             <a
-              href="https://wa.me/6288973745596"
+              href={WHATSAPP_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -94,7 +95,7 @@ export function Footer() {
         <Separator className="my-8 bg-white/10" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Zheng Digital Lab. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
           <p>Crafted with precision & passion</p>
         </div>
       </div>

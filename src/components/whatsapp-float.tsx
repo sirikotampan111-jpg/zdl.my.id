@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/use-store";
 import { MessageCircle } from "lucide-react";
+import { WHATSAPP_LINK } from "@/lib/config";
 
 export function WhatsAppFloat() {
   const { currentPage } = useStore();
@@ -21,7 +22,7 @@ export function WhatsAppFloat() {
     <AnimatePresence>
       {visible && (
         <motion.a
-          href="https://wa.me/6288973745596"
+          href={WHATSAPP_LINK}
           target="_blank"
           rel="noopener noreferrer"
           initial={{ scale: 0, opacity: 0 }}

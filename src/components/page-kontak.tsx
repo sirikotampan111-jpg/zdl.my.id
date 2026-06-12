@@ -24,6 +24,7 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import { WHATSAPP_LINK, WHATSAPP_DISPLAY, WHATSAPP_NUMBER, BANK_NAME, BANK_ACCOUNT, BUSINESS_ADDRESS, GOOGLE_MAPS_LINK, GOOGLE_MAPS_EMBED } from "@/lib/config";
 
 const container = {
   hidden: { opacity: 0 },
@@ -63,7 +64,7 @@ ${pesan}
 Mohon informasi lebih lanjut. Terima kasih.`;
 
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/6288973745596?text=${encodedMessage}`, "_blank");
+    window.open(`${WHATSAPP_LINK}?text=${encodedMessage}`, "_blank");
     toast.success("Pesan dikirim via WhatsApp!");
 
     setNama("");
@@ -172,7 +173,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Alamat</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kabupaten Tangerang, Banten 17510
+                      {BUSINESS_ADDRESS}
                     </p>
                     <Button
                       size="sm"
@@ -181,7 +182,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       className="text-gold hover:text-gold-hover px-0 h-auto py-1 text-sm"
                     >
                       <a
-                        href="https://maps.app.goo.gl/xFZmgdisDB2uDjTb6"
+                        href={GOOGLE_MAPS_LINK}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -197,7 +198,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
             {/* Google Maps */}
             <Card className="overflow-hidden">
               <iframe
-                src="https://maps.google.com/maps?q=Kp.+Jawaringan+Mekar+Bakti+Panongan+Tangerang+Banten+17510&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                src={GOOGLE_MAPS_EMBED}
                 width="100%"
                 height="250"
                 style={{ border: 0 }}
@@ -223,7 +224,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       <MessageCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <h3 className="font-semibold text-foreground">WhatsApp</h3>
-                    <p className="text-sm text-muted-foreground">0889-7374-5596</p>
+                    <p className="text-sm text-muted-foreground">{WHATSAPP_DISPLAY}</p>
                     <Button
                       size="sm"
                       variant="outline"
@@ -231,7 +232,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                     >
                       <a
-                        href="https://wa.me/6288973745596"
+                        href={WHATSAPP_LINK}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -248,8 +249,8 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       <Building2 className="w-5 h-5 text-gold" />
                     </div>
                     <h3 className="font-semibold text-foreground">Pembayaran</h3>
-                    <p className="text-sm text-muted-foreground">Seabank</p>
-                    <p className="text-xs font-mono text-foreground">901913604812</p>
+                    <p className="text-sm text-muted-foreground">{BANK_NAME}</p>
+                    <p className="text-xs font-mono text-foreground">{BANK_ACCOUNT}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -262,7 +263,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
             >
               <a
-                href="https://wa.me/6288973745596"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -293,11 +294,11 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-gold shrink-0" />
-                      <span className="text-muted-foreground">Bank: <strong className="text-foreground">Seabank</strong></span>
+                      <span className="text-muted-foreground">Bank: <strong className="text-foreground">{BANK_NAME}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-gold shrink-0" />
-                      <span className="text-muted-foreground">No. Rekening: <strong className="text-foreground">901913604812</strong></span>
+                      <span className="text-muted-foreground">No. Rekening: <strong className="text-foreground">{BANK_ACCOUNT}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-gold shrink-0" />

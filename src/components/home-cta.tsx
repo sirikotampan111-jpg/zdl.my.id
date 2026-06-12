@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ExternalLink } from "lucide-react";
+import { WHATSAPP_LINK } from "@/lib/config";
 
 export function HomeCta() {
   const { setCurrentPage } = useStore();
@@ -12,7 +13,7 @@ export function HomeCta() {
     <section className="py-20 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-navy via-navy-light to-navy -z-10" />
-      <div className="absolute inset-0 animated-grid -z-5" />
+      <div className="absolute inset-0 animated-grid z-[-5]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
@@ -49,7 +50,7 @@ export function HomeCta() {
               className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
             >
               <a
-                href="https://wa.me/6288973745596"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
               >

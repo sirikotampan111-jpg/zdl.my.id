@@ -81,9 +81,9 @@ export async function POST(req: NextRequest) {
           phone: customerPhone,
         },
         callbacks: {
-          finish: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id"}/dashboard?payment=finish`,
-          error: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id"}/dashboard?payment=error`,
-          pending: `${process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id"}/dashboard?payment=pending`,
+          finish: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/dashboard?payment=finish`,
+          error: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/dashboard?payment=error`,
+          pending: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/dashboard?payment=pending`,
         },
       };
 
@@ -162,15 +162,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (["html", "nextjs", "admin", "bundle"].includes(packageCategory)) {
+    if (["html", "nextjs", "admin"].includes(packageCategory)) {
       const estimatedDone = new Date();
       estimatedDone.setDate(
         estimatedDone.getDate() +
           (packageCategory === "html"
             ? 7
-            : packageCategory === "bundle"
-              ? 21
-              : 14)
+            : 14)
       );
 
       await db.project.create({

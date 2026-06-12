@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
+import { WHATSAPP_LINK } from "@/lib/config";
 
 interface CheckoutModalProps {
   open: boolean;
@@ -133,6 +134,7 @@ export function CheckoutModal({
           customerPhone: phone,
           businessName: business,
           notes,
+          paymentMethod,
           userId: (session?.user as Record<string, unknown>)?.id || null,
         }),
       });
@@ -254,7 +256,7 @@ export function CheckoutModal({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => signIn()}
+                    onClick={() => signIn("google")}
                     className="text-gold border-gold/30"
                   >
                     Login
@@ -448,7 +450,7 @@ export function CheckoutModal({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    window.open("https://wa.me/6288973745596", "_blank")
+                    window.open(WHATSAPP_LINK, "_blank")
                   }
                   className="flex-1"
                 >
