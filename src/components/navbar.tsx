@@ -13,11 +13,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, Sun, Moon, LogIn, LayoutDashboard, LogOut, User } from "lucide-react";
+import { Menu, Sun, Moon, LogIn, LayoutDashboard, LogOut, User, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 const emptySubscribe = () => () => {};
+
+function CartBadge() {
+  const count = useStore((s) => s.getCartCount());
+  if (count === 0) return null;
+  return (
+    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-navy text-[10px] font-bold rounded-full flex items-center justify-center">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
+function CartBadgeInline() {
+  const count = useStore((s) => s.getCartCount());
+  if (count === 0) return null;
+  return (
+    <span className="ml-auto w-5 h-5 bg-gold text-navy text-[10px] font-bold rounded-full flex items-center justify-center">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
 
 const navLinks = [
   { id: "home", label: "Home" },
@@ -101,7 +121,19 @@ export function Navbar() {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Cart Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleNav("keranjang")}
+              className="relative text-foreground hover:text-gold"
+            >
+              <ShoppingCart className="size-5" />
+              <CartBadge />
+              <span className="sr-only">Keranjang</span>
+            </Button>
+
             {/* Dark mode toggle */}
             <Button
               variant="ghost"
@@ -182,6 +214,18 @@ export function Navbar() {
                     </button>
                   ))}
                   <div className="border-t pt-3 mt-2">
+                    <button
+                      onClick={() => handleNav("keranjang")}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left cursor-pointer",
+                        currentPage === "keranjang"
+                          ? "bg-gold/10 text-gold"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <ShoppingCart className="w-4 h-4" /> Keranjang
+                      <CartBadgeInline />
+                    </button>
                     {status === "authenticated" && session ? (
                       <>
                         <button

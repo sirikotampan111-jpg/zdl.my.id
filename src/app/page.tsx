@@ -16,6 +16,7 @@ import { HomeCta } from "@/components/home-cta";
 import { PagePortofolio } from "@/components/page-portofolio";
 import { PageLayanan } from "@/components/page-layanan";
 import { PageKontak } from "@/components/page-kontak";
+import { PageKeranjang } from "@/components/page-keranjang";
 
 function HomePage() {
   return (
@@ -57,6 +58,8 @@ export default function Home() {
         return <PageLayanan />;
       case "kontak":
         return <PageKontak />;
+      case "keranjang":
+        return <PageKeranjang />;
       default:
         return <HomePage />;
     }

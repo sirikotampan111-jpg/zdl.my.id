@@ -13,6 +13,7 @@ import {
   DP_MINIMAL,
 } from "@/lib/data";
 import { WHATSAPP_LINK, BANK_NAME, BANK_ACCOUNT } from "@/lib/config";
+import { useStore } from "@/store/use-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,9 @@ import {
   Sparkles,
   Building2,
   Info,
+  ShoppingCart,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const container = {
   hidden: { opacity: 0 },
@@ -56,6 +59,79 @@ Harga: ${formatPrice(price)}${dpInfo}
 Mohon informasi proses selanjutnya.`;
 
   return `${WHATSAPP_LINK}?text=${encodeURIComponent(message)}`;
+}
+
+interface ServiceCardProps {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  badge?: string;
+  bestValue?: boolean;
+}
+
+function ServiceCard({ id, name, price, category, badge, bestValue }: ServiceCardProps) {
+  const { addToCart, cart, setCurrentPage } = useStore();
+  const inCart = cart.find((c) => c.id === id);
+
+  const handleAddToCart = () => {
+    addToCart({ id, name, price, category });
+    toast.success(`${name} ditambahkan ke keranjang!`);
+  };
+
+  return (
+    <Card className={`relative hover:border-gold/50 transition-colors h-full ${bestValue ? "ring-2 ring-gold" : ""}`}>
+      {badge && (
+        <Badge className="absolute -top-2 right-4 bg-gold text-navy text-[10px]">
+          {badge}
+        </Badge>
+      )}
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {name}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-2xl font-bold text-foreground">
+          {formatPrice(price)}
+        </p>
+        {(category === "html" || category === "nextjs") && (
+          <p className="text-xs text-muted-foreground">
+            DP mulai {formatPrice(DP_MINIMAL)}
+          </p>
+        )}
+        <div className="space-y-2">
+          <Button
+            size="sm"
+            className={`w-full font-semibold transition-all ${
+              inCart
+                ? "bg-gold text-navy hover:bg-gold-hover"
+                : "bg-navy dark:bg-white text-white dark:text-navy hover:opacity-90"
+            }`}
+            onClick={inCart ? () => { setCurrentPage("keranjang"); window.scrollTo({ top: 0, behavior: "smooth" }); } : handleAddToCart}
+          >
+            <ShoppingCart className="w-3.5 h-3.5" />
+            {inCart ? "Lihat Keranjang" : "Tambah ke Keranjang"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+            asChild
+          >
+            <a
+              href={generateWhatsAppLink(name, price, category)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              WhatsApp
+            </a>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function PageLayanan() {
@@ -142,7 +218,6 @@ export function PageLayanan() {
             </div>
           </div>
 
-          {/* Features */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
             {htmlFeatures.map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm">
@@ -152,7 +227,6 @@ export function PageLayanan() {
             ))}
           </div>
 
-          {/* DP Info */}
           <div className="flex items-center gap-2 mb-8 p-3 bg-gold/5 border border-gold/20 rounded-lg text-sm">
             <Info className="w-4 h-4 text-gold shrink-0" />
             <span className="text-muted-foreground">
@@ -169,45 +243,17 @@ export function PageLayanan() {
           >
             {htmlServices.map((s) => (
               <motion.div key={s.id} variants={item}>
-                <Card className="relative hover:border-gold/50 transition-colors h-full">
-                  {s.badge && (
-                    <Badge className="absolute -top-2 right-4 bg-gold text-navy text-[10px]">
-                      {s.badge}
-                    </Badge>
-                  )}
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {s.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-2xl font-bold text-foreground">
-                      {formatPrice(s.price)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      DP mulai {formatPrice(DP_MINIMAL)}
-                    </p>
-                    <Button
-                      size="sm"
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      asChild
-                    >
-                      <a
-                        href={generateWhatsAppLink(s.name, s.price, s.category)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        Pesan via WhatsApp
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ServiceCard
+                  id={s.id}
+                  name={s.name}
+                  price={s.price}
+                  category={s.category}
+                  badge={s.badge}
+                />
               </motion.div>
             ))}
           </motion.div>
 
-          {/* Additional info */}
           <div className="mt-6 p-4 bg-muted/50 rounded-xl border text-sm text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">Penambahan Halaman:</p>
             <p>• Landing Page - 3 Halaman: + Rp300.000/halaman</p>
@@ -241,7 +287,6 @@ export function PageLayanan() {
             </div>
           </div>
 
-          {/* Features */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
             {nextjsFeatures.map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm">
@@ -251,7 +296,6 @@ export function PageLayanan() {
             ))}
           </div>
 
-          {/* DP Info */}
           <div className="flex items-center gap-2 mb-8 p-3 bg-gold/5 border border-gold/20 rounded-lg text-sm">
             <Info className="w-4 h-4 text-gold shrink-0" />
             <span className="text-muted-foreground">
@@ -268,51 +312,18 @@ export function PageLayanan() {
           >
             {nextjsServices.map((s) => (
               <motion.div key={s.id} variants={item}>
-                <Card
-                  className={`relative hover:border-gold/50 transition-colors h-full ${
-                    s.badge === "Best Value"
-                      ? "ring-2 ring-gold"
-                      : ""
-                  }`}
-                >
-                  {s.badge && (
-                    <Badge className="absolute -top-2 right-4 bg-gold text-navy text-[10px]">
-                      {s.badge}
-                    </Badge>
-                  )}
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {s.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-2xl font-bold text-foreground">
-                      {formatPrice(s.price)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      DP mulai {formatPrice(DP_MINIMAL)}
-                    </p>
-                    <Button
-                      size="sm"
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      asChild
-                    >
-                      <a
-                        href={generateWhatsAppLink(s.name, s.price, s.category)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        Pesan via WhatsApp
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ServiceCard
+                  id={s.id}
+                  name={s.name}
+                  price={s.price}
+                  category={s.category}
+                  badge={s.badge}
+                  bestValue={s.badge === "Best Value"}
+                />
               </motion.div>
             ))}
           </motion.div>
 
-          {/* Additional info */}
           <div className="mt-6 p-4 bg-muted/50 rounded-xl border text-sm text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">Penambahan Halaman:</p>
             <p>• Dari Landing Page: + Rp500.000/halaman</p>
@@ -346,37 +357,14 @@ export function PageLayanan() {
             </div>
           </div>
 
-          <Card className="hover:border-gold/50 transition-colors max-w-md">
-            <CardHeader>
-              <CardTitle className="text-lg">Admin Panel & Database</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-3xl font-bold text-foreground">
-                {formatPrice(adminService.price)}
-              </p>
-              <div className="space-y-2">
-                {adminFeatures.map((f) => (
-                  <div key={f} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-gold shrink-0" />
-                    <span className="text-muted-foreground">{f}</span>
-                  </div>
-                ))}
-              </div>
-              <Button
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                asChild
-              >
-                <a
-                  href={generateWhatsAppLink(adminService.name, adminService.price, adminService.category)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Pesan via WhatsApp
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="max-w-md">
+            <ServiceCard
+              id={adminService.id}
+              name={adminService.name}
+              price={adminService.price}
+              category={adminService.category}
+            />
+          </div>
         </motion.div>
 
         <Separator className="my-12" />
@@ -420,20 +408,7 @@ export function PageLayanan() {
                     <p className="text-2xl font-bold text-foreground">
                       {formatPrice(s.price)}
                     </p>
-                    <Button
-                      size="sm"
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      asChild
-                    >
-                      <a
-                        href={generateWhatsAppLink(s.name, s.price, s.category)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        Pesan via WhatsApp
-                      </a>
-                    </Button>
+                    <ServiceCardActions id={s.id} name={s.name} price={s.price} category={s.category} />
                   </CardContent>
                 </Card>
               </motion.div>
@@ -442,5 +417,47 @@ export function PageLayanan() {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+function ServiceCardActions({ id, name, price, category }: { id: string; name: string; price: number; category: string }) {
+  const { addToCart, cart, setCurrentPage } = useStore();
+  const inCart = cart.find((c) => c.id === id);
+
+  const handleAddToCart = () => {
+    addToCart({ id, name, price, category });
+    toast.success(`${name} ditambahkan ke keranjang!`);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Button
+        size="sm"
+        className={`w-full font-semibold transition-all ${
+          inCart
+            ? "bg-gold text-navy hover:bg-gold-hover"
+            : "bg-navy dark:bg-white text-white dark:text-navy hover:opacity-90"
+        }`}
+        onClick={inCart ? () => { setCurrentPage("keranjang"); window.scrollTo({ top: 0, behavior: "smooth" }); } : handleAddToCart}
+      >
+        <ShoppingCart className="w-3.5 h-3.5" />
+        {inCart ? "Lihat Keranjang" : "Tambah ke Keranjang"}
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+        asChild
+      >
+        <a
+          href={generateWhatsAppLink(name, price, category)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <MessageCircle className="w-3.5 h-3.5" />
+          WhatsApp
+        </a>
+      </Button>
+    </div>
   );
 }
