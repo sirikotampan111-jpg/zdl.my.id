@@ -251,7 +251,7 @@ export const adminFeatures = [
 export const testimonials: Testimonial[] = [
   {
     id: "1",
-    name: "Andi Wijaya",
+    name: "Kak Livia",
     business: "Livia Real Estate",
     quote:
       "Website yang dibuat oleh Zheng Digital Lab sangat profesional dan cepat. Klien kami langsung tertarik melihat tampilannya. Sangat recommended!",
@@ -259,7 +259,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "2",
-    name: "Siti Rahayu",
+    name: "Cici Liana Zhou",
     business: "Liana Home Interior",
     quote:
       "Proses pengerjaan cepat dan hasilnya memuaskan. Tim ZDL sangat responsif dan mau diajak diskusi sampai hasilnya sesuai keinginan.",
@@ -267,26 +267,34 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "3",
-    name: "Ahmad Fauzi",
-    business: "Kopikir Store",
+    name: "Koh Novel",
+    business: "Design Home Living",
     quote:
-      "Website kuliner kami jadi lebih modern dan SEO friendly. Pelanggan baru banyak yang datang dari Google. Terima kasih ZDL!",
+      "Website interior kami jadi lebih modern dan SEO friendly. Pelanggan baru banyak yang datang dari Google. Terima kasih ZDL!",
     rating: 5,
   },
   {
     id: "4",
-    name: "Dewi Lestari",
-    business: "Bimbel Starlish",
+    name: "Koh Edison",
+    business: "Terra Dekor",
     quote:
-      "Untuk bisnis pendidikan, website profesional itu wajib. Zheng Digital Lab memberikan solusi yang tepat dengan harga yang terjangkau.",
-    rating: 4,
+      "Untuk bisnis dekorasi, website profesional itu wajib. Zheng Digital Lab memberikan solusi yang tepat dengan harga yang terjangkau.",
+    rating: 5,
   },
   {
     id: "5",
-    name: "Rizky Pratama",
-    business: "Kirim Ikan Hias",
+    name: "Cici Charlie Liu",
+    business: "Bimbel Starlish",
     quote:
       "Dari awal konsultasi sampai website online, semuanya smooth. Support setelah jadi juga sangat membantu. Top!",
+    rating: 5,
+  },
+  {
+    id: "6",
+    name: "Bapak Wisnu",
+    business: "Kementrian Segos Bebek",
+    quote:
+      "Website kuliner kami sekarang tampil lebih profesional dan mudah ditemukan di Google. Pelayanan ZDL sangat memuaskan!",
     rating: 5,
   },
 ];
