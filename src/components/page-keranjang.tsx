@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
   formatPrice,
-  calculatePriceBreakdown,
   PPN_RATE,
   TRANSACTION_FEE,
   DP_MINIMAL,
@@ -35,6 +34,7 @@ import {
   ShieldCheck,
   Package,
   ShoppingBag,
+  Ticket,
 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
@@ -123,6 +123,7 @@ export function PageKeranjang() {
   const [step, setStep] = useState<1 | 2 | 3>(1); // 1=cart, 2=checkout, 3=success
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [ticketNumber, setTicketNumber] = useState("");
   const [payAmount, setPayAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("");
 
@@ -188,6 +189,7 @@ export function PageKeranjang() {
 
       setOrderId(data.orderId);
       setPayAmount(data.payAmount);
+      if (data.ticketNumber) setTicketNumber(data.ticketNumber);
 
       if (data.isDemo) {
         toast.success("Demo: Transaksi berhasil disimulasikan!");
@@ -203,6 +205,13 @@ export function PageKeranjang() {
           onSuccess: () => {
             toast.success("Pembayaran berhasil!");
             clearCart();
+            // Fetch ticket number from order
+            fetch(`/api/orders?orderId=${data.orderId}`)
+              .then(r => r.json())
+              .then(d => {
+                if (d.ticketNumber) setTicketNumber(d.ticketNumber);
+              })
+              .catch(() => {});
             setStep(3);
           },
           onPending: () => {
@@ -656,12 +665,36 @@ export function PageKeranjang() {
                     <span className="text-muted-foreground">Invoice</span>
                     <span className="font-mono font-bold text-gold">{orderId}</span>
                   </div>
+                  {ticketNumber && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Nomor Tiket</span>
+                      <div className="flex items-center gap-1.5">
+                        <Ticket className="w-4 h-4 text-gold" />
+                        <span className="font-mono font-bold text-green-600 dark:text-green-400 text-base">
+                          {ticketNumber}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total</span>
                     <span className="font-bold">
                       {formatPrice(payAmount || grandTotal)}
                     </span>
                   </div>
+                  {ticketNumber && (
+                    <>
+                      <Separator className="my-2" />
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-xs text-center">
+                        <p className="font-semibold text-green-700 dark:text-green-400 mb-1">
+                          Tiket berhasil dibuat!
+                        </p>
+                        <p className="text-green-600 dark:text-green-500">
+                          Simpan nomor tiket <strong>{ticketNumber}</strong> untuk tracking pesanan Anda
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
               <div className="flex gap-3 justify-center">

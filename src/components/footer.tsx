@@ -2,7 +2,7 @@
 
 import { useStore } from "@/store/use-store";
 import { Separator } from "@/components/ui/separator";
-import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, WHATSAPP_LINK, BUSINESS_ADDRESS, SITE_DOMAIN, COMPANY_NAME } from "@/lib/config";
+import { WHATSAPP_DISPLAY, WHATSAPP_LINK, BUSINESS_ADDRESS, SITE_DOMAIN, COMPANY_NAME } from "@/lib/config";
 
 const footerLinks = [
   { id: "home", label: "Home" },

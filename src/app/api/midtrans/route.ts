@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
   generateInvoiceNumber,
+  generateTicketNumber,
   PPN_RATE,
   TRANSACTION_FEE,
   DP_MINIMAL,
@@ -241,6 +242,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       orderId: order.orderId,
+      ticketNumber: isDemo ? generateTicketNumber() : null,
       token: snapToken,
       redirect_url: snapRedirectUrl,
       payAmount: totalPayAmount,

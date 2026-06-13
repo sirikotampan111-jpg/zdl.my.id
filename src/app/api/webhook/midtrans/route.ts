@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { generateTicketNumber } from "@/lib/data";
 
 export async function POST(req: NextRequest) {
   try {
@@ -86,7 +87,13 @@ export async function POST(req: NextRequest) {
         break;
     }
 
-    // Update order status
+    // Generate ticket number when payment is confirmed
+    const ticketNumber =
+      newStatus === "paid" && !order.ticketNumber
+        ? generateTicketNumber()
+        : order.ticketNumber;
+
+    // Update order status with ticket number
     await db.order.update({
       where: { orderId: order_id },
       data: {
@@ -94,11 +101,21 @@ export async function POST(req: NextRequest) {
         paymentMethod: payment_type || order.paymentMethod,
         paymentType: payment_type || null,
         paidAt: newStatus === "paid" ? new Date() : order.paidAt,
+        ticketNumber,
       },
     });
 
-    return NextResponse.json({ status: "ok" });
+    // When payment is confirmed, update project milestones
+    if (newStatus === "paid") {
+      await db.project.updateMany({
+        where: { orderId: order.id, status: "planning" },
+        data: { status: "design", progress: 20 },
+      });
+    }
+
+    return NextResponse.json({ status: "ok", ticketNumber });
   } catch (error) {
+    console.error("Webhook error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

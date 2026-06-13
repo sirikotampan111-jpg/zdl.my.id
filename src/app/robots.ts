@@ -14,9 +14,17 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
       {
+        userAgent: "YandexBot",
+        allow: "/",
+      },
+      {
+        userAgent: "Slurp",
+        allow: "/",
+      },
+      {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/dashboard/"],
+        disallow: ["/api/", "/dashboard/", "/login"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

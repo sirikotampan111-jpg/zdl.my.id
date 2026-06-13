@@ -78,6 +78,7 @@ export function CheckoutModal({
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [ticketNumber, setTicketNumber] = useState("");
   const [payAmount, setPayAmount] = useState(0);
 
   // Form state
@@ -110,6 +111,7 @@ export function CheckoutModal({
     setNotes("");
     setPaymentMethod("");
     setOrderId("");
+    setTicketNumber("");
     setPayAmount(0);
     setLoading(false);
     onClose();
@@ -147,6 +149,7 @@ export function CheckoutModal({
 
       setOrderId(data.orderId);
       setPayAmount(data.payAmount);
+      if (data.ticketNumber) setTicketNumber(data.ticketNumber);
 
       if (data.isDemo) {
         // Demo mode - simulate payment
@@ -424,6 +427,14 @@ export function CheckoutModal({
                     {orderId}
                   </span>
                 </div>
+                {ticketNumber && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Nomor Tiket</span>
+                    <span className="font-mono font-bold text-green-600 dark:text-green-400">
+                      {ticketNumber}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Paket</span>
                   <span>{packageName}</span>
@@ -434,6 +445,13 @@ export function CheckoutModal({
                     {formatPrice(payAmount || breakdown.total)}
                   </span>
                 </div>
+                {ticketNumber && (
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-xs text-center mt-2">
+                    <span className="text-green-700 dark:text-green-400 font-semibold">
+                      Simpan nomor tiket {ticketNumber} untuk tracking
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 {session && (

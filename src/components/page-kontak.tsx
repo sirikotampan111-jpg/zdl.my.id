@@ -24,7 +24,7 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
-import { WHATSAPP_LINK, WHATSAPP_DISPLAY, WHATSAPP_NUMBER, BANK_NAME, BANK_ACCOUNT, BUSINESS_ADDRESS, GOOGLE_MAPS_LINK, GOOGLE_MAPS_EMBED } from "@/lib/config";
+import { WHATSAPP_LINK, WHATSAPP_DISPLAY, BANK_NAME, BANK_ACCOUNT, BUSINESS_ADDRESS, GOOGLE_MAPS_LINK, GOOGLE_MAPS_EMBED } from "@/lib/config";
 
 const container = {
   hidden: { opacity: 0 },

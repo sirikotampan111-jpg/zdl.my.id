@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Bot } from "lucide-react";
+import { WHATSAPP_DISPLAY } from "@/lib/config";
 
 interface Message {
   role: "user" | "assistant";
@@ -68,7 +69,7 @@ export function Chatbot() {
         {
           role: "assistant",
           content:
-            "Maaf, gangguan teknis. Hubungi kami via WhatsApp di 0889-7374-5596 😊",
+            `Maaf, gangguan teknis. Hubungi kami via WhatsApp di ${WHATSAPP_DISPLAY} 😊`,
         },
       ]);
     } finally {
