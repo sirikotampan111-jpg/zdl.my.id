@@ -45,6 +45,20 @@ export function PageKontak() {
   const [subjek, setSubjek] = useState("");
   const [pesan, setPesan] = useState("");
 
+  /**
+   * Sanitize input for safe inclusion in WhatsApp URL.
+   * Strips HTML tags, script content, and WhatsApp formatting injection characters.
+   */
+  const sanitizeForWhatsApp = (input: string): string => {
+    return input
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "") // strip script tags
+      .replace(/<[^>]*>/g, "") // strip all HTML tags
+      .replace(/javascript:/gi, "") // strip javascript: protocol
+      .replace(/on\w+\s*=/gi, "") // strip event handlers
+      .replace(/[\r\n]{3,}/g, "\n\n") // limit consecutive newlines
+      .trim();
+  };
+
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama.trim() || !email.trim() || !pesan.trim()) {
@@ -52,14 +66,27 @@ export function PageKontak() {
       return;
     }
 
+    // SECURITY: Sanitize all user inputs before encoding into WhatsApp URL
+    // to prevent injection of WhatsApp formatting commands or malicious URLs
+    const safeNama = sanitizeForWhatsApp(nama);
+    const safeEmail = sanitizeForWhatsApp(email);
+    const safeSubjek = sanitizeForWhatsApp(subjek);
+    const safePesan = sanitizeForWhatsApp(pesan);
+
+    // Additional validation: limit input lengths
+    if (safeNama.length > 200 || safeEmail.length > 200 || safePesan.length > 2000) {
+      toast.error("Input terlalu panjang. Harap perpendek.");
+      return;
+    }
+
     const message = `Halo Zheng Digital Lab,
 
-Nama: ${nama}
-Email: ${email}
-Subjek: ${subjek || "-"}
+Nama: ${safeNama}
+Email: ${safeEmail}
+Subjek: ${safeSubjek || "-"}
 
 Pesan:
-${pesan}
+${safePesan}
 
 Mohon informasi lebih lanjut. Terima kasih.`;
 

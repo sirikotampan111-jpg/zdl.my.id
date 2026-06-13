@@ -25,6 +25,38 @@ if (!googleClientId || !googleClientSecret) {
   console.warn("[AUTH] Google OAuth credentials not set. Google login will not work.");
 }
 
+// ========== JWT Role Cache ==========
+// Caches user roles with a TTL to avoid querying the database on every single
+// JWT refresh. The JWT callback is invoked on every authenticated request, and
+// without caching, this would result in a DB query per request — a performance
+// bottleneck under load. Cache TTL is 5 minutes, balancing freshness with
+// performance. Role changes (e.g., admin demotion) take up to 5 minutes to
+// propagate, which is acceptable for this application.
+const ROLE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const roleCache = new Map<string, { role: string; expiresAt: number }>();
+
+function getCachedRole(email: string): string | null {
+  const cached = roleCache.get(email);
+  if (!cached) return null;
+  if (Date.now() > cached.expiresAt) {
+    roleCache.delete(email);
+    return null;
+  }
+  return cached.role;
+}
+
+function setCachedRole(email: string, role: string): void {
+  // Limit cache size to prevent memory leaks in long-running processes
+  if (roleCache.size > 10000) {
+    // Evict oldest entries (first 20%)
+    const keysToDelete = Array.from(roleCache.keys()).slice(0, Math.ceil(roleCache.size * 0.2));
+    for (const key of keysToDelete) {
+      roleCache.delete(key);
+    }
+  }
+  roleCache.set(email, { role, expiresAt: Date.now() + ROLE_CACHE_TTL });
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     // Only configure Google provider if credentials are available
@@ -64,6 +96,8 @@ export const authOptions: NextAuthOptions = {
             where: { id: existingUser.id },
             data: { role: "super-admin" },
           });
+          // Invalidate cache so the role update takes effect immediately
+          setCachedRole(user.email, "super-admin");
         }
       }
       return true;
@@ -73,16 +107,29 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as { role?: string })?.role || "customer";
         token.id = user.id;
+        // Cache the initial role
+        if (user.email) {
+          setCachedRole(user.email, token.role as string);
+        }
       }
 
-      // Always refresh role from DB on subsequent requests (handles role changes)
+      // Refresh role from DB on subsequent requests, with caching
+      // to avoid a DB query on every single request
       if (token.email) {
-        const dbUser = await db.user.findUnique({
-          where: { email: token.email as string },
-          select: { role: true },
-        });
-        if (dbUser) {
-          token.role = dbUser.role;
+        const email = token.email as string;
+        const cachedRole = getCachedRole(email);
+        if (cachedRole) {
+          token.role = cachedRole;
+        } else {
+          // Cache miss — query DB and update cache
+          const dbUser = await db.user.findUnique({
+            where: { email },
+            select: { role: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            setCachedRole(email, dbUser.role);
+          }
         }
       }
 

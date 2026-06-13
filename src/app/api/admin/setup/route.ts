@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { setupSchema } from "@/lib/validations";
 import { requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
-import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
 import { auditLog } from "@/lib/audit-log";
 
 // POST — Create initial super-admin (ONLY works if no super-admin exists)
@@ -22,12 +22,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rawBody = await req.json();
+    const rawBodyText = await req.text();
+
+    // SECURITY: Validate body size before parsing
+    if (!validateBodySize(rawBodyText)) {
+      return NextResponse.json(
+        { error: "Request body too large" },
+        { status: 413 }
+      );
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = JSON.parse(rawBodyText);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON" },
+        { status: 400 }
+      );
+    }
 
     // Validate with Zod
     const parseResult = setupSchema.safeParse(rawBody);
     if (!parseResult.success) {
-      console.error("[SECURITY] Setup validation failed:", parseResult.error.errors);
+      console.error("[SECURITY] Setup validation failed:", parseResult.error.issues);
       return NextResponse.json(
         { error: "Data tidak valid" },
         { status: 400 }

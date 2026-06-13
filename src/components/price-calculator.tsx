@@ -423,7 +423,9 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
                 </span>
                 <span className="font-medium">
                   {formatPrice(
-                    "ppn" in breakdown ? breakdown.ppn : breakdown.basePrice * PPN_RATE,
+                    breakdown.ppn != null
+                      ? breakdown.ppn
+                      : breakdown.basePrice * PPN_RATE,
                   )}
                 </span>
               </div>

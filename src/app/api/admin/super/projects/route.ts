@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin, requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
 import { adminUpdateProjectSchema, adminDeleteSchema } from "@/lib/validations";
-import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
 import { auditLog } from "@/lib/audit-log";
 
 // GET all projects (admin)
@@ -53,12 +53,30 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const rawBody = await req.json();
+    const rawBodyText = await req.text();
+
+    // SECURITY: Validate body size before parsing
+    if (!validateBodySize(rawBodyText)) {
+      return NextResponse.json(
+        { error: "Request body too large" },
+        { status: 413 }
+      );
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = JSON.parse(rawBodyText);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON" },
+        { status: 400 }
+      );
+    }
 
     // Validate with Zod — prevents mass assignment
     const parseResult = adminUpdateProjectSchema.safeParse(rawBody);
     if (!parseResult.success) {
-      console.error("[SECURITY] Project update validation failed:", parseResult.error.errors);
+      console.error("[SECURITY] Project update validation failed:", parseResult.error.issues);
       return NextResponse.json(
         { error: "Data tidak valid" },
         { status: 400 }

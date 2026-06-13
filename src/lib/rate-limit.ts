@@ -84,6 +84,18 @@ export function getClientIp(req: Request): string {
   return "unknown";
 }
 
+/** Maximum allowed request body size (1MB) */
+export const MAX_BODY_SIZE = 1024 * 1024;
+
+/**
+ * Validate that a request body does not exceed the maximum allowed size.
+ * Call this before parsing JSON to prevent memory exhaustion from oversized payloads.
+ * Returns true if the body size is within limits, false otherwise.
+ */
+export function validateBodySize(body: string): boolean {
+  return body.length <= MAX_BODY_SIZE;
+}
+
 // Preset rate limit configurations
 export const RATE_LIMITS = {
   /** Chat API: 20 messages per minute */

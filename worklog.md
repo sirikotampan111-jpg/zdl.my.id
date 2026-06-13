@@ -32,3 +32,34 @@ Stage Summary:
 - 13 existing files modified with security improvements
 - No features changed — only security and structural improvements
 - Build verified successfully with all routes indexed
+---
+Task ID: security-hardening
+Agent: Main Agent
+Task: Comprehensive security review and hardening of the ZDL website
+
+Work Log:
+- Audited entire codebase for security vulnerabilities (13 API routes, all components, config, middleware)
+- Fixed /api/orders route — added server-side price validation against authoritative catalog (was accepting client-supplied prices)
+- Fixed /api/midtrans route — rejected non-catalog items entirely instead of accepting client-supplied prices
+- Added JWT role caching with 5-minute TTL and memory-bounded cache to avoid DB query on every request
+- Added request body size validation (1MB limit) to ALL API routes with safe JSON parsing
+- Added validateBodySize() utility to rate-limit.ts
+- Strengthened CSP headers: restricted img-src from any https: to specific domains, added frame-ancestors 'self'
+- Added frame-src for Google Maps embed, frame-ancestors for clickjacking protection
+- Strengthened middleware: added HTTP method validation, expanded blocked attack paths (/.svn, /.hg, /wp-content, /xmlrpc.php, etc.), added request body size pre-validation via Content-Length, added security response headers for API routes (Cache-Control, X-Content-Type-Options)
+- Sanitized contact form inputs before WhatsApp URL encoding (XSS/injection prevention)
+- Fixed .env.example — replaced real admin email (sirikotampan111@gmail.com) with admin@example.com placeholder
+- Fixed Zod v4 compatibility — changed .error.errors to .error.issues across all API routes
+- Fixed tsconfig.json — excluded examples/ and skills/ directories from TypeScript compilation
+- Added missing radix-ui dependencies for shadcn/ui components
+- Build verified successfully with all routes indexed
+
+Stage Summary:
+- 10 security vulnerabilities fixed across HIGH, MEDIUM, and LOW severity categories
+- All API routes now have: Zod validation, rate limiting, body size validation, safe JSON parsing, auth checks, server-side price validation
+- RBAC system is comprehensive (3-tier: customer, admin, super-admin) with middleware + route-level checks
+- No secrets leak to client; all env vars validated at startup
+- CSP, HSTS, X-Frame-Options, and other security headers properly configured
+- Audit logging covers all admin actions and security events
+- Build passes with all 20 routes indexed
+

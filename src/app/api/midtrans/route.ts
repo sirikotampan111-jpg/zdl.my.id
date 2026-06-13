@@ -9,7 +9,7 @@ import {
 } from "@/lib/data";
 import { checkoutSchema } from "@/lib/validations";
 import { safeErrorResponse } from "@/lib/auth-guard";
-import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import {
@@ -47,11 +47,30 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse & validate input
-    const rawBody = await req.json();
+    const rawBodyText = await req.text();
+
+    // SECURITY: Validate body size before parsing
+    if (!validateBodySize(rawBodyText)) {
+      return NextResponse.json(
+        { error: "Request body too large" },
+        { status: 413 }
+      );
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = JSON.parse(rawBodyText);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON" },
+        { status: 400 }
+      );
+    }
+
     const parseResult = checkoutSchema.safeParse(rawBody);
     if (!parseResult.success) {
       // Don't expose detailed validation errors to client
-      console.error("[SECURITY] Checkout validation failed:", parseResult.error.errors);
+      console.error("[SECURITY] Checkout validation failed:", parseResult.error.issues);
       return NextResponse.json(
         { error: "Data tidak valid. Periksa kembali data yang dimasukkan." },
         { status: 400 }
@@ -125,27 +144,28 @@ export async function POST(req: NextRequest) {
         totalPackagePrice = singleValidation.item.price;
         primaryCategory = singleValidation.item.category;
       } else {
-        // Not found in catalog — could be a custom/legacy item
-        // SECURITY: Still don't trust client price blindly. Log a warning.
-        if (parseResult.data.packagePrice && parseResult.data.packagePrice > 10000000) {
-          auditLog({
-            action: "security.suspicious_activity",
-            details: {
-              mode: "single",
-              packageName,
-              packageCategory,
-              clientPrice: parseResult.data.packagePrice,
-              reason: "High-value custom item not in catalog",
-            },
-            ip,
-          });
-        }
-        // For non-catalog items, we still need a price but log the deviation
-        const clientPrice = parseResult.data.packagePrice || 0;
-        orderItems = [{ id: packageCategory || "custom", name: packageName, price: clientPrice, category: packageCategory || "custom", quantity: 1 }];
-        combinedPackageName = packageName;
-        totalPackagePrice = clientPrice;
-        primaryCategory = packageCategory || "custom";
+        // SECURITY FIX: Reject non-catalog items entirely.
+        // Previously, client-supplied prices were accepted for unknown items,
+        // allowing price manipulation attacks. Now we require all items to be
+        // in the server-side catalog. If a custom item is needed, it must be
+        // added to the catalog first by an admin.
+        auditLog({
+          action: "security.price_mismatch",
+          details: {
+            mode: "single",
+            packageName,
+            packageCategory,
+            clientPrice: parseResult.data.packagePrice,
+            error: singleValidation.error,
+            reason: "Non-catalog item rejected",
+          },
+          ip,
+        });
+
+        return NextResponse.json(
+          { error: "Layanan tidak ditemukan dalam katalog. Silakan refresh halaman dan coba lagi." },
+          { status: 400 }
+        );
       }
     }
 

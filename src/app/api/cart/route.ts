@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cartActionSchema } from "@/lib/validations";
 import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
-import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
 import { validateServiceItem } from "@/lib/price-guard";
 import { auditLog } from "@/lib/audit-log";
 
@@ -62,13 +62,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rawBody = await req.json();
+    const rawBodyText = await req.text();
+
+    // SECURITY: Validate body size before parsing
+    if (!validateBodySize(rawBodyText)) {
+      return NextResponse.json(
+        { error: "Request body too large" },
+        { status: 413 }
+      );
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = JSON.parse(rawBodyText);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON" },
+        { status: 400 }
+      );
+    }
 
     // Validate with Zod
     const parseResult = cartActionSchema.safeParse(rawBody);
     if (!parseResult.success) {
       // Don't expose detailed validation errors to client
-      console.error("[SECURITY] Cart validation failed:", parseResult.error.errors);
+      console.error("[SECURITY] Cart validation failed:", parseResult.error.issues);
       return NextResponse.json(
         { error: "Data tidak valid" },
         { status: 400 }

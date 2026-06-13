@@ -5,7 +5,7 @@ import { generateTicketNumber } from "@/lib/data";
 import { midtransWebhookSchema } from "@/lib/validations";
 import { safeErrorResponse } from "@/lib/auth-guard";
 import { auditLog, securityLog } from "@/lib/audit-log";
-import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +16,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Rate limited" }, { status: 429 });
     }
 
-    const rawBody = await req.json();
+    const rawBodyText = await req.text();
+
+    // SECURITY: Validate body size before parsing
+    if (!validateBodySize(rawBodyText)) {
+      return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = JSON.parse(rawBodyText);
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
 
     // Validate input with Zod
     const parseResult = midtransWebhookSchema.safeParse(rawBody);
