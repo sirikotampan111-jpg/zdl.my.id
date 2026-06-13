@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { portfolios, portfolioCategories } from "@/lib/data";
+import { portfolios, portfolioCategories, type PortfolioItem } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Monitor } from "lucide-react";
+import { WebsitePreviewModal } from "@/components/website-preview-modal";
 
 const container = {
   hidden: { opacity: 0 },
@@ -23,11 +24,18 @@ const item = {
 
 export function PagePortofolio() {
   const [activeCategory, setActiveCategory] = useState<string>("Semua");
+  const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const filtered =
     activeCategory === "Semua"
       ? portfolios
       : portfolios.filter((p) => p.category === activeCategory);
+
+  const openPreview = (p: PortfolioItem) => {
+    setPreviewItem(p);
+    setPreviewOpen(true);
+  };
 
   return (
     <section className="pt-24 pb-20">
@@ -43,8 +51,8 @@ export function PagePortofolio() {
             Portofolio <span className="gold-gradient-text">Kami</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Lihat hasil karya kami dari berbagai kategori bisnis. Setiap website
-            dibangun dengan standar kualitas tinggi.
+            Lihat hasil karya kami dari berbagai kategori bisnis. Klik untuk
+            melihat tampilan website langsung.
           </p>
         </motion.div>
 
@@ -83,10 +91,8 @@ export function PagePortofolio() {
             {filtered.map((p) => (
               <motion.div key={p.id} variants={item}>
                 <Card
-                  className="overflow-hidden group hover:border-gold/50 transition-colors cursor-pointer"
-                  onClick={() => {
-                    if (p.url) window.open(p.url, "_blank", "noopener");
-                  }}
+                  className="overflow-hidden group hover:border-gold/50 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-gold/10"
+                  onClick={() => openPreview(p)}
                 >
                   <div className="h-52 relative overflow-hidden">
                     {p.image ? (
@@ -99,9 +105,9 @@ export function PagePortofolio() {
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium">
-                            <ExternalLink className="w-4 h-4" />
-                            Lihat Website
+                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium text-sm">
+                            <Monitor className="w-4 h-4" />
+                            Lihat Live Preview
                           </span>
                         </div>
                       </>
@@ -113,7 +119,7 @@ export function PagePortofolio() {
                           {p.domain}
                         </span>
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium">
+                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium text-sm">
                             <ExternalLink className="w-4 h-4" />
                             Segera Online
                           </span>
@@ -138,6 +144,13 @@ export function PagePortofolio() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Website Preview Modal */}
+      <WebsitePreviewModal
+        portfolio={previewItem}
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+      />
     </section>
   );
 }

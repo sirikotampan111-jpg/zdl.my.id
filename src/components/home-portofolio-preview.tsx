@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useStore } from "@/store/use-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { portfolios } from "@/lib/data";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { portfolios, type PortfolioItem } from "@/lib/data";
+import { ArrowRight, ExternalLink, Monitor } from "lucide-react";
+import { WebsitePreviewModal } from "@/components/website-preview-modal";
 
 const container = {
   hidden: { opacity: 0 },
@@ -25,6 +27,13 @@ const item = {
 export function HomePortofolioPreview() {
   const { setCurrentPage } = useStore();
   const featured = portfolios.slice(0, 6);
+  const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const openPreview = (p: PortfolioItem) => {
+    setPreviewItem(p);
+    setPreviewOpen(true);
+  };
 
   return (
     <section className="py-20">
@@ -41,6 +50,7 @@ export function HomePortofolioPreview() {
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Beberapa project terbaru yang telah kami selesaikan untuk klien kami.
+            Klik untuk melihat langsung.
           </p>
         </motion.div>
 
@@ -54,10 +64,8 @@ export function HomePortofolioPreview() {
           {featured.map((p) => (
             <motion.div key={p.id} variants={item}>
               <Card
-                className="overflow-hidden group hover:border-gold/50 transition-colors cursor-pointer"
-                onClick={() => {
-                  if (p.url) window.open(p.url, "_blank", "noopener");
-                }}
+                className="overflow-hidden group hover:border-gold/50 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-gold/10"
+                onClick={() => openPreview(p)}
               >
                 <div className="h-48 relative overflow-hidden">
                   {p.image ? (
@@ -70,9 +78,9 @@ export function HomePortofolioPreview() {
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium">
-                          <ExternalLink className="w-4 h-4" />
-                          Lihat Website
+                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium text-sm">
+                          <Monitor className="w-4 h-4" />
+                          Lihat Live Preview
                         </span>
                       </div>
                     </>
@@ -84,7 +92,7 @@ export function HomePortofolioPreview() {
                         {p.domain}
                       </span>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium">
+                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium text-sm">
                           <ExternalLink className="w-4 h-4" />
                           Segera Online
                         </span>
@@ -125,6 +133,13 @@ export function HomePortofolioPreview() {
           </Button>
         </motion.div>
       </div>
+
+      {/* Website Preview Modal */}
+      <WebsitePreviewModal
+        portfolio={previewItem}
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+      />
     </section>
   );
 }
