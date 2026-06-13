@@ -3,6 +3,8 @@ export interface PortfolioItem {
   domain: string;
   category: "Properti" | "Interior" | "Kuliner" | "Bisnis & Edukasi";
   gradient: string;
+  image?: string;
+  url?: string;
 }
 
 export interface ServiceItem {
@@ -39,6 +41,8 @@ export const portfolios: PortfolioItem[] = [
     domain: "genesisxproperty.com",
     category: "Properti",
     gradient: "from-blue-600 to-cyan-500",
+    image: "/images/portfolio/genesisxproperty.png",
+    url: "https://www.genesisxproperty.com",
   },
   {
     id: "liaviarealestate",
@@ -52,18 +56,24 @@ export const portfolios: PortfolioItem[] = [
     domain: "lianahomeinterior.com",
     category: "Interior",
     gradient: "from-amber-500 to-orange-400",
+    image: "/images/portfolio/lianahomeinterior.png",
+    url: "https://www.lianahomeinterior.com",
   },
   {
     id: "designhomeliving",
     domain: "designhomeliving.org",
     category: "Interior",
     gradient: "from-rose-500 to-pink-400",
+    image: "/images/portfolio/designhomeliving.png",
+    url: "https://www.designhomeliving.org",
   },
   {
     id: "terradekor",
     domain: "terradekor.com",
     category: "Interior",
     gradient: "from-violet-600 to-purple-500",
+    image: "/images/portfolio/terradekor.png",
+    url: "https://www.terradekor.com",
   },
   // Kuliner
   {
@@ -71,6 +81,8 @@ export const portfolios: PortfolioItem[] = [
     domain: "kopikir.store",
     category: "Kuliner",
     gradient: "from-yellow-600 to-amber-500",
+    image: "/images/portfolio/kopikir.png",
+    url: "https://www.kopikir.store",
   },
   {
     id: "pawonbhoga",
@@ -90,12 +102,16 @@ export const portfolios: PortfolioItem[] = [
     domain: "bimbelstarlish.com",
     category: "Bisnis & Edukasi",
     gradient: "from-sky-500 to-blue-400",
+    image: "/images/portfolio/bimbelstarlish.png",
+    url: "https://www.bimbelstarlish.com",
   },
   {
     id: "kirimikanhias",
     domain: "kirimikanhias.com",
     category: "Bisnis & Edukasi",
     gradient: "from-indigo-500 to-blue-500",
+    image: "/images/portfolio/kirimikanhias.png",
+    url: "https://kirimikanhias.com",
   },
 ];
 
