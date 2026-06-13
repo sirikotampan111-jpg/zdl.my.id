@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-// Helper to check admin access
-async function checkAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return null;
-  const role = (session.user as { role?: string })?.role;
-  if (role !== "admin" && role !== "super-admin") return null;
-  return session;
-}
+import { requireAdmin, requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
+import { adminUpdateOrderSchema, adminDeleteSchema } from "@/lib/validations";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 // GET all orders (admin)
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await checkAdmin();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(`admin-orders:${ip}`, RATE_LIMITS.admin);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Terlalu banyak request" }, { status: 429 });
     }
 
     const orders = await db.order.findMany({
@@ -35,31 +34,31 @@ export async function GET() {
 
     return NextResponse.json({ orders });
   } catch (error) {
-    console.error("Admin get orders error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 // PATCH update order status
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await checkAdmin();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const body = await req.json();
-    const { id, status } = body;
+    const rawBody = await req.json();
 
-    if (!id || !status) {
+    // Validate with Zod — prevents mass assignment
+    const parseResult = adminUpdateOrderSchema.safeParse(rawBody);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "ID dan status harus diisi" },
+        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
         { status: 400 }
       );
     }
+
+    const { id, status } = parseResult.data;
 
     const existingOrder = await db.order.findUnique({ where: { id } });
     if (!existingOrder) {
@@ -69,9 +68,9 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const updateData: Record<string, unknown> = { status };
+    // Only allow specific fields to be updated — no mass assignment
+    const updateData: { status: string; paidAt?: Date } = { status };
 
-    // If status is paid, set paidAt
     if (status === "paid" && !existingOrder.paidAt) {
       updateData.paidAt = new Date();
     }
@@ -83,39 +82,33 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ order });
   } catch (error) {
-    console.error("Admin update order error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 // DELETE order (super-admin only)
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const role = (session.user as { role?: string })?.role;
-    if (role !== "super-admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await requireSuperAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    if (!id) {
+    // Validate
+    const parseResult = adminDeleteSchema.safeParse({ id });
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "ID harus diisi" },
+        { error: "ID tidak valid" },
         { status: 400 }
       );
     }
 
-    // Delete related data first
     const order = await db.order.findUnique({
-      where: { id },
+      where: { id: parseResult.data.id },
       include: { project: true, transactions: true },
     });
 
@@ -126,24 +119,17 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Delete project milestones if project exists
+    // Delete in correct order
     if (order.project) {
       await db.milestone.deleteMany({ where: { projectId: order.project.id } });
       await db.project.delete({ where: { id: order.project.id } });
     }
-
-    // Delete transactions
-    await db.transaction.deleteMany({ where: { orderId: id } });
-
-    // Delete order
-    await db.order.delete({ where: { id } });
+    await db.transaction.deleteMany({ where: { orderId: parseResult.data.id } });
+    await db.order.delete({ where: { id: parseResult.data.id } });
 
     return NextResponse.json({ message: "Pesanan berhasil dihapus" });
   } catch (error) {
-    console.error("Admin delete order error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

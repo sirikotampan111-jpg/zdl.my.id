@@ -2,17 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { cartActionSchema } from "@/lib/validations";
+import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 // GET /api/cart — Get current user's cart
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const auth = await requireAuth();
+    if (!auth.authorized) {
       return NextResponse.json({ items: [] });
     }
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: auth.userId },
       include: {
         cart: {
           include: { items: true },
@@ -34,24 +37,44 @@ export async function GET() {
 
     return NextResponse.json({ items });
   } catch (error) {
-    console.error("Get cart error:", error);
-    return NextResponse.json({ items: [] });
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 // POST /api/cart — Add item or sync entire cart
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const auth = await requireAuth();
+    if (!auth.authorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { action, item, items: bulkItems } = body;
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(`cart:${ip}:${auth.userId}`, RATE_LIMITS.cart);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Terlalu banyak request. Coba lagi nanti." },
+        { status: 429 }
+      );
+    }
+
+    const rawBody = await req.json();
+
+    // Validate with Zod
+    const parseResult = cartActionSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { status: 400 }
+      );
+    }
+
+    const body = parseResult.data;
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: auth.userId },
       include: { cart: { include: { items: true } } },
     });
 
@@ -68,15 +91,27 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (action === "add" && item) {
-      // Add single item or increment quantity
+    if (body.action === "add") {
+      const item = body.item;
       const existing = cart.items.find((ci) => ci.itemId === item.id);
       if (existing) {
+        if (existing.quantity >= 10) {
+          return NextResponse.json(
+            { error: "Maksimal 10 item per produk" },
+            { status: 400 }
+          );
+        }
         await db.cartItem.update({
           where: { id: existing.id },
           data: { quantity: existing.quantity + 1 },
         });
       } else {
+        if (cart.items.length >= 10) {
+          return NextResponse.json(
+            { error: "Maksimal 10 produk dalam keranjang" },
+            { status: 400 }
+          );
+        }
         await db.cartItem.create({
           data: {
             cartId: cart.id,
@@ -88,13 +123,13 @@ export async function POST(req: NextRequest) {
           },
         });
       }
-    } else if (action === "sync" && Array.isArray(bulkItems)) {
-      // Full sync: replace all items (used when merging local cart on login)
+    } else if (body.action === "sync") {
+      const bulkItems = body.items;
       await db.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       if (bulkItems.length > 0) {
         await db.cartItem.createMany({
-          data: bulkItems.map((bi: { id: string; name: string; price: number; category: string; quantity: number }) => ({
+          data: bulkItems.map((bi) => ({
             cartId: cart.id,
             itemId: bi.id,
             name: bi.name,
@@ -104,26 +139,24 @@ export async function POST(req: NextRequest) {
           })),
         });
       }
-    } else if (action === "remove" && item?.id) {
-      // Remove single item
-      const existing = cart.items.find((ci) => ci.itemId === item.id);
+    } else if (body.action === "remove") {
+      const existing = cart.items.find((ci) => ci.itemId === body.item.id);
       if (existing) {
         await db.cartItem.delete({ where: { id: existing.id } });
       }
-    } else if (action === "update" && item?.id && item?.quantity !== undefined) {
-      // Update quantity
-      const existing = cart.items.find((ci) => ci.itemId === item.id);
+    } else if (body.action === "update") {
+      const existing = cart.items.find((ci) => ci.itemId === body.item.id);
       if (existing) {
-        if (item.quantity <= 0) {
+        if (body.item.quantity <= 0) {
           await db.cartItem.delete({ where: { id: existing.id } });
         } else {
           await db.cartItem.update({
             where: { id: existing.id },
-            data: { quantity: item.quantity },
+            data: { quantity: body.item.quantity },
           });
         }
       }
-    } else if (action === "clear") {
+    } else if (body.action === "clear") {
       await db.cartItem.deleteMany({ where: { cartId: cart.id } });
     }
 
@@ -143,24 +176,21 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ items: returnItems });
   } catch (error) {
-    console.error("Cart POST error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 // DELETE /api/cart — Clear entire cart
 export async function DELETE() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const auth = await requireAuth();
+    if (!auth.authorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: auth.userId },
       include: { cart: true },
     });
 
@@ -170,10 +200,7 @@ export async function DELETE() {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Cart DELETE error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

@@ -400,7 +400,10 @@ export function generateInvoiceNumber(): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
-  const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  // Use crypto for secure random
+  const random = typeof crypto !== "undefined"
+    ? String(crypto.randomUUID().replace(/-/g, "").slice(0, 4))
+    : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
   return `ZDL-${year}${month}${day}-${random}`;
 }
 
@@ -409,7 +412,9 @@ export function generateTicketNumber(): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
-  const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  const random = typeof crypto !== "undefined"
+    ? String(crypto.randomUUID().replace(/-/g, "").slice(0, 4))
+    : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
   return `TKT-${year}${month}${day}-${random}`;
 }
 

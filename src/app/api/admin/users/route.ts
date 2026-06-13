@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { requireAdmin, safeErrorResponse } from "@/lib/auth-guard";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const role = (session.user as any).role;
-    if (role !== "admin" && role !== "super-admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const users = await db.user.findMany({
@@ -30,9 +25,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ users });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

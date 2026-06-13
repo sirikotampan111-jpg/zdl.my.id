@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import ZAI from "z-ai-web-dev-sdk";
 import { randomUUID } from "crypto";
+import { chatSchema } from "@/lib/validations";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `Kamu adalah asisten virtual Zheng Digital Lab (ZDL), perusahaan jasa pembuatan website profesional. Gunakan Bahasa Indonesia.
 
@@ -24,26 +26,51 @@ Panduan: Sapa ramah, jika ditanya harga berikan range, jika mau order arahkan ke
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, sessionId } = (await request.json()) as {
-      messages: Array<{ role: string; content: string }>;
-      sessionId?: string;
-    };
-
-    if (!messages?.length) {
+    // Rate limiting — per IP
+    const ip = getClientIp(request);
+    const rateLimit = checkRateLimit(`chat:${ip}`, RATE_LIMITS.chat);
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "Messages required" },
+        { message: "Terlalu banyak pesan. Tunggu sebentar ya! 😊" },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
+    const rawBody = await request.json();
+
+    // Validate with Zod
+    const parseResult = chatSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Pesan tidak valid" },
         { status: 400 }
       );
     }
 
-    const newSessionId = sessionId || randomUUID();
+    const { messages, sessionId: rawSessionId } = parseResult.data;
+
+    // Validate sessionId format if provided
+    let sessionId: string;
+    if (rawSessionId && /^[0-9a-f-]{1,100}$/i.test(rawSessionId)) {
+      sessionId = rawSessionId;
+    } else {
+      sessionId = randomUUID();
+    }
+
+    // Limit conversation history to prevent context overflow
+    const recentMessages = messages.slice(-20);
 
     try {
       const zai = await ZAI.create();
       const completion = await zai.chat.completions.create({
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          ...messages.map((m) => ({
+          ...recentMessages.map((m) => ({
             role: m.role as "user" | "assistant",
             content: m.content,
           })),
@@ -54,15 +81,15 @@ export async function POST(request: NextRequest) {
         completion.choices?.[0]?.message?.content ||
         "Maaf, saya tidak bisa memproses permintaan Anda. Hubungi WhatsApp 0889-7374-5596 😊";
 
-      return NextResponse.json({ message: reply, sessionId: newSessionId });
-    } catch (aiError) {
+      return NextResponse.json({ message: reply, sessionId });
+    } catch {
       return NextResponse.json({
         message:
           "Maaf, gangguan teknis. Hubungi WhatsApp 0889-7374-5596 😊",
-        sessionId: newSessionId,
+        sessionId,
       });
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: "Terjadi kesalahan. Hubungi WhatsApp 0889-7374-5596 😊",

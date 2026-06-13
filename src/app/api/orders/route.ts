@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { requireAuth, safeErrorResponse, canAccessResource } from "@/lib/auth-guard";
+import { orderCreateSchema } from "@/lib/validations";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string })?.id;
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuth();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const orders = await db.order.findMany({
-      where: { userId },
+      where: { userId: auth.userId },
       include: {
         transactions: true,
         project: {
@@ -28,49 +24,40 @@ export async function GET() {
 
     return NextResponse.json({ orders });
   } catch (error) {
-    console.error("Get orders error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuth();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const userId = (session.user as { id?: string })?.id;
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const {
-      packageName,
-      packageCategory,
-      packagePrice,
-      ppnAmount,
-      transactionFee,
-      payAmount,
-      dpMinimal,
-      isDP,
-      customerName,
-      customerEmail,
-      customerPhone,
-      businessName,
-      notes,
-    } = body;
-
-    if (!packageName || !packagePrice) {
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(`order:${ip}:${auth.userId}`, RATE_LIMITS.payment);
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "Data pesanan tidak lengkap" },
+        { error: "Terlalu banyak request. Coba lagi nanti." },
+        { status: 429 }
+      );
+    }
+
+    const rawBody = await req.json();
+
+    // Validate with Zod
+    const parseResult = orderCreateSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
         { status: 400 }
       );
     }
+
+    const body = parseResult.data;
 
     // Generate order ID
     const now = new Date();
@@ -83,30 +70,27 @@ export async function POST(req: NextRequest) {
     const order = await db.order.create({
       data: {
         orderId,
-        userId,
-        packageName,
-        packageCategory: packageCategory || "html",
-        packagePrice: Number(packagePrice),
-        ppnAmount: Number(ppnAmount) || 0,
-        transactionFee: Number(transactionFee) || 0,
-        payAmount: Number(payAmount) || Number(packagePrice),
-        dpMinimal: Number(dpMinimal) || 0,
-        isDP: isDP || false,
-        customerName: customerName || session.user.name || "",
-        customerEmail: customerEmail || session.user.email || "",
-        customerPhone: customerPhone || "",
-        businessName: businessName || null,
-        notes: notes || null,
+        userId: auth.userId!,
+        packageName: body.packageName,
+        packageCategory: body.packageCategory,
+        packagePrice: body.packagePrice,
+        ppnAmount: body.ppnAmount || 0,
+        transactionFee: body.transactionFee || 0,
+        payAmount: body.payAmount || body.packagePrice,
+        dpMinimal: body.dpMinimal || 0,
+        isDP: body.isDP || false,
+        customerName: body.customerName || (auth.session?.user?.name as string) || "",
+        customerEmail: body.customerEmail || (auth.session?.user?.email as string) || "",
+        customerPhone: body.customerPhone || "",
+        businessName: body.businessName || null,
+        notes: body.notes || null,
         status: "pending",
       },
     });
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
-    console.error("Create order error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

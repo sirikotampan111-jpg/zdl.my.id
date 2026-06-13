@@ -2,10 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { generateTicketNumber } from "@/lib/data";
+import { midtransWebhookSchema } from "@/lib/validations";
+import { safeErrorResponse } from "@/lib/auth-guard";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
+
+    // Validate input with Zod
+    const parseResult = midtransWebhookSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Invalid payload" },
+        { status: 400 }
+      );
+    }
+
     const {
       order_id,
       transaction_id,
@@ -17,25 +29,40 @@ export async function POST(req: NextRequest) {
       fraud_status,
       signature_key,
       status_code,
-    } = body;
+    } = parseResult.data;
 
-    const serverKey =
-      process.env.MIDTRANS_SERVER_KEY || "SB-Mid-server-PLACEHOLDER";
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+
+    // ALWAYS verify signature — reject if no server key configured
+    if (!serverKey) {
+      console.error("[SECURITY] Midtrans webhook called without server key configured");
+      return NextResponse.json(
+        { error: "Server not configured" },
+        { status: 503 }
+      );
+    }
 
     // Verify signature
-    const hashInput = `${order_id}${status_code}${gross_amount}${serverKey}`;
-    const expectedSignature = crypto
-      .createHash("sha512")
-      .update(hashInput)
-      .digest("hex");
+    if (signature_key && status_code && gross_amount) {
+      const hashInput = `${order_id}${status_code}${gross_amount}${serverKey}`;
+      const expectedSignature = crypto
+        .createHash("sha512")
+        .update(hashInput)
+        .digest("hex");
 
-    if (
-      serverKey !== "SB-Mid-server-PLACEHOLDER" &&
-      signature_key !== expectedSignature
-    ) {
+      if (signature_key !== expectedSignature) {
+        console.error(`[SECURITY] Invalid webhook signature for order: ${order_id}`);
+        return NextResponse.json(
+          { error: "Invalid signature" },
+          { status: 403 }
+        );
+      }
+    } else {
+      // Missing required fields for signature verification
+      console.error(`[SECURITY] Webhook missing signature fields for order: ${order_id}`);
       return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 403 }
+        { error: "Missing signature fields" },
+        { status: 400 }
       );
     }
 
@@ -57,8 +84,8 @@ export async function POST(req: NextRequest) {
         grossAmount: gross_amount ? parseInt(gross_amount) : null,
         currency: currency || "IDR",
         fraudStatus: fraud_status || null,
-        signatureKey: signature_key || null,
-        rawResponse: JSON.stringify(body),
+        signatureKey: null, // Never store signature keys in DB
+        rawResponse: JSON.stringify(rawBody),
       },
     });
 
@@ -113,12 +140,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ status: "ok", ticketNumber });
+    return NextResponse.json({ status: "ok" });
   } catch (error) {
-    console.error("Webhook error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

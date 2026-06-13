@@ -1,22 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string })?.id;
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuth();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const projects = await db.project.findMany({
-      where: { userId },
+      where: { userId: auth.userId },
       include: {
         milestones: { orderBy: { createdAt: "asc" } },
         order: {
@@ -33,10 +27,7 @@ export async function GET() {
 
     return NextResponse.json({ projects });
   } catch (error) {
-    console.error("Get projects error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

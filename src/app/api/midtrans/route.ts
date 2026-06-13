@@ -7,6 +7,9 @@ import {
   TRANSACTION_FEE,
   DP_MINIMAL,
 } from "@/lib/data";
+import { checkoutSchema } from "@/lib/validations";
+import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 interface CartItemInput {
   id: string;
@@ -18,31 +21,45 @@ interface CartItemInput {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(`payment:${ip}`, RATE_LIMITS.payment);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Terlalu banyak request. Coba lagi nanti." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
+    // Parse & validate input
+    const rawBody = await req.json();
+    const parseResult = checkoutSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { status: 400 }
+      );
+    }
+
     const {
-      // Single-item (legacy)
       packageName,
       packagePrice,
       packageCategory,
-      // Multi-item (cart)
       items,
-      // Common
       customerName,
       customerEmail,
       customerPhone,
       businessName,
       notes,
       paymentMethod,
-      paymentOption, // "dp" or "full"
+      paymentOption,
       userId,
-    } = body;
-
-    if (!customerName || !customerEmail || !customerPhone) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
+    } = parseResult.data;
 
     // Determine mode: cart (multi-item) or single-item
     const isCartMode = Array.isArray(items) && items.length > 0;
@@ -54,9 +71,8 @@ export async function POST(req: NextRequest) {
 
     if (isCartMode) {
       orderItems = items;
-      combinedPackageName = items.map((i: CartItemInput) => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ""}`).join(" + ");
-      totalPackagePrice = items.reduce((sum: number, i: CartItemInput) => sum + i.price * i.quantity, 0);
-      // Primary category = first item's category (for DP logic)
+      combinedPackageName = items.map((i) => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ""}`).join(" + ");
+      totalPackagePrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
       primaryCategory = items[0].category;
     } else {
       if (!packageName || !packagePrice) {
@@ -114,7 +130,7 @@ export async function POST(req: NextRequest) {
         },
         item_details: itemDetails,
         customer_details: {
-          first_name: customerName,
+          first_name: customerName.substring(0, 100),
           email: customerEmail,
           phone: customerPhone,
         },
@@ -142,8 +158,9 @@ export async function POST(req: NextRequest) {
 
       const data = await response.json();
       if (!response.ok) {
+        console.error("[SECURITY] Midtrans API error:", data);
         return NextResponse.json(
-          { error: "Failed to create transaction", details: data },
+          { error: "Gagal membuat transaksi pembayaran" },
           { status: 500 }
         );
       }
@@ -164,9 +181,9 @@ export async function POST(req: NextRequest) {
         const newGuest = await db.user.create({
           data: {
             email: customerEmail,
-            name: customerName,
+            name: customerName.substring(0, 200),
             phone: customerPhone,
-            businessName: businessName || null,
+            businessName: businessName ? businessName.substring(0, 200) : null,
             role: "customer",
             provider: "checkout",
           },
@@ -224,7 +241,7 @@ export async function POST(req: NextRequest) {
         data: {
           orderId: order.id,
           userId: resolvedUserId,
-          projectName: projectItem.name,
+          projectName: projectItem.name.substring(0, 200),
           packageCategory: projectItem.category,
           status: "planning",
           progress: 10,
@@ -254,10 +271,7 @@ export async function POST(req: NextRequest) {
       isDemo,
     });
   } catch (error) {
-    console.error("Create transaction error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }

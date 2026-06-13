@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
+import { adminUpdateUserSchema, adminDeleteSchema } from "@/lib/validations";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 // GET all users (super-admin only)
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSuperAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
-    const role = (session.user as { role?: string })?.role;
-    if (role !== "super-admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(`admin-users:${ip}`, RATE_LIMITS.admin);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Terlalu banyak request" }, { status: 429 });
     }
 
     const users = await db.user.findMany({
@@ -34,39 +38,36 @@ export async function GET() {
 
     return NextResponse.json({ users });
   } catch (error) {
-    console.error("Admin get users error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 // PATCH update user role (super-admin only)
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const role = (session.user as { role?: string })?.role;
-    if (role !== "super-admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await requireSuperAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const body = await req.json();
-    const { id, role: newRole } = body;
+    const rawBody = await req.json();
 
-    if (!id || !newRole) {
+    // Validate with Zod
+    const parseResult = adminUpdateUserSchema.safeParse(rawBody);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "ID dan role harus diisi" },
+        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
         { status: 400 }
       );
     }
 
-    if (!["customer", "admin", "super-admin"].includes(newRole)) {
+    const { id, role: newRole } = parseResult.data;
+
+    // Prevent self-demotion
+    if (id === auth.userId && newRole !== "super-admin") {
       return NextResponse.json(
-        { error: "Role tidak valid" },
+        { error: "Tidak dapat mengubah role akun sendiri" },
         { status: 400 }
       );
     }
@@ -79,45 +80,51 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    // Only update role — no mass assignment
     const user = await db.user.update({
       where: { id },
       data: { role: newRole },
     });
 
-    return NextResponse.json({ user });
+    // Don't return password
+    const { password: _, ...safeUser } = user;
+    return NextResponse.json({ user: safeUser });
   } catch (error) {
-    console.error("Admin update user error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
 
 // DELETE user (super-admin only)
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const role = (session.user as { role?: string })?.role;
-    if (role !== "super-admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await requireSuperAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    if (!id) {
+    // Validate
+    const parseResult = adminDeleteSchema.safeParse({ id });
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "ID harus diisi" },
+        { error: "ID tidak valid" },
+        { status: 400 }
+      );
+    }
+
+    // Cannot delete self
+    if (parseResult.data.id === auth.userId) {
+      return NextResponse.json(
+        { error: "Tidak dapat menghapus akun sendiri" },
         { status: 400 }
       );
     }
 
     const user = await db.user.findUnique({
-      where: { id },
+      where: { id: parseResult.data.id },
       include: { projects: true, orders: true },
     });
 
@@ -140,21 +147,18 @@ export async function DELETE(req: NextRequest) {
     for (const project of user.projects) {
       await db.milestone.deleteMany({ where: { projectId: project.id } });
     }
-    await db.project.deleteMany({ where: { userId: id } });
+    await db.project.deleteMany({ where: { userId: parseResult.data.id } });
 
     for (const order of user.orders) {
       await db.transaction.deleteMany({ where: { orderId: order.id } });
     }
-    await db.order.deleteMany({ where: { userId: id } });
+    await db.order.deleteMany({ where: { userId: parseResult.data.id } });
 
-    await db.user.delete({ where: { id } });
+    await db.user.delete({ where: { id: parseResult.data.id } });
 
     return NextResponse.json({ message: "Pengguna berhasil dihapus" });
   } catch (error) {
-    console.error("Admin delete user error:", error);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    const err = safeErrorResponse(error);
+    return NextResponse.json(err, { status: 500 });
   }
 }
