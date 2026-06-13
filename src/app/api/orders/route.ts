@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
     // Validate with Zod
     const parseResult = orderCreateSchema.safeParse(rawBody);
     if (!parseResult.success) {
+      console.error("[SECURITY] Order create validation failed:", parseResult.error.errors);
       return NextResponse.json(
-        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { error: "Data tidak valid" },
         { status: 400 }
       );
     }

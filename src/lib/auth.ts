@@ -1,19 +1,41 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/lib/db";
+import { validateEnv } from "@/lib/env-check";
 
+// Validate critical environment variables at module load time
+// During build, this only warns — it throws at runtime in production
+validateEnv();
+
+// SECURITY: No hardcoded fallback — SUPER_ADMIN_EMAILS must be explicitly set
+// Empty string means no super-admins via env var (admin setup route can still create one)
 const SUPER_ADMIN_EMAILS = (
-  process.env.SUPER_ADMIN_EMAILS || "sirikotampan111@gmail.com"
+  process.env.SUPER_ADMIN_EMAILS || ""
 )
   .split(",")
-  .map((e: string) => e.trim().toLowerCase());
+  .map((e: string) => e.trim().toLowerCase())
+  .filter((e: string) => e.length > 0);
+
+// SECURITY: Validate Google OAuth credentials
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+if (!googleClientId || !googleClientSecret) {
+  // Only warn — don't throw during build. Runtime validation is in validateEnv()
+  console.warn("[AUTH] Google OAuth credentials not set. Google login will not work.");
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    }),
+    // Only configure Google provider if credentials are available
+    ...(googleClientId && googleClientSecret
+      ? [
+          GoogleProvider({
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     async signIn({ user, account }) {
@@ -79,6 +101,8 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    // Max session age — 24 hours for security
+    maxAge: 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

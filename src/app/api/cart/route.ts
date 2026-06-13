@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { cartActionSchema } from "@/lib/validations";
 import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { validateServiceItem } from "@/lib/price-guard";
+import { auditLog } from "@/lib/audit-log";
 
 // GET /api/cart — Get current user's cart
 export async function GET() {
@@ -65,8 +67,10 @@ export async function POST(req: NextRequest) {
     // Validate with Zod
     const parseResult = cartActionSchema.safeParse(rawBody);
     if (!parseResult.success) {
+      // Don't expose detailed validation errors to client
+      console.error("[SECURITY] Cart validation failed:", parseResult.error.errors);
       return NextResponse.json(
-        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { error: "Data tidak valid" },
         { status: 400 }
       );
     }
@@ -93,6 +97,23 @@ export async function POST(req: NextRequest) {
 
     if (body.action === "add") {
       const item = body.item;
+
+      // === CRITICAL SECURITY FIX: Validate item price against server catalog ===
+      const validation = validateServiceItem(item.id, item.price, item.name, item.category);
+      if (!validation.valid) {
+        auditLog({
+          action: "security.price_mismatch",
+          actorId: auth.userId,
+          actorRole: auth.role,
+          details: { action: "cart.add", itemId: item.id, clientPrice: item.price, error: validation.error },
+          ip,
+        });
+        return NextResponse.json(
+          { error: "Layanan tidak ditemukan. Silakan refresh halaman." },
+          { status: 400 }
+        );
+      }
+
       const existing = cart.items.find((ci) => ci.itemId === item.id);
       if (existing) {
         if (existing.quantity >= 10) {
@@ -112,24 +133,68 @@ export async function POST(req: NextRequest) {
             { status: 400 }
           );
         }
+        // Store SERVER-VALIDATED price, name, and category — never trust client values
         await db.cartItem.create({
           data: {
             cartId: cart.id,
-            itemId: item.id,
-            name: item.name,
-            price: item.price,
-            category: item.category,
+            itemId: validation.item.id,
+            name: validation.item.name,
+            price: validation.item.price,
+            category: validation.item.category,
             quantity: 1,
           },
         });
       }
+
+      auditLog({
+        action: "cart.add",
+        actorId: auth.userId,
+        targetType: "cart",
+        targetId: item.id,
+        details: { itemName: validation.item.name, serverPrice: validation.item.price },
+        ip,
+      });
     } else if (body.action === "sync") {
       const bulkItems = body.items;
+
+      // === CRITICAL SECURITY FIX: Validate all items against server catalog ===
+      const validatedItems: Array<{
+        id: string;
+        name: string;
+        price: number;
+        category: string;
+        quantity: number;
+      }> = [];
+
+      for (const bi of bulkItems) {
+        const validation = validateServiceItem(bi.id, bi.price, bi.name, bi.category);
+        if (!validation.valid) {
+          auditLog({
+            action: "security.price_mismatch",
+            actorId: auth.userId,
+            actorRole: auth.role,
+            details: { action: "cart.sync", itemId: bi.id, clientPrice: bi.price, error: validation.error },
+            ip,
+          });
+          return NextResponse.json(
+            { error: "Layanan tidak ditemukan. Silakan refresh halaman." },
+            { status: 400 }
+          );
+        }
+        validatedItems.push({
+          id: validation.item.id,
+          name: validation.item.name,
+          price: validation.item.price,
+          category: validation.item.category,
+          quantity: bi.quantity,
+        });
+      }
+
       await db.cartItem.deleteMany({ where: { cartId: cart.id } });
 
-      if (bulkItems.length > 0) {
+      if (validatedItems.length > 0) {
         await db.cartItem.createMany({
-          data: bulkItems.map((bi) => ({
+          data: validatedItems.map((bi) => ({
             cartId: cart.id,
             itemId: bi.id,
             name: bi.name,
@@ -139,11 +204,27 @@ export async function POST(req: NextRequest) {
           })),
         });
       }
+
+      auditLog({
+        action: "cart.sync",
+        actorId: auth.userId,
+        targetType: "cart",
+        details: { itemCount: validatedItems.length },
+        ip,
+      });
     } else if (body.action === "remove") {
       const existing = cart.items.find((ci) => ci.itemId === body.item.id);
       if (existing) {
         await db.cartItem.delete({ where: { id: existing.id } });
       }
+
+      auditLog({
+        action: "cart.remove",
+        actorId: auth.userId,
+        targetType: "cart",
+        targetId: body.item.id,
+        ip,
+      });
     } else if (body.action === "update") {
       const existing = cart.items.find((ci) => ci.itemId === body.item.id);
       if (existing) {
@@ -158,6 +239,13 @@ export async function POST(req: NextRequest) {
       }
     } else if (body.action === "clear") {
       await db.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+      auditLog({
+        action: "cart.clear",
+        actorId: auth.userId,
+        targetType: "cart",
+        ip,
+      });
     }
 
     // Return updated cart

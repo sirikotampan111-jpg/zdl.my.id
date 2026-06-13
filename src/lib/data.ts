@@ -400,10 +400,12 @@ export function generateInvoiceNumber(): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
-  // Use crypto for secure random
-  const random = typeof crypto !== "undefined"
-    ? String(crypto.randomUUID().replace(/-/g, "").slice(0, 4))
-    : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  // SECURITY: Always use crypto — no Math.random fallback
+  // In Node.js server context, crypto is always available
+  if (typeof crypto === "undefined" || !crypto.randomUUID) {
+    throw new Error("[SECURITY] crypto.randomUUID is not available. Cannot generate secure invoice number.");
+  }
+  const random = String(crypto.randomUUID().replace(/-/g, "").slice(0, 4));
   return `ZDL-${year}${month}${day}-${random}`;
 }
 
@@ -412,9 +414,11 @@ export function generateTicketNumber(): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
-  const random = typeof crypto !== "undefined"
-    ? String(crypto.randomUUID().replace(/-/g, "").slice(0, 4))
-    : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  // SECURITY: Always use crypto — no Math.random fallback
+  if (typeof crypto === "undefined" || !crypto.randomUUID) {
+    throw new Error("[SECURITY] crypto.randomUUID is not available. Cannot generate secure ticket number.");
+  }
+  const random = String(crypto.randomUUID().replace(/-/g, "").slice(0, 4));
   return `TKT-${year}${month}${day}-${random}`;
 }
 

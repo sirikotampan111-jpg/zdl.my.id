@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireAdmin, requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
 import { adminUpdateProjectSchema, adminDeleteSchema } from "@/lib/validations";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { auditLog } from "@/lib/audit-log";
 
 // GET all projects (admin)
 export async function GET(req: NextRequest) {
@@ -57,8 +58,9 @@ export async function PATCH(req: NextRequest) {
     // Validate with Zod — prevents mass assignment
     const parseResult = adminUpdateProjectSchema.safeParse(rawBody);
     if (!parseResult.success) {
+      console.error("[SECURITY] Project update validation failed:", parseResult.error.errors);
       return NextResponse.json(
-        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { error: "Data tidak valid" },
         { status: 400 }
       );
     }
@@ -73,6 +75,8 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    const ip = getClientIp(req);
+
     // Add milestone mode
     if (addMilestone && milestoneTitle) {
       const milestone = await db.milestone.create({
@@ -81,6 +85,16 @@ export async function PATCH(req: NextRequest) {
           title: milestoneTitle,
           status: "pending",
         },
+      });
+
+      auditLog({
+        action: "admin.milestone.create",
+        actorId: auth.userId,
+        actorRole: auth.role,
+        targetType: "project",
+        targetId: id,
+        details: { milestoneTitle },
+        ip,
       });
 
       return NextResponse.json({ project: existingProject, milestone });
@@ -110,6 +124,16 @@ export async function PATCH(req: NextRequest) {
       include: {
         milestones: { orderBy: { createdAt: "asc" } },
       },
+    });
+
+    auditLog({
+      action: "admin.project.update",
+      actorId: auth.userId,
+      actorRole: auth.role,
+      targetType: "project",
+      targetId: id,
+      details: { updatedFields: Object.keys(data), oldStatus: existingProject.status },
+      ip,
     });
 
     return NextResponse.json({ project });
@@ -148,6 +172,17 @@ export async function DELETE(req: NextRequest) {
 
     await db.milestone.deleteMany({ where: { projectId: parseResult.data.id } });
     await db.project.delete({ where: { id: parseResult.data.id } });
+
+    const ip = getClientIp(req);
+    auditLog({
+      action: "admin.project.delete",
+      actorId: auth.userId,
+      actorRole: auth.role,
+      targetType: "project",
+      targetId: parseResult.data.id,
+      details: { projectName: project.projectName },
+      ip,
+    });
 
     return NextResponse.json({ message: "Project berhasil dihapus" });
   } catch (error) {

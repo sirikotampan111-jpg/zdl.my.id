@@ -4,9 +4,18 @@ import { db } from "@/lib/db";
 import { generateTicketNumber } from "@/lib/data";
 import { midtransWebhookSchema } from "@/lib/validations";
 import { safeErrorResponse } from "@/lib/auth-guard";
+import { auditLog, securityLog } from "@/lib/audit-log";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit webhook calls to prevent abuse
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(`webhook:${ip}`, { windowMs: 60_000, maxRequests: 30 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+    }
+
     const rawBody = await req.json();
 
     // Validate input with Zod
@@ -42,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify signature
+    // Verify signature — mandatory
     if (signature_key && status_code && gross_amount) {
       const hashInput = `${order_id}${status_code}${gross_amount}${serverKey}`;
       const expectedSignature = crypto
@@ -51,7 +60,11 @@ export async function POST(req: NextRequest) {
         .digest("hex");
 
       if (signature_key !== expectedSignature) {
-        console.error(`[SECURITY] Invalid webhook signature for order: ${order_id}`);
+        securityLog("security.invalid_signature", {
+          orderId: order_id,
+          providedSignature: signature_key.substring(0, 8) + "...",
+        }, { ip });
+
         return NextResponse.json(
           { error: "Invalid signature" },
           { status: 403 }
@@ -59,7 +72,11 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Missing required fields for signature verification
-      console.error(`[SECURITY] Webhook missing signature fields for order: ${order_id}`);
+      securityLog("security.invalid_signature", {
+        orderId: order_id,
+        reason: "missing_signature_fields",
+      }, { ip });
+
       return NextResponse.json(
         { error: "Missing signature fields" },
         { status: 400 }
@@ -138,6 +155,21 @@ export async function POST(req: NextRequest) {
         data: { status: "design", progress: 20 },
       });
     }
+
+    // Audit log for payment webhook
+    auditLog({
+      action: "payment.webhook",
+      targetType: "order",
+      targetId: order_id,
+      details: {
+        transactionStatus: transaction_status,
+        paymentType: payment_type,
+        grossAmount: gross_amount,
+        fraudStatus: fraud_status,
+        newStatus,
+      },
+      ip,
+    });
 
     return NextResponse.json({ status: "ok" });
   } catch (error) {

@@ -82,6 +82,7 @@ export const useStore = create<StoreState>((set, get) => ({
       });
       if (res.ok) {
         const data = await res.json();
+        // Server returns validated items with correct prices
         saveLocalCart(data.items);
         set({ cart: data.items, cartHydrated: true });
       }
@@ -122,12 +123,21 @@ export const useStore = create<StoreState>((set, get) => ({
     saveLocalCart(newCart);
     set({ cart: newCart });
 
-    // Sync to server in background
+    // Sync to server in background — server returns validated prices
     fetch("/api/cart", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "add", item }),
-    }).catch(() => {});
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        // Refresh local cart with server-validated prices
+        if (data?.items) {
+          saveLocalCart(data.items);
+          set({ cart: data.items });
+        }
+      })
+      .catch(() => {});
   },
 
   removeFromCart: (id) => {

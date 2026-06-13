@@ -245,19 +245,24 @@ function JsonLd() {
     ],
   };
 
+  // SECURITY: Escape </script> sequences to prevent XSS in JSON-LD context
+  // JSON.stringify does NOT prevent this attack vector
+  const safeJson = (data: unknown) =>
+    JSON.stringify(data).replace(/<\/script>/gi, "<\\/script>");
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: safeJson(structuredData) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+        dangerouslySetInnerHTML={{ __html: safeJson(breadcrumbData) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqData) }}
+        dangerouslySetInnerHTML={{ __html: safeJson(faqData) }}
       />
     </>
   );

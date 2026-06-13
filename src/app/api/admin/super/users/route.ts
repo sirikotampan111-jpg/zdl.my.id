@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
 import { adminUpdateUserSchema, adminDeleteSchema } from "@/lib/validations";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { auditLog } from "@/lib/audit-log";
 
 // GET all users (super-admin only)
 export async function GET(req: NextRequest) {
@@ -56,8 +57,9 @@ export async function PATCH(req: NextRequest) {
     // Validate with Zod
     const parseResult = adminUpdateUserSchema.safeParse(rawBody);
     if (!parseResult.success) {
+      console.error("[SECURITY] User update validation failed:", parseResult.error.errors);
       return NextResponse.json(
-        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { error: "Data tidak valid" },
         { status: 400 }
       );
     }
@@ -84,6 +86,18 @@ export async function PATCH(req: NextRequest) {
     const user = await db.user.update({
       where: { id },
       data: { role: newRole },
+    });
+
+    // Audit log
+    const ip = getClientIp(req);
+    auditLog({
+      action: "admin.user.role_update",
+      actorId: auth.userId,
+      actorRole: auth.role,
+      targetType: "user",
+      targetId: id,
+      details: { oldRole: existingUser.role, newRole },
+      ip,
     });
 
     // Don't return password
@@ -155,6 +169,18 @@ export async function DELETE(req: NextRequest) {
     await db.order.deleteMany({ where: { userId: parseResult.data.id } });
 
     await db.user.delete({ where: { id: parseResult.data.id } });
+
+    // Audit log
+    const ip = getClientIp(req);
+    auditLog({
+      action: "admin.user.delete",
+      actorId: auth.userId,
+      actorRole: auth.role,
+      targetType: "user",
+      targetId: parseResult.data.id,
+      details: { email: user.email, name: user.name, oldRole: user.role },
+      ip,
+    });
 
     return NextResponse.json({ message: "Pengguna berhasil dihapus" });
   } catch (error) {

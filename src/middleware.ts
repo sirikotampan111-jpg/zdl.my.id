@@ -39,9 +39,67 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // SECURITY: Block common attack paths
+  const blockedPaths = [
+    "/.env",
+    "/.env.local",
+    "/.env.production",
+    "/.git",
+    "/.git/config",
+    "/wp-admin",
+    "/wp-login",
+    "/phpmyadmin",
+    "/admin.php",
+    "/config.php",
+    "/.htaccess",
+    "/web.config",
+  ];
+
+  for (const blocked of blockedPaths) {
+    if (pathname.toLowerCase().startsWith(blocked)) {
+      return new NextResponse(null, { status: 404 });
+    }
+  }
+
+  // SECURITY: Validate Content-Type for state-changing API requests
+  // This provides basic CSRF protection — browsers won't send cross-origin
+  // JSON requests without CORS preflight, but we add an extra check
+  if (
+    pathname.startsWith("/api/") &&
+    (req.method === "POST" || req.method === "PATCH" || req.method === "PUT" || req.method === "DELETE")
+  ) {
+    const contentType = req.headers.get("content-type") || "";
+
+    // Allow form submissions for NextAuth callbacks
+    if (
+      pathname.startsWith("/api/auth/") ||
+      pathname.startsWith("/api/webhook/")
+    ) {
+      return NextResponse.next();
+    }
+
+    // Require JSON content type for all other API mutations
+    // This prevents CSRF via form submissions (browsers auto-send form Content-Type)
+    if (!contentType.includes("application/json") && contentType !== "") {
+      return NextResponse.json(
+        { error: "Content-Type must be application/json" },
+        { status: 415 }
+      );
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/admin/:path*",
+    "/api/:path*",
+    "/.env",
+    "/.env.local",
+    "/.git/:path*",
+    "/wp-admin/:path*",
+    "/phpmyadmin/:path*",
+  ],
 };

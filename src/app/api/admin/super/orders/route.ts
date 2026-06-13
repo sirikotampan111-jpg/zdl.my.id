@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireAdmin, requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
 import { adminUpdateOrderSchema, adminDeleteSchema } from "@/lib/validations";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { auditLog } from "@/lib/audit-log";
 
 // GET all orders (admin)
 export async function GET(req: NextRequest) {
@@ -52,8 +53,9 @@ export async function PATCH(req: NextRequest) {
     // Validate with Zod — prevents mass assignment
     const parseResult = adminUpdateOrderSchema.safeParse(rawBody);
     if (!parseResult.success) {
+      console.error("[SECURITY] Order update validation failed:", parseResult.error.errors);
       return NextResponse.json(
-        { error: "Data tidak valid", details: parseResult.error.errors.map((e) => e.message) },
+        { error: "Data tidak valid" },
         { status: 400 }
       );
     }
@@ -78,6 +80,18 @@ export async function PATCH(req: NextRequest) {
     const order = await db.order.update({
       where: { id },
       data: updateData,
+    });
+
+    // Audit log
+    const ip = getClientIp(req);
+    auditLog({
+      action: "admin.order.status_update",
+      actorId: auth.userId,
+      actorRole: auth.role,
+      targetType: "order",
+      targetId: id,
+      details: { oldStatus: existingOrder.status, newStatus: status },
+      ip,
     });
 
     return NextResponse.json({ order });
@@ -126,6 +140,18 @@ export async function DELETE(req: NextRequest) {
     }
     await db.transaction.deleteMany({ where: { orderId: parseResult.data.id } });
     await db.order.delete({ where: { id: parseResult.data.id } });
+
+    // Audit log
+    const ip = getClientIp(req);
+    auditLog({
+      action: "admin.order.delete",
+      actorId: auth.userId,
+      actorRole: auth.role,
+      targetType: "order",
+      targetId: parseResult.data.id,
+      details: { orderId: order.orderId, packageName: order.packageName },
+      ip,
+    });
 
     return NextResponse.json({ message: "Pesanan berhasil dihapus" });
   } catch (error) {
