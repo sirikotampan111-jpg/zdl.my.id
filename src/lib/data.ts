@@ -37,18 +37,12 @@ export interface StatItem {
 export const portfolios: PortfolioItem[] = [
   // Properti
   {
-    id: "genesisxproperty",
-    domain: "genesisxproperty.com",
-    category: "Properti",
-    gradient: "from-blue-600 to-cyan-500",
-    image: "/images/portfolio/genesisxproperty.png",
-    url: "https://www.genesisxproperty.com",
-  },
-  {
-    id: "liaviarealestate",
-    domain: "liaviarealestate.asia",
+    id: "liviarealestate",
+    domain: "liviarealestate.asia",
     category: "Properti",
     gradient: "from-emerald-600 to-teal-500",
+    image: "/images/portfolio/liviarealestate.png",
+    url: "https://www.liviarealestate.asia",
   },
   // Interior
   {
@@ -85,16 +79,12 @@ export const portfolios: PortfolioItem[] = [
     url: "https://www.kopikir.store",
   },
   {
-    id: "pawonbhoga",
-    domain: "pawonbhoga.id",
-    category: "Kuliner",
-    gradient: "from-red-500 to-orange-500",
-  },
-  {
     id: "kementriansegosbebek",
-    domain: "kementriansegosbebek.com",
+    domain: "kementriansegosbebek.id",
     category: "Kuliner",
     gradient: "from-lime-500 to-green-500",
+    image: "/images/portfolio/kementriansegosbebek.png",
+    url: "https://www.kementriansegosbebek.id",
   },
   // Bisnis & Edukasi
   {
@@ -261,8 +251,8 @@ export const adminFeatures = [
 export const testimonials: Testimonial[] = [
   {
     id: "1",
-    name: "Budi Santoso",
-    business: "Genesis X Property",
+    name: "Andi Wijaya",
+    business: "Livia Real Estate",
     quote:
       "Website yang dibuat oleh Zheng Digital Lab sangat profesional dan cepat. Klien kami langsung tertarik melihat tampilannya. Sangat recommended!",
     rating: 5,
