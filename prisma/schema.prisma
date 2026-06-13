@@ -69,7 +69,6 @@ model Transaction {
   grossAmount       Float?
   currency          String?
   fraudStatus       String?
-  signatureKey      String?
   rawResponse       String?
   createdAt         DateTime @default(now())
   order             Order    @relation(fields: [orderId], references: [id])

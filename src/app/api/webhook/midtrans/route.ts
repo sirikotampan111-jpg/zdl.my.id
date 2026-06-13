@@ -84,7 +84,6 @@ export async function POST(req: NextRequest) {
         grossAmount: gross_amount ? parseInt(gross_amount) : null,
         currency: currency || "IDR",
         fraudStatus: fraud_status || null,
-        signatureKey: null, // Never store signature keys in DB
         rawResponse: JSON.stringify(rawBody),
       },
     });

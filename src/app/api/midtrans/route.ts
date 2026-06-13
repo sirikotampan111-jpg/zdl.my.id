@@ -8,8 +8,10 @@ import {
   DP_MINIMAL,
 } from "@/lib/data";
 import { checkoutSchema } from "@/lib/validations";
-import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
+import { safeErrorResponse } from "@/lib/auth-guard";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface CartItemInput {
   id: string;
@@ -171,9 +173,23 @@ export async function POST(req: NextRequest) {
     const expiredAt = new Date();
     expiredAt.setHours(expiredAt.getHours() + 24);
 
-    // Resolve userId: if not provided or invalid, find or create a guest user
-    let resolvedUserId = userId;
-    if (!resolvedUserId || resolvedUserId === "guest") {
+    // SECURITY: Resolve userId from server session — NEVER trust client-supplied userId
+    // If the user is authenticated, we ALWAYS use the session userId to prevent spoofing
+    const session = await getServerSession(authOptions);
+    let resolvedUserId: string;
+
+    if (session?.user) {
+      // Authenticated user — use session ID, ignore client-supplied userId
+      const sessionUserId = (session.user as { id?: string })?.id;
+      if (!sessionUserId) {
+        return NextResponse.json(
+          { error: "Sesi tidak valid. Silakan login ulang." },
+          { status: 401 }
+        );
+      }
+      resolvedUserId = sessionUserId;
+    } else {
+      // Guest checkout — find or create user by email only (no userId from client)
       const guestUser = await db.user.findFirst({ where: { email: customerEmail } });
       if (guestUser) {
         resolvedUserId = guestUser.id;

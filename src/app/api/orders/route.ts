@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireAuth, safeErrorResponse, canAccessResource } from "@/lib/auth-guard";
 import { orderCreateSchema } from "@/lib/validations";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { generateInvoiceNumber } from "@/lib/data";
 
 export async function GET() {
   try {
@@ -59,13 +60,8 @@ export async function POST(req: NextRequest) {
 
     const body = parseResult.data;
 
-    // Generate order ID
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    const orderId = `ZDL-${year}${month}${day}-${random}`;
+    // SECURITY: Use crypto-safe invoice number (not Math.random)
+    const orderId = generateInvoiceNumber();
 
     const order = await db.order.create({
       data: {
