@@ -24,6 +24,7 @@ model User {
   updatedAt    DateTime @updatedAt
   orders       Order[]
   projects     Project[]
+  cart         Cart?
 }
 
 model Order {
@@ -103,4 +104,24 @@ model Milestone {
   completedAt DateTime?
   createdAt   DateTime @default(now())
   project     Project  @relation(fields: [projectId], references: [id])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id       String @id @default(cuid())
+  cartId   String
+  cart     Cart   @relation(fields: [cartId], references: [id])
+  itemId   String
+  name     String
+  price    Float
+  category String
+  quantity Int    @default(1)
 }

@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       businessName,
       notes,
       paymentMethod,
+      paymentOption, // "dp" or "full"
       userId,
     } = body;
 
@@ -73,7 +74,8 @@ export async function POST(req: NextRequest) {
     const hasDPEligible = orderItems.some(
       (i) => i.category === "html" || i.category === "nextjs"
     );
-    const showDP = hasDPEligible;
+    // Respect user's payment option: "dp" or "full"
+    const showDP = hasDPEligible && paymentOption !== "full";
     const basePayAmount = showDP ? DP_MINIMAL : totalPackagePrice;
     const ppnAmount = Math.round(basePayAmount * PPN_RATE);
     const totalPayAmount = basePayAmount + ppnAmount + TRANSACTION_FEE;

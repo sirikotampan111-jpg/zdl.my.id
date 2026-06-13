@@ -31,6 +31,8 @@ import {
   ArrowLeft,
   ArrowRight,
   ShieldCheck,
+  Banknote,
+  BadgeDollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
@@ -88,11 +90,13 @@ export function CheckoutModal({
   const [business, setBusiness] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentOption, setPaymentOption] = useState<"dp" | "full">("dp");
 
   // Price calculation
+  const isDPEligible = packageCategory === "html" || packageCategory === "nextjs";
   const breakdown = calculatePriceBreakdown(
     packagePrice,
-    packageCategory === "html" || packageCategory === "nextjs"
+    isDPEligible && paymentOption === "dp"
   );
 
   useEffect(() => {
@@ -110,6 +114,7 @@ export function CheckoutModal({
     setBusiness("");
     setNotes("");
     setPaymentMethod("");
+    setPaymentOption("dp");
     setOrderId("");
     setTicketNumber("");
     setPayAmount(0);
@@ -137,6 +142,7 @@ export function CheckoutModal({
           businessName: business,
           notes,
           paymentMethod,
+          paymentOption,
           userId: (session?.user as Record<string, unknown>)?.id || null,
         }),
       });
@@ -213,6 +219,46 @@ export function CheckoutModal({
                   <span className="text-muted-foreground">Harga Paket</span>
                   <span>{formatPrice(breakdown.basePrice)}</span>
                 </div>
+                {/* Payment Option: DP or Full */}
+                {isDPEligible && (
+                  <div className="py-2">
+                    <p className="text-sm font-medium text-foreground mb-2">Pilih Opsi Pembayaran</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentOption("dp")}
+                        className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                          paymentOption === "dp"
+                            ? "border-gold bg-gold/5"
+                            : "border-muted hover:border-gold/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <Banknote className={`w-3.5 h-3.5 ${paymentOption === "dp" ? "text-gold" : "text-muted-foreground"}`} />
+                          <span className={`text-xs font-semibold ${paymentOption === "dp" ? "text-gold" : "text-muted-foreground"}`}>Bayar DP</span>
+                        </div>
+                        <p className="text-sm font-bold text-foreground">{formatPrice(500000)}</p>
+                        <p className="text-[10px] text-muted-foreground">Sisa setelah selesai</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentOption("full")}
+                        className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                          paymentOption === "full"
+                            ? "border-gold bg-gold/5"
+                            : "border-muted hover:border-gold/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <BadgeDollarSign className={`w-3.5 h-3.5 ${paymentOption === "full" ? "text-gold" : "text-muted-foreground"}`} />
+                          <span className={`text-xs font-semibold ${paymentOption === "full" ? "text-gold" : "text-muted-foreground"}`}>Bayar Penuh</span>
+                        </div>
+                        <p className="text-sm font-bold text-foreground">{formatPrice(breakdown.basePrice)}</p>
+                        <p className="text-[10px] text-muted-foreground">Lunas sekaligus</p>
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {breakdown.isDP && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">DP Minimal</span>
@@ -240,6 +286,11 @@ export function CheckoutModal({
                   <p className="text-xs text-muted-foreground">
                     DP dari {formatPrice(breakdown.basePrice)}. Sisa pelunasan:{" "}
                     {formatPrice(breakdown.basePrice - breakdown.dpAmount)}
+                  </p>
+                )}
+                {!breakdown.isDP && isDPEligible && paymentOption === "full" && (
+                  <p className="text-xs text-muted-foreground">
+                    Pembayaran penuh. Tidak ada sisa pelunasan.
                   </p>
                 )}
               </div>

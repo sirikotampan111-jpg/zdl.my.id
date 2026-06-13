@@ -1,0 +1,723 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState, useEffect } from "react";
+     4→     4→import { useSession } from "next-auth/react";
+     5→     5→import { useRouter } from "next/navigation";
+     6→     6→import { motion, AnimatePresence } from "framer-motion";
+     7→     7→import { useStore, CartItem } from "@/store/use-store";
+     8→     8→import { Card, CardContent } from "@/components/ui/card";
+     9→     9→import { Button } from "@/components/ui/button";
+    10→    10→import { Input } from "@/components/ui/input";
+    11→    11→import { Label } from "@/components/ui/label";
+    12→    12→import { Textarea } from "@/components/ui/textarea";
+    13→    13→import { Separator } from "@/components/ui/separator";
+    14→    14→import {
+    15→    15→  formatPrice,
+    16→    16→  PPN_RATE,
+    17→    17→  TRANSACTION_FEE,
+    18→    18→  DP_MINIMAL,
+    19→    19→} from "@/lib/data";
+    20→    20→import {
+    21→    21→  ShoppingCart,
+    22→    22→  Trash2,
+    23→    23→  Plus,
+    24→    24→  Minus,
+    25→    25→  ArrowRight,
+    26→    26→  ArrowLeft,
+    27→    27→  CreditCard,
+    28→    28→  QrCode,
+    29→    29→  Building2,
+    30→    30→  Wallet,
+    31→    31→  LogIn,
+    32→    32→  CheckCircle2,
+    33→    33→  Loader2,
+    34→    34→  ShieldCheck,
+    35→    35→  Package,
+    36→    36→  ShoppingBag,
+    37→    37→  Ticket,
+    38→    38→} from "lucide-react";
+    39→    39→import { toast } from "sonner";
+    40→    40→import { signIn } from "next-auth/react";
+    41→    41→import { WHATSAPP_LINK } from "@/lib/config";
+    42→    42→
+    43→    43→const paymentMethods = [
+    44→    44→  { id: "qris", label: "QRIS", icon: QrCode, desc: "Scan QR untuk bayar" },
+    45→    45→  { id: "bank", label: "Transfer Bank", icon: Building2, desc: "BCA, BNI, BRI, Mandiri" },
+    46→    46→  { id: "ewallet", label: "E-Wallet", icon: Wallet, desc: "GoPay, OVO, DANA, ShopeePay" },
+    47→    47→  { id: "cc", label: "Kartu Kredit", icon: CreditCard, desc: "Visa, Mastercard" },
+    48→    48→];
+    49→    49→
+    50→    50→function CartItemRow({
+    51→    51→  item,
+    52→    52→  onUpdateQty,
+    53→    53→  onRemove,
+    54→    54→}: {
+    55→    55→  item: CartItem;
+    56→    56→  onUpdateQty: (id: string, qty: number) => void;
+    57→    57→  onRemove: (id: string) => void;
+    58→    58→}) {
+    59→    59→  const isDPEligible = item.category === "html" || item.category === "nextjs";
+    60→    60→
+    61→    61→  return (
+    62→    62→    <motion.div
+    63→    63→      layout
+    64→    64→      initial={{ opacity: 0, x: -20 }}
+    65→    65→      animate={{ opacity: 1, x: 0 }}
+    66→    66→      exit={{ opacity: 0, x: 20, height: 0 }}
+    67→    67→      className="flex items-center gap-4 p-4 bg-card rounded-xl border hover:border-gold/30 transition-colors"
+    68→    68→    >
+    69→    69→      {/* Icon */}
+    70→    70→      <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center shrink-0">
+    71→    71→        <Package className="w-6 h-6 text-gold" />
+    72→    72→      </div>
+    73→    73→
+    74→    74→      {/* Info */}
+    75→    75→      <div className="flex-1 min-w-0">
+    76→    76→        <h3 className="font-semibold text-foreground truncate">{item.name}</h3>
+    77→    77→        <p className="text-sm text-muted-foreground">
+    78→    78→          {formatPrice(item.price)} per item
+    79→    79→          {isDPEligible && (
+    80→    80→            <span className="text-gold ml-1">• DP {formatPrice(DP_MINIMAL)}</span>
+    81→    81→          )}
+    82→    82→        </p>
+    83→    83→      </div>
+    84→    84→
+    85→    85→      {/* Quantity Controls */}
+    86→    86→      <div className="flex items-center gap-2">
+    87→    87→        <button
+    88→    88→          onClick={() => onUpdateQty(item.id, item.quantity - 1)}
+    89→    89→          className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-muted transition-colors"
+    90→    90→        >
+    91→    91→          <Minus className="w-3.5 h-3.5" />
+    92→    92→        </button>
+    93→    93→        <span className="w-8 text-center font-semibold text-foreground">{item.quantity}</span>
+    94→    94→        <button
+    95→    95→          onClick={() => onUpdateQty(item.id, item.quantity + 1)}
+    96→    96→          className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-muted transition-colors"
+    97→    97→        >
+    98→    98→          <Plus className="w-3.5 h-3.5" />
+    99→    99→        </button>
+   100→   100→      </div>
+   101→   101→
+   102→   102→      {/* Subtotal */}
+   103→   103→      <div className="text-right w-32 shrink-0">
+   104→   104→        <p className="font-bold text-foreground">{formatPrice(item.price * item.quantity)}</p>
+   105→   105→      </div>
+   106→   106→
+   107→   107→      {/* Remove */}
+   108→   108→      <button
+   109→   109→        onClick={() => onRemove(item.id)}
+   110→   110→        className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+   111→   111→      >
+   112→   112→        <Trash2 className="w-4 h-4" />
+   113→   113→      </button>
+   114→   114→    </motion.div>
+   115→   115→  );
+   116→   116→}
+   117→   117→
+   118→   118→export function PageKeranjang() {
+   119→   119→  const { cart, updateQuantity, removeFromCart, clearCart, getCartTotal } = useStore();
+   120→   120→  const { data: session } = useSession();
+   121→   121→  const router = useRouter();
+   122→   122→
+   123→   123→  const [step, setStep] = useState<1 | 2 | 3>(1); // 1=cart, 2=checkout, 3=success
+   124→   124→  const [loading, setLoading] = useState(false);
+   125→   125→  const [orderId, setOrderId] = useState("");
+   126→   126→  const [ticketNumber, setTicketNumber] = useState("");
+   127→   127→  const [payAmount, setPayAmount] = useState(0);
+   128→   128→  const [paymentMethod, setPaymentMethod] = useState("");
+   129→   129→
+   130→   130→  // Form
+   131→   131→  const [name, setName] = useState(session?.user?.name || "");
+   132→   132→  const [email, setEmail] = useState(session?.user?.email || "");
+   133→   133→  const [phone, setPhone] = useState("");
+   134→   134→  const [business, setBusiness] = useState("");
+   135→   135→  const [notes, setNotes] = useState("");
+   136→   136→
+   137→   137→  useEffect(() => {
+   138→   138→    if (session?.user) {
+   139→   139→      setName(session.user.name || "");
+   140→   140→      setEmail(session.user.email || "");
+   141→   141→    }
+   142→   142→  }, [session]);
+   143→   143→
+   144→   144→  const total = getCartTotal();
+   145→   145→  const hasDPEligible = cart.some(
+   146→   146→    (item) => item.category === "html" || item.category === "nextjs"
+   147→   147→  );
+   148→   148→  const dpBase = hasDPEligible ? DP_MINIMAL : total;
+   149→   149→  const ppnAmount = Math.round(dpBase * PPN_RATE);
+   150→   150→  const grandTotal = dpBase + ppnAmount + TRANSACTION_FEE;
+   151→   151→
+   152→   152→  const handleCheckout = async () => {
+   153→   153→    if (!name || !email || !phone) {
+   154→   154→      toast.error("Lengkapi data pemesan");
+   155→   155→      return;
+   156→   156→    }
+   157→   157→    if (!paymentMethod) {
+   158→   158→      toast.error("Pilih metode pembayaran");
+   159→   159→      return;
+   160→   160→    }
+   161→   161→    setLoading(true);
+   162→   162→    try {
+   163→   163→      const res = await fetch("/api/midtrans", {
+   164→   164→        method: "POST",
+   165→   165→        headers: { "Content-Type": "application/json" },
+   166→   166→        body: JSON.stringify({
+   167→   167→          items: cart.map((item) => ({
+   168→   168→            id: item.id,
+   169→   169→            name: item.name,
+   170→   170→            price: item.price,
+   171→   171→            category: item.category,
+   172→   172→            quantity: item.quantity,
+   173→   173→          })),
+   174→   174→          customerName: name,
+   175→   175→          customerEmail: email,
+   176→   176→          customerPhone: phone,
+   177→   177→          businessName: business,
+   178→   178→          notes,
+   179→   179→          paymentMethod,
+   180→   180→          userId: (session?.user as Record<string, unknown>)?.id || null,
+   181→   181→        }),
+   182→   182→      });
+   183→   183→      const data = await res.json();
+   184→   184→      if (!res.ok) {
+   185→   185→        toast.error(data.error || "Gagal membuat transaksi");
+   186→   186→        setLoading(false);
+   187→   187→        return;
+   188→   188→      }
+   189→   189→
+   190→   190→      setOrderId(data.orderId);
+   191→   191→      setPayAmount(data.payAmount);
+   192→   192→      if (data.ticketNumber) setTicketNumber(data.ticketNumber);
+   193→   193→
+   194→   194→      if (data.isDemo) {
+   195→   195→        toast.success("Demo: Transaksi berhasil disimulasikan!");
+   196→   196→        clearCart();
+   197→   197→        setStep(3);
+   198→   198→      } else if (
+   199→   199→        data.token &&
+   200→   200→        typeof window !== "undefined" &&
+   201→   201→        (window as unknown as Record<string, unknown>).snap
+   202→   202→      ) {
+   203→   203→        const snap = (window as unknown as Record<string, Record<string, (...args: unknown[]) => void>>).snap;
+   204→   204→        snap.pay(data.token, {
+   205→   205→          onSuccess: () => {
+   206→   206→            toast.success("Pembayaran berhasil!");
+   207→   207→            clearCart();
+   208→   208→            // Fetch ticket number from order
+   209→   209→            fetch(`/api/orders?orderId=${data.orderId}`)
+   210→   210→              .then(r => r.json())
+   211→   211→              .then(d => {
+   212→   212→                if (d.ticketNumber) setTicketNumber(d.ticketNumber);
+   213→   213→              })
+   214→   214→              .catch(() => {});
+   215→   215→            setStep(3);
+   216→   216→          },
+   217→   217→          onPending: () => {
+   218→   218→            toast.info("Pembayaran pending. Cek dashboard Anda.");
+   219→   219→            clearCart();
+   220→   220→            setStep(3);
+   221→   221→          },
+   222→   222→          onError: () => {
+   223→   223→            toast.error("Pembayaran gagal. Coba lagi.");
+   224→   224→          },
+   225→   225→          onClose: () => {
+   226→   226→            toast.info("Anda menutup halaman pembayaran.");
+   227→   227→          },
+   228→   228→        });
+   229→   229→      } else {
+   230→   230→        clearCart();
+   231→   231→        setStep(3);
+   232→   232→      }
+   233→   233→    } catch {
+   234→   234→      toast.error("Terjadi kesalahan");
+   235→   235→    } finally {
+   236→   236→      setLoading(false);
+   237→   237→    }
+   238→   238→  };
+   239→   239→
+   240→   240→  // Empty cart
+   241→   241→  if (cart.length === 0 && step !== 3) {
+   242→   242→    return (
+   243→   243→      <section className="pt-24 pb-20">
+   244→   244→        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+   245→   245→          <motion.div
+   246→   246→            initial={{ opacity: 0, y: 20 }}
+   247→   247→            animate={{ opacity: 1, y: 0 }}
+   248→   248→            className="text-center py-20"
+   249→   249→          >
+   250→   250→            <div className="w-24 h-24 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
+   251→   251→              <ShoppingBag className="w-12 h-12 text-gold" />
+   252→   252→            </div>
+   253→   253→            <h2 className="text-2xl font-bold text-foreground mb-2">
+   254→   254→              Keranjang Kosong
+   255→   255→            </h2>
+   256→   256→            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+   257→   257→              Belum ada layanan yang ditambahkan. Pilih paket layanan kami dan mulai
+   258→   258→              bangun website impian Anda!
+   259→   259→            </p>
+   260→   260→            <Button
+   261→   261→              onClick={() => {
+   262→   262→                useStore.getState().setCurrentPage("layanan");
+   263→   263→                window.scrollTo({ top: 0, behavior: "smooth" });
+   264→   264→              }}
+   265→   265→              className="bg-gold hover:bg-gold-hover text-navy font-semibold"
+   266→   266→            >
+   267→   267→              <ShoppingCart className="w-4 h-4 mr-2" />
+   268→   268→              Lihat Layanan
+   269→   269→            </Button>
+   270→   270→          </motion.div>
+   271→   271→        </div>
+   272→   272→      </section>
+   273→   273→    );
+   274→   274→  }
+   275→   275→
+   276→   276→  return (
+   277→   277→    <section className="pt-24 pb-20">
+   278→   278→      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+   279→   279→        {/* Header */}
+   280→   280→        <motion.div
+   281→   281→          initial={{ opacity: 0, y: 20 }}
+   282→   282→          animate={{ opacity: 1, y: 0 }}
+   283→   283→          className="mb-8"
+   284→   284→        >
+   285→   285→          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+   286→   286→            <ShoppingCart className="w-8 h-8 inline mr-2 text-gold" />
+   287→   287→            Keranjang <span className="gold-gradient-text">Belanja</span>
+   288→   288→          </h1>
+   289→   289→          <p className="text-muted-foreground">
+   290→   290→            {step === 1 && "Review pesanan Anda sebelum checkout"}
+   291→   291→            {step === 2 && "Lengkapi data dan pilih metode pembayaran"}
+   292→   292→            {step === 3 && "Pesanan berhasil dibuat!"}
+   293→   293→          </p>
+   294→   294→        </motion.div>
+   295→   295→
+   296→   296→        {/* Step indicator */}
+   297→   297→        <div className="flex items-center gap-2 mb-8">
+   298→   298→          {[
+   299→   299→            { n: 1, label: "Keranjang" },
+   300→   300→            { n: 2, label: "Checkout" },
+   301→   301→            { n: 3, label: "Selesai" },
+   302→   302→          ].map((s, i) => (
+   303→   303→            <div key={s.n} className="flex items-center gap-2">
+   304→   304→              <div
+   305→   305→                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+   306→   306→                  step >= s.n
+   307→   307→                    ? "bg-gold text-navy"
+   308→   308→                    : "bg-muted text-muted-foreground"
+   309→   309→                }`}
+   310→   310→              >
+   311→   311→                {s.n}
+   312→   312→              </div>
+   313→   313→              <span
+   314→   314→                className={`text-sm font-medium hidden sm:inline ${
+   315→   315→                  step >= s.n ? "text-foreground" : "text-muted-foreground"
+   316→   316→                }`}
+   317→   317→              >
+   318→   318→                {s.label}
+   319→   319→              </span>
+   320→   320→              {i < 2 && (
+   321→   321→                <div
+   322→   322→                  className={`w-8 h-0.5 mx-1 ${
+   323→   323→                    step > s.n ? "bg-gold" : "bg-muted"
+   324→   324→                  }`}
+   325→   325→                />
+   326→   326→              )}
+   327→   327→            </div>
+   328→   328→          ))}
+   329→   329→        </div>
+   330→   330→
+   331→   331→        <AnimatePresence mode="wait">
+   332→   332→          {/* Step 1: Cart Items */}
+   333→   333→          {step === 1 && (
+   334→   334→            <motion.div
+   335→   335→              key="step1"
+   336→   336→              initial={{ opacity: 0 }}
+   337→   337→              animate={{ opacity: 1 }}
+   338→   338→              exit={{ opacity: 0 }}
+   339→   339→              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+   340→   340→            >
+   341→   341→              {/* Cart Items */}
+   342→   342→              <div className="lg:col-span-2 space-y-3">
+   343→   343→                <div className="flex items-center justify-between mb-2">
+   344→   344→                  <p className="text-sm text-muted-foreground">
+   345→   345→                    {cart.length} item dalam keranjang
+   346→   346→                  </p>
+   347→   347→                  <Button
+   348→   348→                    variant="ghost"
+   349→   349→                    size="sm"
+   350→   350→                    onClick={() => {
+   351→   351→                      clearCart();
+   352→   352→                      toast.success("Keranjang dikosongkan");
+   353→   353→                    }}
+   354→   354→                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+   355→   355→                  >
+   356→   356→                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+   357→   357→                    Kosongkan
+   358→   358→                  </Button>
+   359→   359→                </div>
+   360→   360→                <AnimatePresence>
+   361→   361→                  {cart.map((item) => (
+   362→   362→                    <CartItemRow
+   363→   363→                      key={item.id}
+   364→   364→                      item={item}
+   365→   365→                      onUpdateQty={updateQuantity}
+   366→   366→                      onRemove={(id) => {
+   367→   367→                        removeFromCart(id);
+   368→   368→                        toast.success("Item dihapus dari keranjang");
+   369→   369→                      }}
+   370→   370→                    />
+   371→   371→                  ))}
+   372→   372→                </AnimatePresence>
+   373→   373→              </div>
+   374→   374→
+   375→   375→              {/* Order Summary */}
+   376→   376→              <div>
+   377→   377→                <Card className="border-gold/20 sticky top-24">
+   378→   378→                  <CardContent className="pt-6 space-y-4">
+   379→   379→                    <h3 className="font-bold text-foreground text-lg">
+   380→   380→                      Ringkasan Pesanan
+   381→   381→                    </h3>
+   382→   382→                    <div className="space-y-2">
+   383→   383→                      {cart.map((item) => (
+   384→   384→                        <div
+   385→   385→                          key={item.id}
+   386→   386→                          className="flex justify-between text-sm"
+   387→   387→                        >
+   388→   388→                          <span className="text-muted-foreground truncate max-w-[60%]">
+   389→   389→                            {item.name} x{item.quantity}
+   390→   390→                          </span>
+   391→   391→                          <span>{formatPrice(item.price * item.quantity)}</span>
+   392→   392→                        </div>
+   393→   393→                      ))}
+   394→   394→                    </div>
+   395→   395→                    <Separator />
+   396→   396→                    <div className="flex justify-between text-sm">
+   397→   397→                      <span className="text-muted-foreground">Subtotal</span>
+   398→   398→                      <span>{formatPrice(total)}</span>
+   399→   399→                    </div>
+   400→   400→                    {hasDPEligible && (
+   401→   401→                      <div className="flex justify-between text-sm">
+   402→   402→                        <span className="text-muted-foreground">DP Minimal</span>
+   403→   403→                        <span className="font-medium text-gold">
+   404→   404→                          {formatPrice(dpBase)}
+   405→   405→                        </span>
+   406→   406→                      </div>
+   407→   407→                    )}
+   408→   408→                    <div className="flex justify-between text-sm">
+   409→   409→                      <span className="text-muted-foreground">PPN 11%</span>
+   410→   410→                      <span>{formatPrice(ppnAmount)}</span>
+   411→   411→                    </div>
+   412→   412→                    <div className="flex justify-between text-sm">
+   413→   413→                      <span className="text-muted-foreground">Biaya Transaksi</span>
+   414→   414→                      <span>{formatPrice(TRANSACTION_FEE)}</span>
+   415→   415→                    </div>
+   416→   416→                    <Separator />
+   417→   417→                    <div className="flex justify-between font-bold text-lg">
+   418→   418→                      <span>Total Bayar</span>
+   419→   419→                      <span className="text-gold">{formatPrice(grandTotal)}</span>
+   420→   420→                    </div>
+   421→   421→                    {hasDPEligible && (
+   422→   422→                      <p className="text-xs text-muted-foreground">
+   423→   423→                        DP dari {formatPrice(total)}. Sisa pelunasan setelah website selesai.
+   424→   424→                      </p>
+   425→   425→                    )}
+   426→   426→                    <Button
+   427→   427→                      onClick={() => setStep(2)}
+   428→   428→                      className="w-full bg-gold hover:bg-gold-hover text-navy font-semibold"
+   429→   429→                      disabled={cart.length === 0}
+   430→   430→                    >
+   431→   431→                      Checkout <ArrowRight className="w-4 h-4 ml-1" />
+   432→   432→                    </Button>
+   433→   433→                  </CardContent>
+   434→   434→                </Card>
+   435→   435→              </div>
+   436→   436→            </motion.div>
+   437→   437→          )}
+   438→   438→
+   439→   439→          {/* Step 2: Checkout Form + Payment */}
+   440→   440→          {step === 2 && (
+   441→   441→            <motion.div
+   442→   442→              key="step2"
+   443→   443→              initial={{ opacity: 0, x: 20 }}
+   444→   444→              animate={{ opacity: 1, x: 0 }}
+   445→   445→              exit={{ opacity: 0, x: -20 }}
+   446→   446→              className="space-y-6"
+   447→   447→            >
+   448→   448→              <Button
+   449→   449→                variant="ghost"
+   450→   450→                size="sm"
+   451→   451→                onClick={() => setStep(1)}
+   452→   452→              >
+   453→   453→                <ArrowLeft className="w-4 h-4 mr-1" /> Kembali ke Keranjang
+   454→   454→              </Button>
+   455→   455→
+   456→   456→              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   457→   457→                {/* Left: Customer Info */}
+   458→   458→                <div className="space-y-4">
+   459→   459→                  <Card>
+   460→   460→                    <CardContent className="pt-6 space-y-4">
+   461→   461→                      <h3 className="font-bold text-foreground text-lg">
+   462→   462→                        Data Pemesan
+   463→   463→                      </h3>
+   464→   464→
+   465→   465→                      {/* Guest login prompt */}
+   466→   466→                      {!session && (
+   467→   467→                        <div className="bg-gold/5 border border-gold/20 rounded-lg p-3 flex items-center gap-3">
+   468→   468→                          <LogIn className="w-5 h-5 text-gold shrink-0" />
+   469→   469→                          <div className="flex-1">
+   470→   470→                            <p className="text-sm font-medium">
+   471→   471→                              Login untuk tracking pesanan
+   472→   472→                            </p>
+   473→   473→                            <p className="text-xs text-muted-foreground">
+   474→   474→                              Atau lanjutkan sebagai tamu
+   475→   475→                            </p>
+   476→   476→                          </div>
+   477→   477→                          <Button
+   478→   478→                            size="sm"
+   479→   479→                            variant="outline"
+   480→   480→                            onClick={() => signIn("google")}
+   481→   481→                            className="text-gold border-gold/30"
+   482→   482→                          >
+   483→   483→                            Login
+   484→   484→                          </Button>
+   485→   485→                        </div>
+   486→   486→                      )}
+   487→   487→
+   488→   488→                      <div>
+   489→   489→                        <Label>Nama Lengkap *</Label>
+   490→   490→                        <Input
+   491→   491→                          value={name}
+   492→   492→                          onChange={(e) => setName(e.target.value)}
+   493→   493→                          placeholder="Nama Anda"
+   494→   494→                        />
+   495→   495→                      </div>
+   496→   496→                      <div>
+   497→   497→                        <Label>Nama Bisnis</Label>
+   498→   498→                        <Input
+   499→   499→                          value={business}
+   500→   500→                          onChange={(e) => setBusiness(e.target.value)}
+   501→   501→                          placeholder="Opsional"
+   502→   502→                        />
+   503→   503→                      </div>
+   504→   504→                      <div>
+   505→   505→                        <Label>Email *</Label>
+   506→   506→                        <Input
+   507→   507→                          type="email"
+   508→   508→                          value={email}
+   509→   509→                          onChange={(e) => setEmail(e.target.value)}
+   510→   510→                          placeholder="email@contoh.com"
+   511→   511→                        />
+   512→   512→                      </div>
+   513→   513→                      <div>
+   514→   514→                        <Label>WhatsApp *</Label>
+   515→   515→                        <Input
+   516→   516→                          value={phone}
+   517→   517→                          onChange={(e) => setPhone(e.target.value)}
+   518→   518→                          placeholder="08xx"
+   519→   519→                        />
+   520→   520→                      </div>
+   521→   521→                      <div>
+   522→   522→                        <Label>Catatan Project</Label>
+   523→   523→                        <Textarea
+   524→   524→                          value={notes}
+   525→   525→                          onChange={(e) => setNotes(e.target.value)}
+   526→   526→                          placeholder="Deskripsi singkat project Anda..."
+   527→   527→                          rows={3}
+   528→   528→                        />
+   529→   529→                      </div>
+   530→   530→                    </CardContent>
+   531→   531→                  </Card>
+   532→   532→
+   533→   533→                  {/* Items Summary */}
+   534→   534→                  <Card>
+   535→   535→                    <CardContent className="pt-6 space-y-2">
+   536→   536→                      <h3 className="font-bold text-foreground">Pesanan Anda</h3>
+   537→   537→                      {cart.map((item) => (
+   538→   538→                        <div
+   539→   539→                          key={item.id}
+   540→   540→                          className="flex justify-between text-sm py-1"
+   541→   541→                        >
+   542→   542→                          <span className="text-muted-foreground">
+   543→   543→                            {item.name} x{item.quantity}
+   544→   544→                          </span>
+   545→   545→                          <span>{formatPrice(item.price * item.quantity)}</span>
+   546→   546→                        </div>
+   547→   547→                      ))}
+   548→   548→                      <Separator />
+   549→   549→                      <div className="flex justify-between font-bold">
+   550→   550→                        <span>Total Bayar</span>
+   551→   551→                        <span className="text-gold">{formatPrice(grandTotal)}</span>
+   552→   552→                      </div>
+   553→   553→                    </CardContent>
+   554→   554→                  </Card>
+   555→   555→                </div>
+   556→   556→
+   557→   557→                {/* Right: Payment Method */}
+   558→   558→                <div className="space-y-4">
+   559→   559→                  <Card>
+   560→   560→                    <CardContent className="pt-6 space-y-4">
+   561→   561→                      <h3 className="font-bold text-foreground text-lg">
+   562→   562→                        Pilih Metode Pembayaran
+   563→   563→                      </h3>
+   564→   564→                      <div className="grid grid-cols-2 gap-3">
+   565→   565→                        {paymentMethods.map((pm) => (
+   566→   566→                          <button
+   567→   567→                            key={pm.id}
+   568→   568→                            onClick={() => setPaymentMethod(pm.id)}
+   569→   569→                            className={`p-4 rounded-xl border-2 text-left transition-all ${
+   570→   570→                              paymentMethod === pm.id
+   571→   571→                                ? "border-gold bg-gold/5"
+   572→   572→                                : "border-muted hover:border-gold/30"
+   573→   573→                            }`}
+   574→   574→                          >
+   575→   575→                            <pm.icon
+   576→   576→                              className={`w-5 h-5 mb-2 ${
+   577→   577→                                paymentMethod === pm.id
+   578→   578→                                  ? "text-gold"
+   579→   579→                                  : "text-muted-foreground"
+   580→   580→                              }`}
+   581→   581→                            />
+   582→   582→                            <p className="text-sm font-medium">{pm.label}</p>
+   583→   583→                            <p className="text-xs text-muted-foreground">
+   584→   584→                              {pm.desc}
+   585→   585→                            </p>
+   586→   586→                          </button>
+   587→   587→                        ))}
+   588→   588→                      </div>
+   589→   589→
+   590→   590→                      {/* Price summary */}
+   591→   591→                      {paymentMethod && (
+   592→   592→                        <div className="bg-muted/50 rounded-lg p-4 space-y-1 text-sm">
+   593→   593→                          <div className="flex justify-between">
+   594→   594→                            <span>Subtotal</span>
+   595→   595→                            <span>{formatPrice(total)}</span>
+   596→   596→                          </div>
+   597→   597→                          {hasDPEligible && (
+   598→   598→                            <div className="flex justify-between">
+   599→   599→                              <span>DP Minimal</span>
+   600→   600→                              <span className="text-gold">{formatPrice(dpBase)}</span>
+   601→   601→                            </div>
+   602→   602→                          )}
+   603→   603→                          <div className="flex justify-between">
+   604→   604→                            <span>PPN 11%</span>
+   605→   605→                            <span>{formatPrice(ppnAmount)}</span>
+   606→   606→                          </div>
+   607→   607→                          <div className="flex justify-between">
+   608→   608→                            <span>Biaya Transaksi</span>
+   609→   609→                            <span>{formatPrice(TRANSACTION_FEE)}</span>
+   610→   610→                          </div>
+   611→   611→                          <Separator className="my-2" />
+   612→   612→                          <div className="flex justify-between font-bold text-base">
+   613→   613→                            <span>Total Bayar</span>
+   614→   614→                            <span className="text-gold">
+   615→   615→                              {formatPrice(grandTotal)}
+   616→   616→                            </span>
+   617→   617→                          </div>
+   618→   618→                        </div>
+   619→   619→                      )}
+   620→   620→
+   621→   621→                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+   622→   622→                        <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+   623→   623→                        <span>Transaksi aman & terenkripsi via Midtrans</span>
+   624→   624→                      </div>
+   625→   625→
+   626→   626→                      <Button
+   627→   627→                        onClick={handleCheckout}
+   628→   628→                        className="w-full bg-gold hover:bg-gold-hover text-navy font-semibold h-12 text-base"
+   629→   629→                        disabled={!paymentMethod || loading}
+   630→   630→                      >
+   631→   631→                        {loading ? (
+   632→   632→                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+   633→   633→                        ) : (
+   634→   634→                          <CreditCard className="w-5 h-5 mr-2" />
+   635→   635→                        )}
+   636→   636→                        Bayar {formatPrice(grandTotal)}
+   637→   637→                      </Button>
+   638→   638→                    </CardContent>
+   639→   639→                  </Card>
+   640→   640→                </div>
+   641→   641→              </div>
+   642→   642→            </motion.div>
+   643→   643→          )}
+   644→   644→
+   645→   645→          {/* Step 3: Success */}
+   646→   646→          {step === 3 && (
+   647→   647→            <motion.div
+   648→   648→              key="step3"
+   649→   649→              initial={{ opacity: 0, scale: 0.95 }}
+   650→   650→              animate={{ opacity: 1, scale: 1 }}
+   651→   651→              className="text-center py-12"
+   652→   652→            >
+   653→   653→              <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+   654→   654→                <CheckCircle2 className="w-10 h-10 text-green-500" />
+   655→   655→              </div>
+   656→   656→              <h2 className="text-3xl font-bold text-foreground mb-2">
+   657→   657→                Pesanan Berhasil!
+   658→   658→              </h2>
+   659→   659→              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+   660→   660→                Terima kasih atas pesanan Anda. Kami akan segera memproses pesanan Anda.
+   661→   661→              </p>
+   662→   662→              <Card className="max-w-md mx-auto mb-8">
+   663→   663→                <CardContent className="pt-6 space-y-2 text-sm">
+   664→   664→                  <div className="flex justify-between">
+   665→   665→                    <span className="text-muted-foreground">Invoice</span>
+   666→   666→                    <span className="font-mono font-bold text-gold">{orderId}</span>
+   667→   667→                  </div>
+   668→   668→                  {ticketNumber && (
+   669→   669→                    <div className="flex justify-between items-center">
+   670→   670→                      <span className="text-muted-foreground">Nomor Tiket</span>
+   671→   671→                      <div className="flex items-center gap-1.5">
+   672→   672→                        <Ticket className="w-4 h-4 text-gold" />
+   673→   673→                        <span className="font-mono font-bold text-green-600 dark:text-green-400 text-base">
+   674→   674→                          {ticketNumber}
+   675→   675→                        </span>
+   676→   676→                      </div>
+   677→   677→                    </div>
+   678→   678→                  )}
+   679→   679→                  <div className="flex justify-between">
+   680→   680→                    <span className="text-muted-foreground">Total</span>
+   681→   681→                    <span className="font-bold">
+   682→   682→                      {formatPrice(payAmount || grandTotal)}
+   683→   683→                    </span>
+   684→   684→                  </div>
+   685→   685→                  {ticketNumber && (
+   686→   686→                    <>
+   687→   687→                      <Separator className="my-2" />
+   688→   688→                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-xs text-center">
+   689→   689→                        <p className="font-semibold text-green-700 dark:text-green-400 mb-1">
+   690→   690→                          Tiket berhasil dibuat!
+   691→   691→                        </p>
+   692→   692→                        <p className="text-green-600 dark:text-green-500">
+   693→   693→                          Simpan nomor tiket <strong>{ticketNumber}</strong> untuk tracking pesanan Anda
+   694→   694→                        </p>
+   695→   695→                      </div>
+   696→   696→                    </>
+   697→   697→                  )}
+   698→   698→                </CardContent>
+   699→   699→              </Card>
+   700→   700→              <div className="flex gap-3 justify-center">
+   701→   701→                {session && (
+   702→   702→                  <Button
+   703→   703→                    onClick={() => router.push("/dashboard")}
+   704→   704→                    className="bg-gold hover:bg-gold-hover text-navy font-semibold"
+   705→   705→                  >
+   706→   706→                    Lihat Dashboard
+   707→   707→                  </Button>
+   708→   708→                )}
+   709→   709→                <Button
+   710→   710→                  variant="outline"
+   711→   711→                  onClick={() => window.open(WHATSAPP_LINK, "_blank")}
+   712→   712→                >
+   713→   713→                  Konfirmasi via WA
+   714→   714→                </Button>
+   715→   715→              </div>
+   716→   716→            </motion.div>
+   717→   717→          )}
+   718→   718→        </AnimatePresence>
+   719→   719→      </div>
+   720→   720→    </section>
+   721→   721→  );
+   722→   722→}
+   723→   723→
