@@ -10,6 +10,25 @@ import { NextResponse } from "next/server";
 
 export const MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
+// ─── Rate Limit Presets ──────────────────────────────────────────────────────
+
+export const RATE_LIMITS = {
+  cart: { windowMs: 60_000, maxRequests: 20 },
+  order: { windowMs: 60_000, maxRequests: 10 },
+  auth: { windowMs: 15_000, maxRequests: 5 },
+  api: { windowMs: 60_000, maxRequests: 30 },
+} as const;
+
+// ─── Client IP Helper ────────────────────────────────────────────────────────
+
+export function getClientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+  return "unknown";
+}
+
 // ─── Rate Limiter ──────────────────────────────────────────────────────────────
 
 interface RateLimitEntry {

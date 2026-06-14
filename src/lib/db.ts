@@ -12,17 +12,9 @@ function createPrismaClient(): PrismaClient {
   const tursoUrl = process.env.TURSO_DB_URL || ''
   const databaseUrl = process.env.DATABASE_URL || ''
 
-  // Skip DB connection during build time
-  if (!tursoUrl && !databaseUrl) {
-    console.warn('⚠️ No DATABASE_URL or TURSO_DB_URL set, using fallback PrismaClient')
-    return new PrismaClient({
-      log: ['error'],
-    })
-  }
-
   // Turso/libSQL connection (runtime) - prefer TURSO_DB_URL
   const remoteUrl = tursoUrl || databaseUrl
-  if (remoteUrl.startsWith('libsql://') || remoteUrl.startsWith('https://')) {
+  if (remoteUrl && (remoteUrl.startsWith('libsql://') || remoteUrl.startsWith('https://'))) {
     const libsql = createClient({
       url: remoteUrl,
       authToken: process.env.DATABASE_AUTH_TOKEN || undefined,
@@ -36,9 +28,19 @@ function createPrismaClient(): PrismaClient {
   }
 
   // Fallback: local SQLite file (DATABASE_URL = file:./db/local.db)
+  if (databaseUrl && databaseUrl.startsWith('file:')) {
+    return new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
+    })
+  }
+
+  // No valid DB URL found (build time / missing env) - return a mock client
+  // This prevents crashes during static page generation
+  console.warn('⚠️ No valid DATABASE_URL or TURSO_DB_URL set, using mock PrismaClient')
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
-  })
+    log: ['error'],
+    __internal: { engine: { override: { datasourceUrl: 'file:/tmp/fallback.db' } } },
+  } as any)
 }
 
 export const db = globalForPrisma.prisma ?? createPrismaClient()
