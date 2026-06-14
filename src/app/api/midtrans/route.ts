@@ -277,6 +277,7 @@ export async function POST(req: NextRequest) {
     expiredAt.setHours(expiredAt.getHours() + 24);
 
     // Resolve userId — ALWAYS verify against database to prevent FK constraint errors
+    // Every DB operation is wrapped in try-catch to prevent unhandled exceptions
     let resolvedUserId: string | undefined;
 
     // Step 1: Try to get userId from session (most reliable source)
@@ -285,46 +286,83 @@ export async function POST(req: NextRequest) {
       if (session?.user) {
         const sessionUserId = (session.user as { id?: string })?.id;
         if (sessionUserId) {
-          // Verify this user actually exists in DB
           const dbUser = await db.user.findUnique({ where: { id: sessionUserId } });
           if (dbUser) {
             resolvedUserId = dbUser.id;
+          } else {
+            console.log("[MIDTRANS] Session userId not found in DB:", sessionUserId);
           }
         }
       }
-    } catch {
-      // No session, continue
+    } catch (e) {
+      console.error("[MIDTRANS] Step 1 (session lookup) failed:", e);
     }
 
     // Step 2: If not resolved from session, try the frontend-provided userId
     if (!resolvedUserId && userId && userId !== "guest") {
-      const dbUser = await db.user.findUnique({ where: { id: userId } });
-      if (dbUser) {
-        resolvedUserId = dbUser.id;
+      try {
+        const dbUser = await db.user.findUnique({ where: { id: userId } });
+        if (dbUser) {
+          resolvedUserId = dbUser.id;
+        } else {
+          console.log("[MIDTRANS] Frontend userId not found in DB:", userId);
+        }
+      } catch (e) {
+        console.error("[MIDTRANS] Step 2 (frontend userId lookup) failed:", e);
       }
     }
 
     // Step 3: If still not resolved, try to find by email
     if (!resolvedUserId) {
-      const emailUser = await db.user.findFirst({ where: { email: customerEmail } });
-      if (emailUser) {
-        resolvedUserId = emailUser.id;
+      try {
+        const emailUser = await db.user.findFirst({ where: { email: customerEmail } });
+        if (emailUser) {
+          resolvedUserId = emailUser.id;
+        } else {
+          console.log("[MIDTRANS] No user found by email:", customerEmail);
+        }
+      } catch (e) {
+        console.error("[MIDTRANS] Step 3 (email lookup) failed:", e);
       }
     }
 
     // Step 4: Last resort — create a new user (guest checkout)
     if (!resolvedUserId) {
-      const newGuest = await db.user.create({
-        data: {
-          email: customerEmail,
-          name: customerName,
-          phone: customerPhone,
-          businessName: businessName || null,
-          role: "customer",
-          provider: "checkout",
-        },
-      });
-      resolvedUserId = newGuest.id;
+      try {
+        const newGuest = await db.user.create({
+          data: {
+            email: customerEmail,
+            name: customerName,
+            phone: customerPhone,
+            businessName: businessName || null,
+            role: "customer",
+            provider: "checkout",
+          },
+        });
+        resolvedUserId = newGuest.id;
+        console.log("[MIDTRANS] Created new guest user:", newGuest.id, "for", customerEmail);
+      } catch (e) {
+        console.error("[MIDTRANS] Step 4 (create guest user) failed:", e);
+        // If we can't create a user, try one more time to find by email
+        // (race condition: user might have been created between step 3 and 4)
+        try {
+          const existingUser = await db.user.findFirst({ where: { email: customerEmail } });
+          if (existingUser) {
+            resolvedUserId = existingUser.id;
+          }
+        } catch {
+          // Give up — this should never happen
+          console.error("[MIDTRANS] All userId resolution steps failed completely");
+        }
+      }
+    }
+
+    if (!resolvedUserId) {
+      console.error("[MIDTRANS] CRITICAL: Could not resolve userId for checkout");
+      return NextResponse.json(
+        { error: "Gagal memproses pesanan. Silakan coba lagi nanti." },
+        { status: 500 }
+      );
     }
 
     // Store serialized items info in notes
