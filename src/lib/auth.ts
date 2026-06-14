@@ -4,9 +4,30 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 
-// Ensure NEXTAUTH_URL has a fallback for SSR/build
-if (!process.env.NEXTAUTH_URL) {
-  process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
+// ─── NEXTAUTH_URL normalization ────────────────────────────────────────────────
+// Ensure NEXTAUTH_URL is always correct, even if env var is misconfigured
+function getNormalizedNextAuthUrl(): string {
+  let url = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
+
+  // Remove trailing slashes
+  url = url.replace(/\/+$/, "");
+
+  // Ensure HTTPS in production
+  if (process.env.NODE_ENV === "production" && url.startsWith("http://")) {
+    url = url.replace("http://", "https://");
+  }
+
+  // Log for debugging
+  if (process.env.NODE_ENV === "production") {
+    console.log(`[AUTH] NEXTAUTH_URL resolved to: ${url}`);
+  }
+
+  return url;
+}
+
+// Set NEXTAUTH_URL early so NextAuth uses the correct value
+if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("vercel.app") || process.env.NEXTAUTH_URL.endsWith("/")) {
+  process.env.NEXTAUTH_URL = getNormalizedNextAuthUrl();
 }
 
 // Default super-admin emails: fallback to hardcoded if env var not set
@@ -57,6 +78,12 @@ export function invalidateRoleCache(email: string): void {
   roleCache.delete(email);
 }
 
+// ─── Helper: Check if email is super-admin ─────────────────────────────────────
+
+function isSuperAdminEmail(email: string): boolean {
+  return SUPER_ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
 // ─── Auth Options ─────────────────────────────────────────────────────────────
 
 export const authOptions: NextAuthOptions = {
@@ -68,7 +95,6 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code",
         },
       },
     }),
@@ -101,12 +127,28 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Email atau password salah");
           }
 
+          // Auto-upgrade to super-admin if email is in SUPER_ADMIN_EMAILS
+          let userRole = user.role;
+          if (isSuperAdminEmail(user.email) && user.role !== "super-admin") {
+            try {
+              await db.user.update({
+                where: { id: user.id },
+                data: { role: "super-admin" },
+              });
+              userRole = "super-admin";
+              invalidateRoleCache(user.email);
+              console.log(`[AUTH] User ${user.email} auto-upgraded to super-admin on login`);
+            } catch (upgradeError) {
+              console.error("[AUTH] Failed to upgrade user to super-admin:", upgradeError);
+            }
+          }
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             image: user.image,
-            role: user.role,
+            role: userRole,
           };
         } catch (error: unknown) {
           // Re-throw known auth errors
@@ -128,7 +170,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         if (!user.email) return false;
 
-        const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase());
+        const shouldBeSuperAdmin = isSuperAdminEmail(user.email);
 
         try {
           const existingUser = await db.user.findUnique({
@@ -136,25 +178,36 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!existingUser) {
+            // Create new user
             await db.user.create({
               data: {
                 email: user.email,
                 name: user.name || "",
                 image: user.image,
                 provider: "google",
-                role: isSuperAdmin ? "super-admin" : "customer",
+                role: shouldBeSuperAdmin ? "super-admin" : "customer",
               },
             });
-            console.log(`[AUTH] New Google user created: ${user.email}`);
-          } else if (isSuperAdmin && existingUser.role !== "super-admin") {
+            console.log(`[AUTH] New Google user created: ${user.email} (role: ${shouldBeSuperAdmin ? "super-admin" : "customer"})`);
+          } else if (shouldBeSuperAdmin && existingUser.role !== "super-admin") {
             // Auto-upgrade to super-admin if email is in SUPER_ADMIN_EMAILS
             await db.user.update({
               where: { id: existingUser.id },
               data: { role: "super-admin" },
             });
-            // Invalidate cache so next request gets fresh role
             invalidateRoleCache(user.email);
             console.log(`[AUTH] User ${user.email} upgraded to super-admin`);
+          }
+
+          // Update name/image if changed on Google
+          if (existingUser && (existingUser.name !== (user.name || "") || existingUser.image !== user.image)) {
+            await db.user.update({
+              where: { id: existingUser.id },
+              data: {
+                name: user.name || existingUser.name,
+                image: user.image || existingUser.image,
+              },
+            });
           }
         } catch (error) {
           console.error("[AUTH] Google signIn DB error:", error);
@@ -164,32 +217,69 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, isNewUser }) {
       // On first sign-in, fetch role from DB to ensure it's fresh
       if (user) {
-        token.role = (user as { role?: string })?.role || "customer";
+        // Check if this email should be super-admin
+        const shouldBeSuperAdmin = user.email ? isSuperAdminEmail(user.email) : false;
+        let role = (user as { role?: string })?.role || "customer";
+
+        // Override role if email is in SUPER_ADMIN_EMAILS
+        if (shouldBeSuperAdmin && role !== "super-admin") {
+          role = "super-admin";
+          // Also update in DB
+          try {
+            await db.user.update({
+              where: { email: user.email! },
+              data: { role: "super-admin" },
+            });
+            console.log(`[AUTH] JWT: Upgraded ${user.email} to super-admin`);
+          } catch (e) {
+            console.error("[AUTH] JWT: Failed to upgrade role in DB:", e);
+          }
+        }
+
+        token.role = role;
         token.id = user.id;
         if (user.email) {
-          setCachedRole(user.email, token.role as string);
+          setCachedRole(user.email, role);
         }
         return token;
       }
 
       // On subsequent requests, use cached role if available
       if (token.email) {
-        const cachedRole = getCachedRole(token.email as string);
+        const email = token.email as string;
+
+        // Always check if this email should be super-admin
+        if (isSuperAdminEmail(email) && token.role !== "super-admin") {
+          token.role = "super-admin";
+          setCachedRole(email, "super-admin");
+          // Update DB in background
+          try {
+            await db.user.update({
+              where: { email },
+              data: { role: "super-admin" },
+            });
+          } catch (e) {
+            console.error("[AUTH] JWT: Failed to upgrade role in DB:", e);
+          }
+          return token;
+        }
+
+        const cachedRole = getCachedRole(email);
         if (cachedRole) {
           token.role = cachedRole;
         } else {
           // Cache miss — fetch from DB
           try {
             const dbUser = await db.user.findUnique({
-              where: { email: token.email as string },
+              where: { email },
               select: { role: true },
             });
             if (dbUser) {
               token.role = dbUser.role;
-              setCachedRole(token.email as string, dbUser.role);
+              setCachedRole(email, dbUser.role);
             }
           } catch (error) {
             console.error("[AUTH] JWT role fetch error:", error);

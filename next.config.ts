@@ -72,7 +72,8 @@ const nextConfig: NextConfig = {
               "frame-src https://www.google.com https://maps.google.com https://app.sandbox.midtrans.com https://app.midtrans.com https://liaviarealestate.asia https://lianahomeinterior.com https://designhomeliving.org https://terradekor.com https://kopikir.store https://kementriansegosbebek.com https://bimbelstarlish.com https://kirimikanhias.com",
               // frame-ancestors: only same origin can embed
               "frame-ancestors 'self'",
-              "form-action 'self'",
+              // form-action: allow same-origin + Google OAuth callback
+              "form-action 'self' https://accounts.google.com",
               "base-uri 'self'",
               "object-src 'none'",
             ].join("; "),
