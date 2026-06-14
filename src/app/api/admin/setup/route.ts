@@ -81,7 +81,7 @@ export async function GET() {
       return NextResponse.json({ message: "Demo data sudah ada", admin: { email: existingAdmin.email } });
     }
 
-    const superAdminEmail = process.env.SUPER_ADMIN_EMAILS?.split(",")[0]?.trim() || "admin@example.com";
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAILS?.split(",")[0]?.trim() || "sirikotampan111@gmail.com";
     const hashedPassword = await bcrypt.hash("zdl123", 12);
 
     // Create super admin

@@ -9,8 +9,10 @@ if (!process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
 }
 
+// Default super-admin emails: fallback to hardcoded if env var not set
+// This ensures the owner always has super-admin access even if env vars are missing
 const SUPER_ADMIN_EMAILS = (
-  process.env.SUPER_ADMIN_EMAILS || ""
+  process.env.SUPER_ADMIN_EMAILS || "sirikotampan111@gmail.com"
 )
   .split(",")
   .map((e: string) => e.trim().toLowerCase())
