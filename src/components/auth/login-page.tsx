@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,13 +32,28 @@ export function LoginPage() {
   const [regPhone, setRegPhone] = useState("");
   const [regBusiness, setRegBusiness] = useState("");
 
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      router.push("/dashboard");
+    }
+  }, [status, session, router]);
+
   // Check for auth errors in URL params (from NextAuth redirects)
   useEffect(() => {
     const error = searchParams.get("error");
     if (error) {
+      // Check if user is actually authenticated despite the error URL param
+      // This can happen when Google OAuth succeeds but the redirect URL includes error params
+      if (status === "authenticated") {
+        // User is actually logged in, just redirect
+        router.push("/dashboard");
+        return;
+      }
+
       const errorMessages: Record<string, string> = {
         OAuthSignin: "Gagal memulai login dengan Google.",
-        OAuthCallback: "Gagal menyelesaikan login dengan Google.",
+        OAuthCallback: "Gagal menyelesaikan login dengan Google. Coba lagi dalam beberapa menit.",
         OAuthCreateAccount: "Gagal membuat akun dari Google.",
         EmailCreateAccount: "Gagal membuat akun dengan email ini.",
         Callback: "Gagal menyelesaikan proses login.",
@@ -50,7 +66,7 @@ export function LoginPage() {
       setAuthError(message);
       toast.error(message);
     }
-  }, [searchParams]);
+  }, [searchParams, status, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
