@@ -14,7 +14,6 @@ function isBuildTime(): boolean {
 
 function createPrismaClient(): PrismaClient {
   // During build: return a proxy that does nothing
-  // This avoids ANY database connection during static page generation
   if (isBuildTime()) {
     console.log('📦 Build phase detected - using no-op PrismaClient proxy')
     return createNoOpProxy()
@@ -43,8 +42,12 @@ function createPrismaClient(): PrismaClient {
         log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
       })
     } catch (error) {
-      console.error('❌ Failed to create Turso client:', error)
-      return createNoOpProxy()
+      console.error('❌ CRITICAL: Failed to create Turso client at runtime:', error)
+      // At runtime, this is fatal - throw instead of silent failure
+      throw new Error(
+        `Database connection failed: ${error instanceof Error ? error.message : String(error)}. ` +
+        `Check TURSO_DB_URL and DATABASE_AUTH_TOKEN env vars.`
+      )
     }
   }
 
@@ -55,21 +58,22 @@ function createPrismaClient(): PrismaClient {
     })
   }
 
-  // No valid DB URL
-  console.warn('⚠️ No valid DATABASE_URL or TURSO_DB_URL set')
-  return createNoOpProxy()
+  // No valid DB URL at runtime - this is FATAL
+  throw new Error(
+    'No valid DATABASE_URL or TURSO_DB_URL set. ' +
+    'Database is required for this application to function. ' +
+    'Set TURSO_DB_URL and DATABASE_AUTH_TOKEN in your environment.'
+  )
 }
 
 /**
  * Creates a Proxy that acts as PrismaClient but does nothing.
- * Used during build time to prevent any database connections.
+ * Used ONLY during build time to prevent database connections during static generation.
  */
 function createNoOpProxy(): PrismaClient {
   const handler: ProxyHandler<object> = {
     get(_target, prop) {
-      // Return noop functions for common Prisma methods
       if (typeof prop === 'string') {
-        // These return promises that resolve to null/empty
         return () => Promise.resolve(null)
       }
       return undefined

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { checkRateLimit, safeParseJson, auditLog } from "@/lib/rate-limit";
+import { checkRateLimit, safeParseJson } from "@/lib/rate-limit";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
 
 const SYSTEM_PROMPT = `Kamu adalah asisten virtual Zheng Digital Lab (ZDL), perusahaan jasa pembuatan website profesional. Gunakan Bahasa Indonesia.
 
@@ -36,6 +37,47 @@ const chatBodySchema = z.object({
   sessionId: z.string().max(100).optional(),
 });
 
+// ─── ZAI SDK Init ─────────────────────────────────────────────────────────────
+
+let zaiInitialized = false;
+
+async function ensureZaiConfig(): Promise<void> {
+  if (zaiInitialized) return;
+
+  // Check if config file already exists (local dev)
+  const fs = await import("fs/promises");
+  try {
+    await fs.access("/etc/.z-ai-config");
+    zaiInitialized = true;
+    return;
+  } catch {
+    // File doesn't exist — write from env vars (Vercel runtime)
+  }
+
+  const apiKey = process.env.ZAI_API_KEY;
+  const baseUrl = process.env.ZAI_BASE_URL || "https://internal-api.z.ai/v1";
+  const token = process.env.ZAI_TOKEN;
+  const userId = process.env.ZAI_USER_ID;
+
+  if (!apiKey || !token || !userId) {
+    throw new Error("ZAI config not available. Set ZAI_API_KEY, ZAI_TOKEN, ZAI_USER_ID env vars.");
+  }
+
+  // Write config to /tmp for z-ai-web-dev-sdk to find
+  const config = { baseUrl, apiKey, chatId: `chat-${randomUUID()}`, token, userId };
+  await mkdir("/tmp", { recursive: true });
+  await writeFile("/tmp/.z-ai-config", JSON.stringify(config));
+
+  // Also set CWD path as fallback
+  try {
+    await writeFile(join(process.cwd(), ".z-ai-config"), JSON.stringify(config));
+  } catch {
+    // CWD might be read-only on Vercel, that's OK
+  }
+
+  zaiInitialized = true;
+}
+
 // ─── POST /api/chat ──────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
@@ -67,6 +109,10 @@ export async function POST(request: NextRequest) {
     const newSessionId = sessionId || randomUUID();
 
     try {
+      // Ensure ZAI config is available
+      await ensureZaiConfig();
+
+      const ZAI = (await import("z-ai-web-dev-sdk")).default;
       const zai = await ZAI.create();
       const completion = await zai.chat.completions.create({
         messages: [
@@ -84,13 +130,14 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ message: reply, sessionId: newSessionId });
     } catch (aiError) {
+      console.error("[CHAT] AI error:", aiError);
       return NextResponse.json({
-        message:
-          "Maaf, gangguan teknis. Hubungi WhatsApp 0889-7374-5596 😊",
+        message: "Maaf, gangguan teknis. Hubungi WhatsApp 0889-7374-5596 😊",
         sessionId: newSessionId,
       });
     }
   } catch (error) {
+    console.error("[CHAT] Server error:", error);
     return NextResponse.json(
       {
         message: "Terjadi kesalahan. Hubungi WhatsApp 0889-7374-5596 😊",
