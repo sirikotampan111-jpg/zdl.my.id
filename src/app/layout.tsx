@@ -21,8 +21,17 @@ const SITE_NAME = "Zheng Digital Lab";
 const SITE_DESCRIPTION =
   "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.";
 
+// Guard: ensure SITE_URL is a valid URL for metadataBase
+function safeMetadataBase(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    return undefined;
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  ...(safeMetadataBase(SITE_URL) ? { metadataBase: safeMetadataBase(SITE_URL) } : {}),
   title: {
     default: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
     template: "%s | Zheng Digital Lab",

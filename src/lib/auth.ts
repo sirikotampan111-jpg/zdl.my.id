@@ -2,6 +2,11 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/lib/db";
 
+// Ensure NEXTAUTH_URL has a fallback for SSR/build
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
+}
+
 const SUPER_ADMIN_EMAILS = (
   process.env.SUPER_ADMIN_EMAILS || ""
 )
