@@ -68,3 +68,27 @@ Stage Summary:
 - Fix: Always verify userId exists in DB, fallback to email lookup then create new user
 - FK constraint errors now return 400 instead of 500 with clear message
 - Build succeeds, both test cases pass
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix persistent Internal Server Error on checkout even after initial FK fix
+
+Work Log:
+- User reported error persists after "redeploy"
+- Tested production API directly: WITHOUT userId works, WITH fake userId returns "Internal server error"
+- Discovered the previous FK fix was deployed but Step 2 (frontend userId lookup) had NO try-catch
+- On Turso (production DB), if findUnique throws (timeout, connection issue), it crashes as unhandled 500
+- Fixed: Wrapped ALL 4 steps of userId resolution in individual try-catch blocks
+- Added detailed console.error/logging for each step so errors are visible in Vercel logs
+- Added race condition handling for user creation (retry email lookup if create fails)
+- Added final safety check: if userId can't be resolved, return 500 with clear message
+- Committed and pushed to GitHub → Vercel auto-deployed
+- Tested production: fake userId now works (auto-creates guest user)
+- Tested with sirikotampan111@gmail.com scenario: works, returns valid Midtrans token
+
+Stage Summary:
+- Root cause: Step 2 of userId resolution (db.user.findUnique) could throw on Turso without try-catch
+- Fix: Every DB operation in userId resolution now has its own try-catch
+- Production API verified working with both fake and real userId
+- Vercel deployment confirmed active
