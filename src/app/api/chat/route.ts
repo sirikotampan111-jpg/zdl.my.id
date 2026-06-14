@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { checkRateLimit, safeParseJson } from "@/lib/rate-limit";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 
 const SYSTEM_PROMPT = `Kamu adalah asisten virtual Zheng Digital Lab (ZDL), perusahaan jasa pembuatan website profesional. Gunakan Bahasa Indonesia.
 
@@ -44,35 +42,40 @@ let zaiInitialized = false;
 async function ensureZaiConfig(): Promise<void> {
   if (zaiInitialized) return;
 
-  // Check if config file already exists (local dev)
+  // Try to find config file in standard locations first (sandbox env)
   const fs = await import("fs/promises");
-  try {
-    await fs.access("/etc/.z-ai-config");
-    zaiInitialized = true;
-    return;
-  } catch {
-    // File doesn't exist — write from env vars (Vercel runtime)
+  const configPaths = ["/etc/.z-ai-config", "/tmp/.z-ai-config"];
+  for (const p of configPaths) {
+    try {
+      await fs.access(p);
+      zaiInitialized = true;
+      return;
+    } catch {
+      // not found, try next
+    }
   }
 
+  // If env vars are available, write config for z-ai-web-dev-sdk (Vercel runtime)
   const apiKey = process.env.ZAI_API_KEY;
   const baseUrl = process.env.ZAI_BASE_URL || "https://internal-api.z.ai/v1";
   const token = process.env.ZAI_TOKEN;
   const userId = process.env.ZAI_USER_ID;
 
-  if (!apiKey || !token || !userId) {
-    throw new Error("ZAI config not available. Set ZAI_API_KEY, ZAI_TOKEN, ZAI_USER_ID env vars.");
-  }
-
-  // Write config to /tmp for z-ai-web-dev-sdk to find
-  const config = { baseUrl, apiKey, chatId: `chat-${randomUUID()}`, token, userId };
-  await mkdir("/tmp", { recursive: true });
-  await writeFile("/tmp/.z-ai-config", JSON.stringify(config));
-
-  // Also set CWD path as fallback
-  try {
-    await writeFile(join(process.cwd(), ".z-ai-config"), JSON.stringify(config));
-  } catch {
-    // CWD might be read-only on Vercel, that's OK
+  if (apiKey && token && userId) {
+    const config = { baseUrl, apiKey, chatId: `chat-${randomUUID()}`, token, userId };
+    const { mkdir, writeFile } = await import("fs/promises");
+    const { join } = await import("path");
+    try {
+      await mkdir("/tmp", { recursive: true });
+      await writeFile("/tmp/.z-ai-config", JSON.stringify(config));
+    } catch {
+      // /tmp might not be writable in some environments
+    }
+    try {
+      await writeFile(join(process.cwd(), ".z-ai-config"), JSON.stringify(config));
+    } catch {
+      // CWD might be read-only on Vercel
+    }
   }
 
   zaiInitialized = true;

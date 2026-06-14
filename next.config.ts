@@ -6,6 +6,26 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
+  },
   async headers() {
     return [
       {
@@ -46,11 +66,10 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.sandbox.midtrans.com https://app.midtrans.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              // Restrict img-src to specific domains (not broad https:)
-              "img-src 'self' data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://ui-avatars.com https://res.cloudinary.com",
-              "connect-src 'self' https://api.midtrans.com https://app.sandbox.midtrans.com https://app.midtrans.com",
-              // frame-src: Google Maps embed + Midtrans Snap
-              "frame-src https://www.google.com https://maps.google.com https://app.sandbox.midtrans.com https://app.midtrans.com",
+              "img-src 'self' data: https: blob:",
+              "connect-src 'self' https://api.midtrans.com https://app.sandbox.midtrans.com https://app.midtrans.com https://*.z.ai",
+              // frame-src: Google Maps embed + Midtrans Snap + portfolio live previews
+              "frame-src https://www.google.com https://maps.google.com https://app.sandbox.midtrans.com https://app.midtrans.com https://genesisxproperty.com https://pawonbhoga.id https://liaviarealestate.asia https://lianahomeinterior.com https://designhomeliving.org https://terradekor.com https://kopikir.store https://kementriansegosbebek.com https://bimbelstarlish.com https://kirimikanhias.com",
               // frame-ancestors: only same origin can embed
               "frame-ancestors 'self'",
               "form-action 'self'",

@@ -6,6 +6,8 @@ export interface PortfolioItem {
   image: string;
   url: string;
   description: string;
+  /** If true, the modal will show an iframe with the live website */
+  livePreview?: boolean;
 }
 
 export interface ServiceItem {
@@ -45,6 +47,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/genesisxproperty.png",
     url: "https://genesisxproperty.com",
     description: "Website properti modern dengan fitur listing properti, pencarian lanjutan, dan tampilan premium untuk agen real estate.",
+    livePreview: true,
   },
   {
     id: "liaviarealestate",
@@ -101,6 +104,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/pawonbhoga.png",
     url: "https://pawonbhoga.id",
     description: "Website restoran kuliner nusantara dengan menu tradisional, reservasi online, dan galeri hidangan khas Indonesia.",
+    livePreview: true,
   },
   {
     id: "kementriansegosbebek",
