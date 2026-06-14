@@ -24,7 +24,30 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
-import { WHATSAPP_LINK, WHATSAPP_DISPLAY, BANK_NAME, BANK_ACCOUNT, BUSINESS_ADDRESS, GOOGLE_MAPS_LINK, GOOGLE_MAPS_EMBED } from "@/lib/config";
+import { WHATSAPP_LINK, WHATSAPP_DISPLAY, WHATSAPP_NUMBER, BANK_NAME, BANK_ACCOUNT, BUSINESS_ADDRESS, GOOGLE_MAPS_LINK, GOOGLE_MAPS_EMBED } from "@/lib/config";
+
+// ─── Input limits ─────────────────────────────────────────────────────────────
+
+const MAX_NAME_LENGTH = 200;
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_SUBJEK_LENGTH = 200;
+
+// ─── XSS Sanitization for WhatsApp URL ────────────────────────────────────────
+
+function sanitizeForWhatsApp(input: string): string {
+  return input
+    // Strip HTML tags
+    .replace(/<[^>]*>/g, "")
+    // Strip script/event handler patterns
+    .replace(/on\w+\s*=/gi, "")
+    .replace(/javascript:/gi, "")
+    .replace(/data:/gi, "")
+    .replace(/vbscript:/gi, "")
+    // Remove null bytes and control characters
+    .replace(/[\x00-\x1F\x7F]/g, "")
+    // Limit length
+    .trim();
+}
 
 const container = {
   hidden: { opacity: 0 },
@@ -45,20 +68,6 @@ export function PageKontak() {
   const [subjek, setSubjek] = useState("");
   const [pesan, setPesan] = useState("");
 
-  /**
-   * Sanitize input for safe inclusion in WhatsApp URL.
-   * Strips HTML tags, script content, and WhatsApp formatting injection characters.
-   */
-  const sanitizeForWhatsApp = (input: string): string => {
-    return input
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "") // strip script tags
-      .replace(/<[^>]*>/g, "") // strip all HTML tags
-      .replace(/javascript:/gi, "") // strip javascript: protocol
-      .replace(/on\w+\s*=/gi, "") // strip event handlers
-      .replace(/[\r\n]{3,}/g, "\n\n") // limit consecutive newlines
-      .trim();
-  };
-
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama.trim() || !email.trim() || !pesan.trim()) {
@@ -66,18 +75,11 @@ export function PageKontak() {
       return;
     }
 
-    // SECURITY: Sanitize all user inputs before encoding into WhatsApp URL
-    // to prevent injection of WhatsApp formatting commands or malicious URLs
+    // Sanitize all inputs before building WhatsApp URL
     const safeNama = sanitizeForWhatsApp(nama);
     const safeEmail = sanitizeForWhatsApp(email);
     const safeSubjek = sanitizeForWhatsApp(subjek);
     const safePesan = sanitizeForWhatsApp(pesan);
-
-    // Additional validation: limit input lengths
-    if (safeNama.length > 200 || safeEmail.length > 200 || safePesan.length > 2000) {
-      toast.error("Input terlalu panjang. Harap perpendek.");
-      return;
-    }
 
     const message = `Halo Zheng Digital Lab,
 
@@ -140,6 +142,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       placeholder="Nama lengkap Anda"
                       value={nama}
                       onChange={(e) => setNama(e.target.value)}
+                      maxLength={MAX_NAME_LENGTH}
                     />
                   </div>
                   <div className="space-y-2">
@@ -150,6 +153,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       placeholder="email@contoh.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      maxLength={MAX_NAME_LENGTH}
                     />
                   </div>
                   <div className="space-y-2">
@@ -159,6 +163,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       placeholder="Subjek pesan Anda"
                       value={subjek}
                       onChange={(e) => setSubjek(e.target.value)}
+                      maxLength={MAX_SUBJEK_LENGTH}
                     />
                   </div>
                   <div className="space-y-2">
@@ -169,6 +174,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                       value={pesan}
                       onChange={(e) => setPesan(e.target.value)}
                       rows={5}
+                      maxLength={MAX_MESSAGE_LENGTH}
                     />
                   </div>
                   <Button

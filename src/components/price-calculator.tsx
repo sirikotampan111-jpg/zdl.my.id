@@ -423,9 +423,7 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
                 </span>
                 <span className="font-medium">
                   {formatPrice(
-                    breakdown.ppn != null
-                      ? breakdown.ppn
-                      : breakdown.basePrice * PPN_RATE,
+                    "ppn" in breakdown ? breakdown.ppn : breakdown.basePrice * PPN_RATE,
                   )}
                 </span>
               </div>
@@ -442,7 +440,7 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
               <div className="flex justify-between font-bold">
                 <span>Total pembayaran</span>
                 <span className="text-gold text-lg">
-                  {formatPrice(breakdown.total)}
+                  {formatPrice(breakdown.fullTotal)}
                 </span>
               </div>
 
@@ -456,14 +454,14 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
 
               <div className="flex justify-between text-sm">
                 <span className="text-white/70">DP minimal</span>
-                <span className="font-medium">{formatPrice(breakdown.dpAmount)}</span>
+                <span className="font-medium">{formatPrice(breakdown.dpBase)}</span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-white/70">
                   PPN DP {(PPN_RATE * 100).toFixed(0)}%
                 </span>
-                <span className="font-medium">{formatPrice(Math.ceil(breakdown.dpAmount * PPN_RATE))}</span>
+                <span className="font-medium">{formatPrice(breakdown.dpPPN)}</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -473,12 +471,12 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
 
               <div className="flex justify-between font-bold">
                 <span>DP yang harus dibayar</span>
-                <span className="text-gold">{formatPrice(breakdown.dpAmount + Math.ceil(breakdown.dpAmount * PPN_RATE) + TRANSACTION_FEE)}</span>
+                <span className="text-gold">{formatPrice(breakdown.dpTotal)}</span>
               </div>
 
               <div className="flex justify-between text-xs text-white/50 mt-1">
                 <span>Sisa pelunasan (setelah website selesai)</span>
-                <span>{formatPrice(breakdown.basePrice - breakdown.dpAmount)}</span>
+                <span>{formatPrice(breakdown.sisaTotal)}</span>
               </div>
             </div>
 

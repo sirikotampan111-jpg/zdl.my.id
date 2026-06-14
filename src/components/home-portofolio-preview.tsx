@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { useStore } from "@/store/use-store";
+import { portfolios, PortfolioItem } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { portfolios, type PortfolioItem } from "@/lib/data";
-import { ArrowRight, ExternalLink, Monitor } from "lucide-react";
-import { WebsitePreviewModal } from "@/components/website-preview-modal";
+import { ArrowRight } from "lucide-react";
+import { PortfolioModal } from "@/components/portfolio-modal";
+import Image from "next/image";
 
 const container = {
   hidden: { opacity: 0 },
@@ -26,14 +26,9 @@ const item = {
 
 export function HomePortofolioPreview() {
   const { setCurrentPage } = useStore();
+  const [selectedPortfolio, setSelectedPortfolio] =
+    useState<PortfolioItem | null>(null);
   const featured = portfolios.slice(0, 6);
-  const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
-
-  const openPreview = (p: PortfolioItem) => {
-    setPreviewItem(p);
-    setPreviewOpen(true);
-  };
 
   return (
     <section className="py-20">
@@ -50,7 +45,6 @@ export function HomePortofolioPreview() {
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Beberapa project terbaru yang telah kami selesaikan untuk klien kami.
-            Klik untuk melihat langsung.
           </p>
         </motion.div>
 
@@ -64,41 +58,25 @@ export function HomePortofolioPreview() {
           {featured.map((p) => (
             <motion.div key={p.id} variants={item}>
               <Card
-                className="overflow-hidden group hover:border-gold/50 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-gold/10"
-                onClick={() => openPreview(p)}
+                className="overflow-hidden group hover:border-gold/50 transition-colors cursor-pointer"
+                onClick={() => setSelectedPortfolio(p)}
               >
-                <div className="h-48 relative overflow-hidden">
-                  {p.image ? (
-                    <>
-                      <Image
-                        src={p.image}
-                        alt={p.domain}
-                        fill
-                        className="object-top object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium text-sm">
-                          <Monitor className="w-4 h-4" />
-                          Lihat Live Preview
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div
-                      className={`h-full w-full bg-gradient-to-br ${p.gradient} relative flex items-center justify-center`}
-                    >
-                      <span className="text-white font-bold text-lg text-center px-4 drop-shadow-lg">
-                        {p.domain}
-                      </span>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 font-medium text-sm">
-                          <ExternalLink className="w-4 h-4" />
-                          Segera Online
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                <div className="relative h-48 overflow-hidden">
+                  <Image
+                    src={p.image}
+                    alt={p.domain}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-t ${p.gradient} opacity-30 group-hover:opacity-10 transition-opacity`}
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-medium text-sm">
+                      Lihat Detail
+                    </span>
+                  </div>
                 </div>
                 <CardContent className="pt-4">
                   <Badge
@@ -134,11 +112,11 @@ export function HomePortofolioPreview() {
         </motion.div>
       </div>
 
-      {/* Website Preview Modal */}
-      <WebsitePreviewModal
-        portfolio={previewItem}
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
+      {/* Portfolio Detail Modal */}
+      <PortfolioModal
+        portfolio={selectedPortfolio}
+        open={!!selectedPortfolio}
+        onClose={() => setSelectedPortfolio(null)}
       />
     </section>
   );

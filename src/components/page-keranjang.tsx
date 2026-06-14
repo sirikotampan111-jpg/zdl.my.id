@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
   formatPrice,
+  calculatePriceBreakdown,
   PPN_RATE,
   TRANSACTION_FEE,
   DP_MINIMAL,
@@ -34,9 +35,6 @@ import {
   ShieldCheck,
   Package,
   ShoppingBag,
-  Ticket,
-  Banknote,
-  BadgeDollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
@@ -48,8 +46,6 @@ const paymentMethods = [
   { id: "ewallet", label: "E-Wallet", icon: Wallet, desc: "GoPay, OVO, DANA, ShopeePay" },
   { id: "cc", label: "Kartu Kredit", icon: CreditCard, desc: "Visa, Mastercard" },
 ];
-
-type PaymentOption = "dp" | "full";
 
 function CartItemRow({
   item,
@@ -127,10 +123,8 @@ export function PageKeranjang() {
   const [step, setStep] = useState<1 | 2 | 3>(1); // 1=cart, 2=checkout, 3=success
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState("");
-  const [ticketNumber, setTicketNumber] = useState("");
   const [payAmount, setPayAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [paymentOption, setPaymentOption] = useState<PaymentOption>("dp");
 
   // Form
   const [name, setName] = useState(session?.user?.name || "");
@@ -150,12 +144,9 @@ export function PageKeranjang() {
   const hasDPEligible = cart.some(
     (item) => item.category === "html" || item.category === "nextjs"
   );
-
-  // Calculate based on payment option
-  const basePayAmount = hasDPEligible && paymentOption === "dp" ? DP_MINIMAL : total;
-  const ppnAmount = Math.round(basePayAmount * PPN_RATE);
-  const grandTotal = basePayAmount + ppnAmount + TRANSACTION_FEE;
-  const sisaPelunasan = total - DP_MINIMAL;
+  const dpBase = hasDPEligible ? DP_MINIMAL : total;
+  const ppnAmount = Math.round(dpBase * PPN_RATE);
+  const grandTotal = dpBase + ppnAmount + TRANSACTION_FEE;
 
   const handleCheckout = async () => {
     if (!name || !email || !phone) {
@@ -185,7 +176,6 @@ export function PageKeranjang() {
           businessName: business,
           notes,
           paymentMethod,
-          paymentOption,
           userId: (session?.user as Record<string, unknown>)?.id || null,
         }),
       });
@@ -198,7 +188,6 @@ export function PageKeranjang() {
 
       setOrderId(data.orderId);
       setPayAmount(data.payAmount);
-      if (data.ticketNumber) setTicketNumber(data.ticketNumber);
 
       if (data.isDemo) {
         toast.success("Demo: Transaksi berhasil disimulasikan!");
@@ -214,12 +203,6 @@ export function PageKeranjang() {
           onSuccess: () => {
             toast.success("Pembayaran berhasil!");
             clearCart();
-            fetch(`/api/orders?orderId=${data.orderId}`)
-              .then((r) => r.json())
-              .then((d) => {
-                if (d.ticketNumber) setTicketNumber(d.ticketNumber);
-              })
-              .catch(() => {});
             setStep(3);
           },
           onPending: () => {
@@ -387,84 +370,6 @@ export function PageKeranjang() {
                     <h3 className="font-bold text-foreground text-lg">
                       Ringkasan Pesanan
                     </h3>
-
-                    {/* Payment Option: DP or Full */}
-                    {hasDPEligible && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-foreground">
-                          Pilih Opsi Pembayaran
-                        </Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => setPaymentOption("dp")}
-                            className={`p-3 rounded-xl border-2 text-left transition-all ${
-                              paymentOption === "dp"
-                                ? "border-gold bg-gold/5"
-                                : "border-muted hover:border-gold/30"
-                            }`}
-                          >
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <Banknote
-                                className={`w-4 h-4 ${
-                                  paymentOption === "dp"
-                                    ? "text-gold"
-                                    : "text-muted-foreground"
-                                }`}
-                              />
-                              <span
-                                className={`text-sm font-semibold ${
-                                  paymentOption === "dp"
-                                    ? "text-gold"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                Bayar DP
-                              </span>
-                            </div>
-                            <p className="text-lg font-bold text-foreground">
-                              {formatPrice(DP_MINIMAL)}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                              Sisa {formatPrice(sisaPelunasan)} setelah selesai
-                            </p>
-                          </button>
-                          <button
-                            onClick={() => setPaymentOption("full")}
-                            className={`p-3 rounded-xl border-2 text-left transition-all ${
-                              paymentOption === "full"
-                                ? "border-gold bg-gold/5"
-                                : "border-muted hover:border-gold/30"
-                            }`}
-                          >
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <BadgeDollarSign
-                                className={`w-4 h-4 ${
-                                  paymentOption === "full"
-                                    ? "text-gold"
-                                    : "text-muted-foreground"
-                                }`}
-                              />
-                              <span
-                                className={`text-sm font-semibold ${
-                                  paymentOption === "full"
-                                    ? "text-gold"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                Bayar Penuh
-                              </span>
-                            </div>
-                            <p className="text-lg font-bold text-foreground">
-                              {formatPrice(total)}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                              Lunas sekaligus, tanpa sisa
-                            </p>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
                     <div className="space-y-2">
                       {cart.map((item) => (
                         <div
@@ -483,11 +388,11 @@ export function PageKeranjang() {
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{formatPrice(total)}</span>
                     </div>
-                    {hasDPEligible && paymentOption === "dp" && (
+                    {hasDPEligible && (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">DP Minimal</span>
                         <span className="font-medium text-gold">
-                          {formatPrice(DP_MINIMAL)}
+                          {formatPrice(dpBase)}
                         </span>
                       </div>
                     )}
@@ -504,15 +409,9 @@ export function PageKeranjang() {
                       <span>Total Bayar</span>
                       <span className="text-gold">{formatPrice(grandTotal)}</span>
                     </div>
-                    {hasDPEligible && paymentOption === "dp" && (
+                    {hasDPEligible && (
                       <p className="text-xs text-muted-foreground">
-                        DP dari {formatPrice(total)}. Sisa pelunasan{" "}
-                        {formatPrice(sisaPelunasan)} setelah website selesai.
-                      </p>
-                    )}
-                    {hasDPEligible && paymentOption === "full" && (
-                      <p className="text-xs text-muted-foreground">
-                        Pembayaran penuh. Tidak ada sisa pelunasan.
+                        DP dari {formatPrice(total)}. Sisa pelunasan setelah website selesai.
                       </p>
                     )}
                     <Button
@@ -563,7 +462,7 @@ export function PageKeranjang() {
                               Login untuk tracking pesanan
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Keranjang tersimpan per akun, sinkron antar device
+                              Atau lanjutkan sebagai tamu
                             </p>
                           </div>
                           <Button
@@ -638,14 +537,6 @@ export function PageKeranjang() {
                         </div>
                       ))}
                       <Separator />
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Opsi Bayar
-                        </span>
-                        <span className="font-medium text-gold">
-                          {paymentOption === "dp" ? `DP ${formatPrice(DP_MINIMAL)}` : "Bayar Penuh"}
-                        </span>
-                      </div>
                       <div className="flex justify-between font-bold">
                         <span>Total Bayar</span>
                         <span className="text-gold">{formatPrice(grandTotal)}</span>
@@ -694,10 +585,10 @@ export function PageKeranjang() {
                             <span>Subtotal</span>
                             <span>{formatPrice(total)}</span>
                           </div>
-                          {hasDPEligible && paymentOption === "dp" && (
+                          {hasDPEligible && (
                             <div className="flex justify-between">
                               <span>DP Minimal</span>
-                              <span className="text-gold">{formatPrice(DP_MINIMAL)}</span>
+                              <span className="text-gold">{formatPrice(dpBase)}</span>
                             </div>
                           )}
                           <div className="flex justify-between">
@@ -715,11 +606,6 @@ export function PageKeranjang() {
                               {formatPrice(grandTotal)}
                             </span>
                           </div>
-                          {hasDPEligible && paymentOption === "dp" && (
-                            <p className="text-xs text-muted-foreground pt-1">
-                              Sisa pelunasan {formatPrice(sisaPelunasan)} setelah website selesai
-                            </p>
-                          )}
                         </div>
                       )}
 
@@ -770,36 +656,12 @@ export function PageKeranjang() {
                     <span className="text-muted-foreground">Invoice</span>
                     <span className="font-mono font-bold text-gold">{orderId}</span>
                   </div>
-                  {ticketNumber && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Nomor Tiket</span>
-                      <div className="flex items-center gap-1.5">
-                        <Ticket className="w-4 h-4 text-gold" />
-                        <span className="font-mono font-bold text-green-600 dark:text-green-400 text-base">
-                          {ticketNumber}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total</span>
                     <span className="font-bold">
                       {formatPrice(payAmount || grandTotal)}
                     </span>
                   </div>
-                  {ticketNumber && (
-                    <>
-                      <Separator className="my-2" />
-                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-xs text-center">
-                        <p className="font-semibold text-green-700 dark:text-green-400 mb-1">
-                          Tiket berhasil dibuat!
-                        </p>
-                        <p className="text-green-600 dark:text-green-500">
-                          Simpan nomor tiket <strong>{ticketNumber}</strong> untuk tracking pesanan Anda
-                        </p>
-                      </div>
-                    </>
-                  )}
                 </CardContent>
               </Card>
               <div className="flex gap-3 justify-center">

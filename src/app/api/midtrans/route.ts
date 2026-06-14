@@ -1,84 +1,87 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { z } from "zod";
 import {
   generateInvoiceNumber,
-  generateTicketNumber,
   PPN_RATE,
   TRANSACTION_FEE,
   DP_MINIMAL,
+  allServices,
 } from "@/lib/data";
-import { checkoutSchema } from "@/lib/validations";
-import { safeErrorResponse } from "@/lib/auth-guard";
-import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import {
-  validateCartItems,
-  validatePackageCheckout,
-  isDPEligibleCategory,
-  calculateCartTotal,
-  type ValidatedCartItem,
-} from "@/lib/price-guard";
-import { auditLog } from "@/lib/audit-log";
+import { checkRateLimit, safeParseJson, auditLog, validateBodySize } from "@/lib/rate-limit";
+import type { ServiceItem } from "@/lib/data";
 
-interface CartItemInput {
-  id: string;
-  name: string;
-  price: number;
-  category: string;
-  quantity: number;
+// ─── Server-side catalog lookup ───────────────────────────────────────────────
+
+const serviceCatalog = new Map<string, ServiceItem>();
+for (const svc of allServices) {
+  serviceCatalog.set(svc.id, svc);
 }
+
+// ─── Zod schemas ──────────────────────────────────────────────────────────────
+
+const cartItemSchema = z.object({
+  id: z.string().min(1).max(50),
+  name: z.string().min(1).max(100),
+  price: z.number().positive(),
+  category: z.string().min(1).max(20),
+  quantity: z.number().int().min(1).max(10),
+});
+
+const midtransBodySchema = z.object({
+  // Single-item (legacy)
+  packageName: z.string().max(100).optional(),
+  packagePrice: z.number().positive().optional(),
+  packageCategory: z.string().max(20).optional(),
+  // Multi-item (cart)
+  items: z.array(cartItemSchema).min(1).max(10).optional(),
+  // Common
+  customerName: z.string().min(1).max(100),
+  customerEmail: z.string().email().max(200),
+  customerPhone: z.string().min(1).max(30),
+  businessName: z.string().max(200).optional(),
+  notes: z.string().max(2000).optional(),
+  paymentMethod: z.string().max(50).optional(),
+  userId: z.string().max(100).optional(),
+});
+
+// ─── POST /api/midtrans ──────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
-    const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(`payment:${ip}`, RATE_LIMITS.payment);
-    if (!rateLimit.allowed) {
+    // Rate limiting — stricter for payment
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    const rateResult = checkRateLimit(`midtrans:${ip}`, { windowMs: 60_000, maxRequests: 5 });
+    if (!rateResult.allowed) {
+      auditLog("RATE_LIMIT_EXCEEDED", { ip, endpoint: "midtrans" });
       return NextResponse.json(
-        { error: "Terlalu banyak request. Coba lagi nanti." },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
-          },
-        }
+        { error: "Terlalu banyak permintaan. Coba lagi nanti." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(rateResult.retryAfterMs / 1000)) } }
       );
     }
 
-    // Parse & validate input
-    const rawBodyText = await req.text();
+    // Body size check
+    const sizeError = validateBodySize(req);
+    if (sizeError) return sizeError;
 
-    // SECURITY: Validate body size before parsing
-    if (!validateBodySize(rawBodyText)) {
-      return NextResponse.json(
-        { error: "Request body too large" },
-        { status: 413 }
-      );
-    }
+    // Safe JSON parse
+    const { data: body, error: parseError } = await safeParseJson(req);
+    if (parseError) return parseError;
 
-    let rawBody: unknown;
-    try {
-      rawBody = JSON.parse(rawBodyText);
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON" },
-        { status: 400 }
-      );
-    }
-
-    const parseResult = checkoutSchema.safeParse(rawBody);
+    // Zod validation
+    const parseResult = midtransBodySchema.safeParse(body);
     if (!parseResult.success) {
-      // Don't expose detailed validation errors to client
-      console.error("[SECURITY] Checkout validation failed:", parseResult.error.issues);
       return NextResponse.json(
-        { error: "Data tidak valid. Periksa kembali data yang dimasukkan." },
+        { error: "Data tidak valid", details: parseResult.error.issues },
         { status: 400 }
       );
     }
 
     const {
       packageName,
+      packagePrice,
       packageCategory,
       items,
       customerName,
@@ -87,91 +90,93 @@ export async function POST(req: NextRequest) {
       businessName,
       notes,
       paymentMethod,
-      paymentOption,
+      userId,
     } = parseResult.data;
 
-    // Determine mode: cart (multi-item) or single-item
+    // ─── Resolve items & validate against catalog ────────────────────────
     const isCartMode = Array.isArray(items) && items.length > 0;
 
-    let orderItems: ValidatedCartItem[];
+    let orderItems: Array<{ id: string; name: string; price: number; category: string; quantity: number }>;
     let combinedPackageName: string;
     let totalPackagePrice: number;
     let primaryCategory: string;
 
     if (isCartMode) {
-      // === CRITICAL SECURITY FIX: Validate all item prices against server catalog ===
-      const validation = validateCartItems(items);
-      if (!validation.valid) {
-        auditLog({
-          action: "security.price_mismatch",
-          details: { mode: "cart", error: validation.error, clientItems: items.map(i => ({ id: i.id, price: i.price })) },
-          ip,
+      // Validate each cart item against server catalog
+      const validatedItems: Array<{ id: string; name: string; price: number; category: string; quantity: number }> = [];
+
+      for (const item of items!) {
+        const catalogItem = serviceCatalog.get(item.id);
+        if (!catalogItem) {
+          auditLog("PRICE_VALIDATION_FAILED", { itemId: item.id, clientPrice: item.price, ip });
+          return NextResponse.json(
+            { error: `Item "${item.id}" tidak ditemukan dalam katalog` },
+            { status: 400 }
+          );
+        }
+        // ALWAYS use server price, ignore client price
+        validatedItems.push({
+          id: item.id,
+          name: catalogItem.name,
+          price: catalogItem.price,
+          category: catalogItem.category,
+          quantity: item.quantity,
         });
-        return NextResponse.json(
-          { error: "Data layanan tidak valid. Silakan refresh halaman dan coba lagi." },
-          { status: 400 }
-        );
       }
-      orderItems = validation.items;
-      combinedPackageName = orderItems.map((i) => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ""}`).join(" + ");
-      totalPackagePrice = calculateCartTotal(orderItems);
-      primaryCategory = orderItems[0].category;
+
+      orderItems = validatedItems;
+      combinedPackageName = validatedItems.map((i) => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ""}`).join(" + ");
+      totalPackagePrice = validatedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      primaryCategory = validatedItems[0].category;
     } else {
-      if (!packageName || !packageCategory) {
+      // Legacy single-item mode — also validate against catalog
+      if (!packageName || !packagePrice) {
         return NextResponse.json(
-          { error: "Informasi paket tidak lengkap" },
+          { error: "Missing package info" },
           { status: 400 }
         );
       }
 
-      // === CRITICAL SECURITY FIX: For single-item checkout with known category, validate against catalog ===
-      // If the packageCategory matches a known service category, validate the item ID
-      // For backward compatibility with custom categories, we still accept the request
-      // but we no longer accept client-supplied prices — we use packageCategory as the item ID lookup
-      const singleItemId = packageCategory;
-      const singleValidation = validatePackageCheckout(singleItemId, parseResult.data.packagePrice);
-
-      if (singleValidation.valid) {
-        // Found in catalog — use server-authoritative price
-        orderItems = [{
-          id: singleValidation.item.id,
-          name: singleValidation.item.name,
-          price: singleValidation.item.price,
-          category: singleValidation.item.category,
-          quantity: 1,
-        }];
-        combinedPackageName = singleValidation.item.name;
-        totalPackagePrice = singleValidation.item.price;
-        primaryCategory = singleValidation.item.category;
-      } else {
-        // SECURITY FIX: Reject non-catalog items entirely.
-        // Previously, client-supplied prices were accepted for unknown items,
-        // allowing price manipulation attacks. Now we require all items to be
-        // in the server-side catalog. If a custom item is needed, it must be
-        // added to the catalog first by an admin.
-        auditLog({
-          action: "security.price_mismatch",
-          details: {
-            mode: "single",
-            packageName,
-            packageCategory,
-            clientPrice: parseResult.data.packagePrice,
-            error: singleValidation.error,
-            reason: "Non-catalog item rejected",
-          },
-          ip,
-        });
-
+      // For single items, we still need a catalog match
+      const category = packageCategory || "custom";
+      if (category === "custom") {
+        // Non-catalog items are NO LONGER accepted — reject with 400
+        auditLog("PRICE_VALIDATION_FAILED", { itemId: "custom-single", clientPrice: packagePrice, ip });
         return NextResponse.json(
-          { error: "Layanan tidak ditemukan dalam katalog. Silakan refresh halaman dan coba lagi." },
+          { error: "Item harus dari katalog layanan yang tersedia" },
           { status: 400 }
         );
       }
+
+      // Try to find the item in catalog by category + price match
+      const catalogMatch = allServices.find(
+        (s) => s.category === category && s.name === packageName
+      );
+      if (!catalogMatch) {
+        auditLog("PRICE_VALIDATION_FAILED", { itemId: `single-${packageName}`, clientPrice: packagePrice, ip });
+        return NextResponse.json(
+          { error: "Item tidak ditemukan dalam katalog layanan" },
+          { status: 400 }
+        );
+      }
+
+      orderItems = [{
+        id: catalogMatch.id,
+        name: catalogMatch.name,
+        price: catalogMatch.price,
+        category: catalogMatch.category,
+        quantity: 1,
+      }];
+      combinedPackageName = catalogMatch.name;
+      totalPackagePrice = catalogMatch.price;
+      primaryCategory = catalogMatch.category;
     }
 
-    const hasDPEligible = orderItems.some((i) => isDPEligibleCategory(i.category));
-    // Respect user's payment option: "dp" or "full"
-    const showDP = hasDPEligible && paymentOption !== "full";
+    // ─── Calculate amounts SERVER-SIDE only ──────────────────────────────
+    const hasDPEligible = orderItems.some(
+      (i) => i.category === "html" || i.category === "nextjs"
+    );
+    const showDP = hasDPEligible;
     const basePayAmount = showDP ? DP_MINIMAL : totalPackagePrice;
     const ppnAmount = Math.round(basePayAmount * PPN_RATE);
     const totalPayAmount = basePayAmount + ppnAmount + TRANSACTION_FEE;
@@ -189,7 +194,7 @@ export async function POST(req: NextRequest) {
       snapRedirectUrl = `https://app.sandbox.midtrans.com/snap/v2/vtweb/${Date.now()}`;
       isDemo = true;
     } else {
-      // Build Midtrans item_details using SERVER-VALIDATED prices
+      // Build Midtrans item_details with SERVER-VALIDATED prices
       const itemDetails = orderItems.map((i) => ({
         id: i.id,
         price: i.price,
@@ -210,7 +215,7 @@ export async function POST(req: NextRequest) {
         },
         item_details: itemDetails,
         customer_details: {
-          first_name: customerName.substring(0, 100),
+          first_name: customerName,
           email: customerEmail,
           phone: customerPhone,
         },
@@ -238,9 +243,8 @@ export async function POST(req: NextRequest) {
 
       const data = await response.json();
       if (!response.ok) {
-        console.error("[SECURITY] Midtrans API error:", data);
         return NextResponse.json(
-          { error: "Gagal membuat transaksi pembayaran" },
+          { error: "Failed to create transaction", details: data },
           { status: 500 }
         );
       }
@@ -251,54 +255,43 @@ export async function POST(req: NextRequest) {
     const expiredAt = new Date();
     expiredAt.setHours(expiredAt.getHours() + 24);
 
-    // SECURITY: Resolve userId from server session — NEVER trust client-supplied userId
-    const session = await getServerSession(authOptions);
-    let resolvedUserId: string;
-
-    if (session?.user) {
-      const sessionUserId = (session.user as { id?: string })?.id;
-      if (!sessionUserId) {
-        return NextResponse.json(
-          { error: "Sesi tidak valid. Silakan login ulang." },
-          { status: 401 }
-        );
-      }
-      resolvedUserId = sessionUserId;
-    } else {
-      // Guest checkout — find or create user by email
-      // Rate limit guest user creation to prevent abuse
-      const guestRateLimit = checkRateLimit(`guest-create:${ip}`, { windowMs: 60_000, maxRequests: 3 });
-      if (!guestRateLimit.allowed) {
-        auditLog({
-          action: "security.rate_limit_exceeded",
-          details: { action: "guest_user_creation", email: customerEmail },
-          ip,
-        });
-        return NextResponse.json(
-          { error: "Terlalu banyak percobaan. Coba lagi nanti." },
-          { status: 429 }
-        );
+    // Resolve userId
+    let resolvedUserId = userId;
+    if (!resolvedUserId || resolvedUserId === "guest") {
+      // Try to get from session first
+      try {
+        const session = await getServerSession(authOptions);
+        if (session?.user) {
+          const sessionUserId = (session.user as { id?: string })?.id;
+          if (sessionUserId) {
+            resolvedUserId = sessionUserId;
+          }
+        }
+      } catch {
+        // No session, continue with guest
       }
 
-      const guestUser = await db.user.findFirst({ where: { email: customerEmail } });
-      if (guestUser) {
-        resolvedUserId = guestUser.id;
-      } else {
-        const newGuest = await db.user.create({
-          data: {
-            email: customerEmail,
-            name: customerName.substring(0, 200),
-            phone: customerPhone,
-            businessName: businessName ? businessName.substring(0, 200) : null,
-            role: "customer",
-            provider: "checkout",
-          },
-        });
-        resolvedUserId = newGuest.id;
+      if (!resolvedUserId || resolvedUserId === "guest") {
+        const guestUser = await db.user.findFirst({ where: { email: customerEmail } });
+        if (guestUser) {
+          resolvedUserId = guestUser.id;
+        } else {
+          const newGuest = await db.user.create({
+            data: {
+              email: customerEmail,
+              name: customerName,
+              phone: customerPhone,
+              businessName: businessName || null,
+              role: "customer",
+              provider: "checkout",
+            },
+          });
+          resolvedUserId = newGuest.id;
+        }
       }
     }
 
-    // Store serialized items info in notes using SERVER-VALIDATED data
+    // Store serialized items info in notes
     const itemsSummary = isCartMode
       ? JSON.stringify(orderItems.map((i) => ({ id: i.id, name: i.name, price: i.price, category: i.category, quantity: i.quantity })))
       : null;
@@ -347,7 +340,7 @@ export async function POST(req: NextRequest) {
         data: {
           orderId: order.id,
           userId: resolvedUserId,
-          projectName: projectItem.name.substring(0, 200),
+          projectName: projectItem.name,
           packageCategory: projectItem.category,
           status: "planning",
           progress: 10,
@@ -365,26 +358,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Audit log
-    auditLog({
-      action: "order.checkout",
-      actorId: resolvedUserId,
-      actorEmail: customerEmail,
-      targetType: "order",
-      targetId: order.orderId,
-      details: {
-        packagePrice: totalPackagePrice,
-        isDP: showDP,
-        payAmount: totalPayAmount,
-        itemCount: orderItems.length,
-        isDemo,
-      },
-      ip,
-    });
+    auditLog("PAYMENT_INIT", { orderId, userId: resolvedUserId, totalPackagePrice, totalPayAmount, ip });
 
     return NextResponse.json({
       orderId: order.orderId,
-      ticketNumber: isDemo ? generateTicketNumber() : null,
       token: snapToken,
       redirect_url: snapRedirectUrl,
       payAmount: totalPayAmount,
@@ -394,7 +371,10 @@ export async function POST(req: NextRequest) {
       isDemo,
     });
   } catch (error) {
-    const err = safeErrorResponse(error);
-    return NextResponse.json(err, { status: 500 });
+    console.error("Create transaction error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

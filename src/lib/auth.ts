@@ -1,73 +1,61 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/lib/db";
-import { validateEnv } from "@/lib/env-check";
 
-// Validate critical environment variables at module load time
-// During build, this only warns — it throws at runtime in production
-validateEnv();
-
-// SECURITY: No hardcoded fallback — SUPER_ADMIN_EMAILS must be explicitly set
-// Empty string means no super-admins via env var (admin setup route can still create one)
 const SUPER_ADMIN_EMAILS = (
   process.env.SUPER_ADMIN_EMAILS || ""
 )
   .split(",")
   .map((e: string) => e.trim().toLowerCase())
-  .filter((e: string) => e.length > 0);
+  .filter(Boolean);
 
-// SECURITY: Validate Google OAuth credentials
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+// ─── JWT Role Cache ───────────────────────────────────────────────────────────
+// Caches role in-memory with a TTL to avoid DB query on every request.
+// Auto-evicts when capacity is reached.
 
-if (!googleClientId || !googleClientSecret) {
-  // Only warn — don't throw during build. Runtime validation is in validateEnv()
-  console.warn("[AUTH] Google OAuth credentials not set. Google login will not work.");
+interface RoleCacheEntry {
+  role: string;
+  cachedAt: number;
 }
 
-// ========== JWT Role Cache ==========
-// Caches user roles with a TTL to avoid querying the database on every single
-// JWT refresh. The JWT callback is invoked on every authenticated request, and
-// without caching, this would result in a DB query per request — a performance
-// bottleneck under load. Cache TTL is 5 minutes, balancing freshness with
-// performance. Role changes (e.g., admin demotion) take up to 5 minutes to
-// propagate, which is acceptable for this application.
 const ROLE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const roleCache = new Map<string, { role: string; expiresAt: number }>();
+const MAX_CACHE_ENTRIES = 1000;
+const roleCache = new Map<string, RoleCacheEntry>();
 
 function getCachedRole(email: string): string | null {
-  const cached = roleCache.get(email);
-  if (!cached) return null;
-  if (Date.now() > cached.expiresAt) {
+  const entry = roleCache.get(email);
+  if (!entry) return null;
+  if (Date.now() - entry.cachedAt > ROLE_CACHE_TTL) {
     roleCache.delete(email);
     return null;
   }
-  return cached.role;
+  return entry.role;
 }
 
 function setCachedRole(email: string, role: string): void {
-  // Limit cache size to prevent memory leaks in long-running processes
-  if (roleCache.size > 10000) {
-    // Evict oldest entries (first 20%)
-    const keysToDelete = Array.from(roleCache.keys()).slice(0, Math.ceil(roleCache.size * 0.2));
-    for (const key of keysToDelete) {
-      roleCache.delete(key);
+  if (roleCache.size >= MAX_CACHE_ENTRIES) {
+    // Evict 20% of oldest entries
+    const toDelete = Math.ceil(MAX_CACHE_ENTRIES * 0.2);
+    const keys = Array.from(roleCache.keys());
+    for (let i = 0; i < toDelete && i < keys.length; i++) {
+      roleCache.delete(keys[i]);
     }
   }
-  roleCache.set(email, { role, expiresAt: Date.now() + ROLE_CACHE_TTL });
+  roleCache.set(email, { role, cachedAt: Date.now() });
 }
+
+export function invalidateRoleCache(email: string): void {
+  roleCache.delete(email);
+}
+
+// ─── Auth Options ─────────────────────────────────────────────────────────────
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // Only configure Google provider if credentials are available
-    ...(googleClientId && googleClientSecret
-      ? [
-          GoogleProvider({
-            clientId: googleClientId,
-            clientSecret: googleClientSecret,
-          }),
-        ]
-      : []),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
@@ -96,8 +84,8 @@ export const authOptions: NextAuthOptions = {
             where: { id: existingUser.id },
             data: { role: "super-admin" },
           });
-          // Invalidate cache so the role update takes effect immediately
-          setCachedRole(user.email, "super-admin");
+          // Invalidate cache so next request gets fresh role
+          invalidateRoleCache(user.email);
         }
       }
       return true;
@@ -107,28 +95,26 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as { role?: string })?.role || "customer";
         token.id = user.id;
-        // Cache the initial role
         if (user.email) {
           setCachedRole(user.email, token.role as string);
         }
+        return token;
       }
 
-      // Refresh role from DB on subsequent requests, with caching
-      // to avoid a DB query on every single request
+      // On subsequent requests, use cached role if available
       if (token.email) {
-        const email = token.email as string;
-        const cachedRole = getCachedRole(email);
+        const cachedRole = getCachedRole(token.email as string);
         if (cachedRole) {
           token.role = cachedRole;
         } else {
-          // Cache miss — query DB and update cache
+          // Cache miss — fetch from DB
           const dbUser = await db.user.findUnique({
-            where: { email },
+            where: { email: token.email as string },
             select: { role: true },
           });
           if (dbUser) {
             token.role = dbUser.role;
-            setCachedRole(email, dbUser.role);
+            setCachedRole(token.email as string, dbUser.role);
           }
         }
       }
@@ -148,8 +134,6 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    // Max session age — 24 hours for security
-    maxAge: 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

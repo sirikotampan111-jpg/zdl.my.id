@@ -51,4 +51,8 @@ prompt
 
 server.log
 # Skills directory
-/skills/
+/skills/.env
+prisma/db/
+tool-results/
+download/
+push-schema.ts

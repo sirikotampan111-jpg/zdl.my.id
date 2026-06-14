@@ -8,6 +8,7 @@ import {
   additionalServices,
   htmlFeatures,
   nextjsFeatures,
+  adminFeatures,
   formatPrice,
   DP_MINIMAL,
 } from "@/lib/data";
@@ -248,7 +249,6 @@ export function PageLayanan() {
                   price={s.price}
                   category={s.category}
                   badge={s.badge}
-                  bestValue={s.badge === "Best Value"}
                 />
               </motion.div>
             ))}

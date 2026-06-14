@@ -2,66 +2,128 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// ========== Security Configuration ==========
+// ─── Blocked attack paths ─────────────────────────────────────────────────────
 
-/** Maximum allowed request body size for API routes (1MB) */
-const MAX_API_BODY_SIZE = 1024 * 1024;
-
-/** Blocked paths that are common attack vectors */
 const BLOCKED_PATHS = [
+  // Version control
+  "/.git",
+  "/.svn",
+  "/.hg",
+  "/.bzr",
+  // WordPress (common attack vector)
+  "/wp-admin",
+  "/wp-content",
+  "/wp-includes",
+  "/wp-login",
+  "/wp-config",
+  "/xmlrpc.php",
+  "/wordpress",
+  // PHP / common CMS
+  "/phpmyadmin",
+  "/adminer",
+  "/cgi-bin",
   "/.env",
   "/.env.local",
   "/.env.production",
-  "/.env.development",
-  "/.git",
-  "/.git/config",
-  "/.git/HEAD",
-  "/.svn",
-  "/.hg",
-  "/wp-admin",
-  "/wp-login",
-  "/wp-content",
-  "/wp-includes",
-  "/phpmyadmin",
-  "/admin.php",
   "/config.php",
-  "/.htaccess",
-  "/web.config",
-  "/xmlrpc.php",
-  "/cgi-bin",
+  "/database.yml",
+  // Spring Boot / Java
   "/actuator",
-  "/.DS_Store",
-  "/Thumbs.db",
+  "/actuator/health",
+  "/actuator/env",
+  "/jolokia",
+  // Server info
   "/server-status",
   "/server-info",
+  "/.htaccess",
+  "/.htpasswd",
+  "/nginx.conf",
+  "/web.config",
+  // Misc
+  "/.DS_Store",
+  "/Thumbs.db",
+  "/elmah.axd",
+  "/trace.axd",
 ];
 
-/** Allowed HTTP methods for API routes */
-const ALLOWED_API_METHODS = ["GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"];
+// ─── Allowed HTTP methods per route pattern ───────────────────────────────────
+
+const API_METHOD_RULES: Array<{ pattern: RegExp; methods: string[] }> = [
+  { pattern: /^\/api\/orders$/, methods: ["GET", "POST"] },
+  { pattern: /^\/api\/midtrans$/, methods: ["POST"] },
+  { pattern: /^\/api\/webhook\/midtrans$/, methods: ["POST"] },
+  { pattern: /^\/api\/chat$/, methods: ["POST"] },
+  { pattern: /^\/api\/admin\/setup$/, methods: ["GET", "POST"] },
+  { pattern: /^\/api\/admin\/super\/orders$/, methods: ["GET", "PATCH", "DELETE"] },
+  { pattern: /^\/api\/admin\/super\/users$/, methods: ["GET", "PATCH", "DELETE"] },
+  { pattern: /^\/api\/admin\/super\/projects$/, methods: ["GET", "PATCH", "DELETE"] },
+];
+
+// ─── Max body size (must match rate-limit.ts) ────────────────────────────────
+
+const MAX_CONTENT_LENGTH = 1024 * 1024; // 1MB
+
+// ─── Middleware ────────────────────────────────────────────────────────────────
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
 
-  // ========== 1. Block common attack paths ==========
-  const lowerPath = pathname.toLowerCase();
+  // ─── Block attack paths ───────────────────────────────────────────────
   for (const blocked of BLOCKED_PATHS) {
-    if (lowerPath.startsWith(blocked)) {
-      // Log the attempt for monitoring
-      console.warn(`[SECURITY] Blocked path access: ${method} ${pathname} from ${req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown"}`);
+    if (pathname.toLowerCase().startsWith(blocked)) {
       return new NextResponse(null, { status: 404 });
     }
   }
 
-  // ========== 2. Validate HTTP methods for API routes ==========
-  if (pathname.startsWith("/api/") && !ALLOWED_API_METHODS.includes(method)) {
-    return NextResponse.json(
-      { error: "Method not allowed" },
-      { status: 405 }
-    );
+  // ─── API route protections ────────────────────────────────────────────
+  if (pathname.startsWith("/api/")) {
+    // HTTP method validation for API routes
+    for (const rule of API_METHOD_RULES) {
+      if (rule.pattern.test(pathname)) {
+        if (!rule.methods.includes(method)) {
+          return NextResponse.json(
+            { error: "Method not allowed" },
+            { status: 405, headers: { Allow: rule.methods.join(", ") } }
+          );
+        }
+        break;
+      }
+    }
+
+    // Content-Length pre-validation for mutation requests
+    if (method === "POST" || method === "PATCH" || method === "PUT") {
+      const contentLength = req.headers.get("content-length");
+      if (contentLength) {
+        const length = parseInt(contentLength, 10);
+        if (!isNaN(length) && length > MAX_CONTENT_LENGTH) {
+          return NextResponse.json(
+            { error: "Payload terlalu besar (maks 1MB)" },
+            { status: 413 }
+          );
+        }
+      }
+
+      // Enforce Content-Type for mutation requests
+      const contentType = req.headers.get("content-type");
+      if (contentType && !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
+        return NextResponse.json(
+          { error: "Content-Type harus application/json" },
+          { status: 415 }
+        );
+      }
+    }
+
+    // Security response headers for API routes
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return response;
   }
 
-  // ========== 3. Protect dashboard routes ==========
+  // ─── Protect dashboard routes ─────────────────────────────────────────
   if (pathname.startsWith("/dashboard")) {
     const token = await getToken({
       req,
@@ -74,7 +136,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ========== 4. Protect admin API routes (exclude setup route) ==========
+  // ─── Protect admin API routes (exclude setup route) ───────────────────
   if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/setup")) {
     const token = await getToken({
       req,
@@ -95,79 +157,22 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ========== 5. Validate Content-Type for state-changing API requests ==========
-  // This provides CSRF protection — browsers won't send cross-origin
-  // JSON requests without CORS preflight, but we add an extra check
-  if (
-    pathname.startsWith("/api/") &&
-    (method === "POST" || method === "PATCH" || method === "PUT" || method === "DELETE")
-  ) {
-    const contentType = req.headers.get("content-type") || "";
-
-    // Allow form submissions for NextAuth callbacks and webhook
-    if (
-      pathname.startsWith("/api/auth/") ||
-      pathname.startsWith("/api/webhook/")
-    ) {
-      return NextResponse.next();
-    }
-
-    // Require JSON content type for all other API mutations
-    // This prevents CSRF via form submissions (browsers auto-send form Content-Type)
-    if (!contentType.includes("application/json") && contentType !== "") {
-      return NextResponse.json(
-        { error: "Content-Type must be application/json" },
-        { status: 415 }
-      );
-    }
-  }
-
-  // ========== 6. Request body size validation for API routes ==========
-  // Enforce a maximum request body size to prevent denial-of-service attacks
-  // via oversized payloads. The Content-Length header is checked as a
-  // pre-flight validation — actual body parsing in route handlers should
-  // also enforce limits.
-  if (
-    pathname.startsWith("/api/") &&
-    (method === "POST" || method === "PATCH" || method === "PUT") &&
-    !pathname.startsWith("/api/auth/") &&
-    !pathname.startsWith("/api/webhook/")
-  ) {
-    const contentLength = req.headers.get("content-length");
-    if (contentLength && parseInt(contentLength, 10) > MAX_API_BODY_SIZE) {
-      console.warn(`[SECURITY] Oversized request rejected: ${method} ${pathname} content-length=${contentLength}`);
-      return NextResponse.json(
-        { error: "Request body too large" },
-        { status: 413 }
-      );
-    }
-  }
-
-  // ========== 7. Add security response headers for API responses ==========
-  const response = NextResponse.next();
-
-  // Add cache-control for API responses — prevent sensitive data caching
-  if (pathname.startsWith("/api/")) {
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    // Prevent API responses from being embedded in other sites
-    response.headers.set("X-Content-Type-Options", "nosniff");
-  }
-
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    "/api/admin/:path*",
     "/api/:path*",
+    // Block attack paths explicitly
+    "/.git/:path*",
     "/.env",
     "/.env.local",
-    "/.env.production",
-    "/.git/:path*",
     "/wp-admin/:path*",
+    "/wp-content/:path*",
+    "/xmlrpc.php",
     "/phpmyadmin/:path*",
-    "/.svn/:path*",
-    "/.hg/:path*",
+    "/cgi-bin/:path*",
+    "/actuator/:path*",
   ],
 };

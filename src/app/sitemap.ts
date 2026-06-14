@@ -16,37 +16,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/login`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.3,
+      priority: 0.5,
     },
   ];
 
-  // Hash-based sections (SPA pages — Google can index these with hash fragments)
-  const sectionPages: MetadataRoute.Sitemap = [
-    {
-      url: `${baseUrl}/#layanan`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/#portofolio`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/#kontak`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/#keranjang`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-  ];
-
-  return [...staticPages, ...sectionPages];
+  return staticPages;
 }

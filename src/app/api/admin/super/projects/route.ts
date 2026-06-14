@@ -1,23 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { requireAdmin, requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
-import { adminUpdateProjectSchema, adminDeleteSchema } from "@/lib/validations";
-import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
-import { auditLog } from "@/lib/audit-log";
+import { z } from "zod";
+import { safeParseJson, auditLog } from "@/lib/rate-limit";
+
+// Helper to check admin access
+async function checkAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return null;
+  const role = (session.user as { role?: string })?.role;
+  if (role !== "admin" && role !== "super-admin") return null;
+  return session;
+}
+
+// ─── Zod schemas ──────────────────────────────────────────────────────────────
+
+const updateProjectSchema = z.object({
+  id: z.string().min(1).max(50),
+  addMilestone: z.boolean().optional(),
+  milestoneTitle: z.string().min(1).max(200).optional(),
+  projectName: z.string().max(200).optional(),
+  status: z.enum(["planning", "design", "development", "testing", "online"]).optional(),
+  progress: z.number().int().min(0).max(100).optional(),
+  notes: z.string().max(2000).optional(),
+  liveUrl: z.string().max(500).optional(),
+  estimatedDone: z.string().max(50).optional(),
+});
 
 // GET all projects (admin)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const auth = await requireAdmin();
-    if (!auth.authorized) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    // Rate limiting
-    const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(`admin-projects:${ip}`, RATE_LIMITS.admin);
-    if (!rateLimit.allowed) {
-      return NextResponse.json({ error: "Terlalu banyak request" }, { status: 429 });
+    const session = await checkAdmin();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const projects = await db.project.findMany({
@@ -40,45 +56,31 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ projects });
   } catch (error) {
-    const err = safeErrorResponse(error);
-    return NextResponse.json(err, { status: 500 });
+    console.error("Admin get projects error:", error);
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server" },
+      { status: 500 }
+    );
   }
 }
 
 // PATCH update project or add milestone
 export async function PATCH(req: NextRequest) {
   try {
-    const auth = await requireAdmin();
-    if (!auth.authorized) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    const session = await checkAdmin();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const rawBodyText = await req.text();
+    // Safe JSON parse
+    const { data: body, error: parseError } = await safeParseJson(req);
+    if (parseError) return parseError;
 
-    // SECURITY: Validate body size before parsing
-    if (!validateBodySize(rawBodyText)) {
-      return NextResponse.json(
-        { error: "Request body too large" },
-        { status: 413 }
-      );
-    }
-
-    let rawBody: unknown;
-    try {
-      rawBody = JSON.parse(rawBodyText);
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON" },
-        { status: 400 }
-      );
-    }
-
-    // Validate with Zod — prevents mass assignment
-    const parseResult = adminUpdateProjectSchema.safeParse(rawBody);
+    // Zod validation
+    const parseResult = updateProjectSchema.safeParse(body);
     if (!parseResult.success) {
-      console.error("[SECURITY] Project update validation failed:", parseResult.error.issues);
       return NextResponse.json(
-        { error: "Data tidak valid" },
+        { error: "Data tidak valid", details: parseResult.error.issues },
         { status: 400 }
       );
     }
@@ -93,8 +95,6 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const ip = getClientIp(req);
-
     // Add milestone mode
     if (addMilestone && milestoneTitle) {
       const milestone = await db.milestone.create({
@@ -105,31 +105,22 @@ export async function PATCH(req: NextRequest) {
         },
       });
 
-      auditLog({
-        action: "admin.milestone.create",
-        actorId: auth.userId,
-        actorRole: auth.role,
-        targetType: "project",
-        targetId: id,
-        details: { milestoneTitle },
-        ip,
-      });
-
       return NextResponse.json({ project: existingProject, milestone });
     }
 
-    // Update project — only allow whitelisted fields
+    // Update project mode
     const data: Record<string, unknown> = {};
 
     if (updateFields.projectName !== undefined) data.projectName = updateFields.projectName;
     if (updateFields.status !== undefined) {
       data.status = updateFields.status;
+      // If status is online, set completedAt and progress to 100
       if (updateFields.status === "online") {
         data.completedAt = new Date();
         data.progress = 100;
       }
     }
-    if (updateFields.progress !== undefined) data.progress = updateFields.progress;
+    if (updateFields.progress !== undefined) data.progress = Number(updateFields.progress);
     if (updateFields.notes !== undefined) data.notes = updateFields.notes || null;
     if (updateFields.liveUrl !== undefined) data.liveUrl = updateFields.liveUrl || null;
     if (updateFields.estimatedDone !== undefined) {
@@ -144,43 +135,41 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    auditLog({
-      action: "admin.project.update",
-      actorId: auth.userId,
-      actorRole: auth.role,
-      targetType: "project",
-      targetId: id,
-      details: { updatedFields: Object.keys(data), oldStatus: existingProject.status },
-      ip,
-    });
+    auditLog("ADMIN_PROJECT_UPDATE", { projectId: id, updatedFields: Object.keys(data), adminEmail: session.user?.email });
 
     return NextResponse.json({ project });
   } catch (error) {
-    const err = safeErrorResponse(error);
-    return NextResponse.json(err, { status: 500 });
+    console.error("Admin update project error:", error);
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server" },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE project (super-admin only)
 export async function DELETE(req: NextRequest) {
   try {
-    const auth = await requireSuperAdmin();
-    if (!auth.authorized) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const role = (session.user as { role?: string })?.role;
+    if (role !== "super-admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    const parseResult = adminDeleteSchema.safeParse({ id });
-    if (!parseResult.success) {
+    if (!id) {
       return NextResponse.json(
-        { error: "ID tidak valid" },
+        { error: "ID harus diisi" },
         { status: 400 }
       );
     }
 
-    const project = await db.project.findUnique({ where: { id: parseResult.data.id } });
+    const project = await db.project.findUnique({ where: { id } });
     if (!project) {
       return NextResponse.json(
         { error: "Project tidak ditemukan" },
@@ -188,23 +177,19 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    await db.milestone.deleteMany({ where: { projectId: parseResult.data.id } });
-    await db.project.delete({ where: { id: parseResult.data.id } });
+    // Delete milestones first
+    await db.milestone.deleteMany({ where: { projectId: id } });
+    // Delete project
+    await db.project.delete({ where: { id } });
 
-    const ip = getClientIp(req);
-    auditLog({
-      action: "admin.project.delete",
-      actorId: auth.userId,
-      actorRole: auth.role,
-      targetType: "project",
-      targetId: parseResult.data.id,
-      details: { projectName: project.projectName },
-      ip,
-    });
+    auditLog("ADMIN_PROJECT_UPDATE", { action: "delete", projectId: id, adminEmail: session.user?.email });
 
     return NextResponse.json({ message: "Project berhasil dihapus" });
   } catch (error) {
-    const err = safeErrorResponse(error);
-    return NextResponse.json(err, { status: 500 });
+    console.error("Admin delete project error:", error);
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server" },
+      { status: 500 }
+    );
   }
 }

@@ -1,113 +1,151 @@
-// ========== In-Memory Rate Limiter ==========
-// For production with multiple instances, use Redis-based rate limiting.
-// This in-memory approach works for single-instance Vercel deployments.
+/**
+ * In-memory rate limiter and body size validation utilities.
+ *
+ * - IP-based sliding window rate limiting
+ * - Memory-bounded (auto-evicts oldest entries when cap exceeded)
+ * - Body size validation (1MB max by default)
+ */
+
+import { NextResponse } from "next/server";
+
+export const MAX_BODY_SIZE = 1024 * 1024; // 1MB
+
+// ─── Rate Limiter ──────────────────────────────────────────────────────────────
 
 interface RateLimitEntry {
   count: number;
-  resetTime: number;
+  resetAt: number;
 }
 
-const store = new Map<string, RateLimitEntry>();
+const rateLimitMap = new Map<string, RateLimitEntry>();
+const MAX_ENTRIES = 10_000; // memory bound
 
-// Cleanup old entries every 5 minutes
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of store.entries()) {
-      if (now > entry.resetTime) {
-        store.delete(key);
-      }
-    }
-  }, 5 * 60 * 1000);
+function evictOldest() {
+  // Remove 20% of oldest entries when capacity is reached
+  const toDelete = Math.ceil(MAX_ENTRIES * 0.2);
+  const keys = Array.from(rateLimitMap.keys());
+  for (let i = 0; i < toDelete && i < keys.length; i++) {
+    rateLimitMap.delete(keys[i]);
+  }
 }
 
 export interface RateLimitOptions {
-  /** Time window in milliseconds */
-  windowMs: number;
-  /** Max requests per window */
-  maxRequests: number;
+  windowMs?: number;   // time window in milliseconds (default: 60_000 = 1 min)
+  maxRequests?: number; // max requests per window (default: 30)
 }
 
-export interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  resetTime: number;
-}
-
-/** Check rate limit for a given key (e.g., IP address or user ID) */
-export function checkRateLimit(
-  key: string,
-  options: RateLimitOptions
-): RateLimitResult {
-  const now = Date.now();
-  const entry = store.get(key);
-
-  if (!entry || now > entry.resetTime) {
-    // New window
-    store.set(key, {
-      count: 1,
-      resetTime: now + options.windowMs,
-    });
-    return {
-      allowed: true,
-      remaining: options.maxRequests - 1,
-      resetTime: now + options.windowMs,
-    };
-  }
-
-  if (entry.count >= options.maxRequests) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetTime: entry.resetTime,
-    };
-  }
-
-  entry.count += 1;
-  return {
-    allowed: true,
-    remaining: options.maxRequests - entry.count,
-    resetTime: entry.resetTime,
-  };
-}
-
-/** Extract client IP from request headers */
-export function getClientIp(req: Request): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-  const realIp = req.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
-  }
-  return "unknown";
-}
-
-/** Maximum allowed request body size (1MB) */
-export const MAX_BODY_SIZE = 1024 * 1024;
+const DEFAULT_OPTIONS: Required<RateLimitOptions> = {
+  windowMs: 60_000,
+  maxRequests: 30,
+};
 
 /**
- * Validate that a request body does not exceed the maximum allowed size.
- * Call this before parsing JSON to prevent memory exhaustion from oversized payloads.
- * Returns true if the body size is within limits, false otherwise.
+ * Check if a given key (usually IP) has exceeded the rate limit.
+ * Returns `{ allowed: true }` or `{ allowed: false, retryAfterMs }`.
  */
-export function validateBodySize(body: string): boolean {
-  return body.length <= MAX_BODY_SIZE;
+export function checkRateLimit(
+  key: string,
+  opts?: RateLimitOptions
+): { allowed: true } | { allowed: false; retryAfterMs: number } {
+  const { windowMs, maxRequests } = { ...DEFAULT_OPTIONS, ...opts };
+  const now = Date.now();
+
+  if (rateLimitMap.size >= MAX_ENTRIES) {
+    evictOldest();
+  }
+
+  const entry = rateLimitMap.get(key);
+
+  if (!entry || now >= entry.resetAt) {
+    // New window
+    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true };
+  }
+
+  entry.count++;
+  if (entry.count > maxRequests) {
+    return { allowed: false, retryAfterMs: entry.resetAt - now };
+  }
+
+  return { allowed: true };
 }
 
-// Preset rate limit configurations
-export const RATE_LIMITS = {
-  /** Chat API: 20 messages per minute */
-  chat: { windowMs: 60_000, maxRequests: 20 },
-  /** Checkout/payment: 5 requests per minute */
-  payment: { windowMs: 60_000, maxRequests: 5 },
-  /** General API: 60 requests per minute */
-  api: { windowMs: 60_000, maxRequests: 60 },
-  /** Auth endpoints: 10 requests per minute */
-  auth: { windowMs: 60_000, maxRequests: 10 },
-  /** Admin endpoints: 30 requests per minute */
-  admin: { windowMs: 60_000, maxRequests: 30 },
-  /** Cart operations: 30 requests per minute */
-  cart: { windowMs: 60_000, maxRequests: 30 },
-} as const;
+// ─── Body Size Validation ─────────────────────────────────────────────────────
+
+/**
+ * Validate the Content-Length of an incoming request.
+ * Returns an error response if the body is too large, or null if OK.
+ */
+export function validateBodySize(req: Request): NextResponse | null {
+  const contentLength = req.headers.get("content-length");
+  if (contentLength) {
+    const length = parseInt(contentLength, 10);
+    if (!isNaN(length) && length > MAX_BODY_SIZE) {
+      return NextResponse.json(
+        { error: "Payload terlalu besar (maks 1MB)" },
+        { status: 413 }
+      );
+    }
+  }
+  return null;
+}
+
+/**
+ * Safely parse JSON from a request with body size enforcement.
+ * Returns `{ data, error }` — if error is set, data is null and vice versa.
+ */
+export async function safeParseJson<T = unknown>(req: Request): Promise<
+  | { data: T; error: null }
+  | { data: null; error: NextResponse }
+> {
+  // Check content-length first
+  const sizeError = validateBodySize(req);
+  if (sizeError) {
+    return { data: null, error: sizeError };
+  }
+
+  try {
+    const text = await req.text();
+
+    // Double-check actual body size
+    if (text.length > MAX_BODY_SIZE) {
+      return {
+        data: null,
+        error: NextResponse.json(
+          { error: "Payload terlalu besar (maks 1MB)" },
+          { status: 413 }
+        ),
+      };
+    }
+
+    const data = JSON.parse(text) as T;
+    return { data, error: null };
+  } catch {
+    return {
+      data: null,
+      error: NextResponse.json(
+        { error: "Format JSON tidak valid" },
+        { status: 400 }
+      ),
+    };
+  }
+}
+
+// ─── Audit Logger ──────────────────────────────────────────────────────────────
+
+export type AuditAction =
+  | "ORDER_CREATE"
+  | "PAYMENT_INIT"
+  | "PAYMENT_WEBHOOK"
+  | "ADMIN_ORDER_UPDATE"
+  | "ADMIN_USER_UPDATE"
+  | "ADMIN_PROJECT_UPDATE"
+  | "ADMIN_SETUP"
+  | "RATE_LIMIT_EXCEEDED"
+  | "PRICE_VALIDATION_FAILED"
+  | "SIGNATURE_INVALID";
+
+export function auditLog(action: AuditAction, details: Record<string, unknown>) {
+  const timestamp = new Date().toISOString();
+  console.log(`[AUDIT] ${timestamp} ${action}`, JSON.stringify(details));
+}

@@ -3,8 +3,9 @@ export interface PortfolioItem {
   domain: string;
   category: "Properti" | "Interior" | "Kuliner" | "Bisnis & Edukasi";
   gradient: string;
-  image?: string;
-  url?: string;
+  image: string;
+  url: string;
+  description: string;
 }
 
 export interface ServiceItem {
@@ -37,12 +38,22 @@ export interface StatItem {
 export const portfolios: PortfolioItem[] = [
   // Properti
   {
-    id: "liviarealestate",
-    domain: "liviarealestate.asia",
+    id: "genesisxproperty",
+    domain: "genesisxproperty.com",
+    category: "Properti",
+    gradient: "from-blue-600 to-cyan-500",
+    image: "/portfolio/genesisxproperty.png",
+    url: "https://genesisxproperty.com",
+    description: "Website properti modern dengan fitur listing properti, pencarian lanjutan, dan tampilan premium untuk agen real estate.",
+  },
+  {
+    id: "liaviarealestate",
+    domain: "liaviarealestate.asia",
     category: "Properti",
     gradient: "from-emerald-600 to-teal-500",
-    image: "/images/portfolio/liviarealestate.png",
-    url: "https://www.liviarealestate.asia",
+    image: "/portfolio/liaviarealestate.png",
+    url: "https://liaviarealestate.asia",
+    description: "Platform real estate Asia dengan desain elegan, katalog properti mewah, dan sistem booking online.",
   },
   // Interior
   {
@@ -50,24 +61,27 @@ export const portfolios: PortfolioItem[] = [
     domain: "lianahomeinterior.com",
     category: "Interior",
     gradient: "from-amber-500 to-orange-400",
-    image: "/images/portfolio/lianahomeinterior.png",
-    url: "https://www.lianahomeinterior.com",
+    image: "/portfolio/lianahomeinterior.png",
+    url: "https://lianahomeinterior.com",
+    description: "Website jasa interior design dengan galeri portofolio yang menarik, katalog desain, dan sistem konsultasi online.",
   },
   {
     id: "designhomeliving",
     domain: "designhomeliving.org",
     category: "Interior",
     gradient: "from-rose-500 to-pink-400",
-    image: "/images/portfolio/designhomeliving.png",
-    url: "https://www.designhomeliving.org",
+    image: "/portfolio/designhomeliving.png",
+    url: "https://designhomeliving.org",
+    description: "Platform desain rumah dan hunian dengan showcare galeri, inspirasi interior, dan layanan konsultasi desain.",
   },
   {
     id: "terradekor",
     domain: "terradekor.com",
     category: "Interior",
     gradient: "from-violet-600 to-purple-500",
-    image: "/images/portfolio/terradekor.png",
-    url: "https://www.terradekor.com",
+    image: "/portfolio/terradekor.png",
+    url: "https://terradekor.com",
+    description: "Website dekorasi dan desain interior dengan nuansa terracotta, galeri proyek, dan katalog produk dekorasi.",
   },
   // Kuliner
   {
@@ -75,16 +89,27 @@ export const portfolios: PortfolioItem[] = [
     domain: "kopikir.store",
     category: "Kuliner",
     gradient: "from-yellow-600 to-amber-500",
-    image: "/images/portfolio/kopikir.png",
-    url: "https://www.kopikir.store",
+    image: "/portfolio/kopikir.png",
+    url: "https://kopikir.store",
+    description: "Website coffee shop dengan menu online, pemesanan takeaway, dan branding kopi spesialti yang modern.",
+  },
+  {
+    id: "pawonbhoga",
+    domain: "pawonbhoga.id",
+    category: "Kuliner",
+    gradient: "from-red-500 to-orange-500",
+    image: "/portfolio/pawonbhoga.png",
+    url: "https://pawonbhoga.id",
+    description: "Website restoran kuliner nusantara dengan menu tradisional, reservasi online, dan galeri hidangan khas Indonesia.",
   },
   {
     id: "kementriansegosbebek",
-    domain: "kementriansegosbebek.id",
+    domain: "kementriansegosbebek.com",
     category: "Kuliner",
     gradient: "from-lime-500 to-green-500",
-    image: "/images/portfolio/kementriansegosbebek.png",
-    url: "https://www.kementriansegosbebek.id",
+    image: "/portfolio/kementriansegosbebek.png",
+    url: "https://kementriansegosbebek.com",
+    description: "Website franchise bebek goreng dengan lokasi outlet, menu signature, dan sistem pemesanan online yang menyenangkan.",
   },
   // Bisnis & Edukasi
   {
@@ -92,16 +117,18 @@ export const portfolios: PortfolioItem[] = [
     domain: "bimbelstarlish.com",
     category: "Bisnis & Edukasi",
     gradient: "from-sky-500 to-blue-400",
-    image: "/images/portfolio/bimbelstarlish.png",
-    url: "https://www.bimbelstarlish.com",
+    image: "/portfolio/bimbelstarlish.png",
+    url: "https://bimbelstarlish.com",
+    description: "Platform bimbingan belajar online dengan jadwal kelas, materi pembelajaran, dan sistem pendaftaran siswa.",
   },
   {
     id: "kirimikanhias",
     domain: "kirimikanhias.com",
     category: "Bisnis & Edukasi",
     gradient: "from-indigo-500 to-blue-500",
-    image: "/images/portfolio/kirimikanhias.png",
+    image: "/portfolio/kirimikanhias.png",
     url: "https://kirimikanhias.com",
+    description: "Toko online ikan hias dengan katalog lengkap, sistem pemesanan dan pengiriman, serta tips perawatan akuarium.",
   },
 ];
 
@@ -251,15 +278,15 @@ export const adminFeatures = [
 export const testimonials: Testimonial[] = [
   {
     id: "1",
-    name: "Kak Livia",
-    business: "Livia Real Estate",
+    name: "Budi Santoso",
+    business: "Genesis X Property",
     quote:
       "Website yang dibuat oleh Zheng Digital Lab sangat profesional dan cepat. Klien kami langsung tertarik melihat tampilannya. Sangat recommended!",
     rating: 5,
   },
   {
     id: "2",
-    name: "Cici Liana Zhou",
+    name: "Siti Rahayu",
     business: "Liana Home Interior",
     quote:
       "Proses pengerjaan cepat dan hasilnya memuaskan. Tim ZDL sangat responsif dan mau diajak diskusi sampai hasilnya sesuai keinginan.",
@@ -267,34 +294,26 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "3",
-    name: "Koh Novel",
-    business: "Design Home Living",
+    name: "Ahmad Fauzi",
+    business: "Kopikir Store",
     quote:
-      "Website interior kami jadi lebih modern dan SEO friendly. Pelanggan baru banyak yang datang dari Google. Terima kasih ZDL!",
+      "Website kuliner kami jadi lebih modern dan SEO friendly. Pelanggan baru banyak yang datang dari Google. Terima kasih ZDL!",
     rating: 5,
   },
   {
     id: "4",
-    name: "Koh Edison",
-    business: "Terra Dekor",
+    name: "Dewi Lestari",
+    business: "Bimbel Starlish",
     quote:
-      "Untuk bisnis dekorasi, website profesional itu wajib. Zheng Digital Lab memberikan solusi yang tepat dengan harga yang terjangkau.",
-    rating: 5,
+      "Untuk bisnis pendidikan, website profesional itu wajib. Zheng Digital Lab memberikan solusi yang tepat dengan harga yang terjangkau.",
+    rating: 4,
   },
   {
     id: "5",
-    name: "Cici Charlie Liu",
-    business: "Bimbel Starlish",
+    name: "Rizky Pratama",
+    business: "Kirim Ikan Hias",
     quote:
       "Dari awal konsultasi sampai website online, semuanya smooth. Support setelah jadi juga sangat membantu. Top!",
-    rating: 5,
-  },
-  {
-    id: "6",
-    name: "Bapak Wisnu",
-    business: "Kementrian Segos Bebek",
-    quote:
-      "Website kuliner kami sekarang tampil lebih profesional dan mudah ditemukan di Google. Pelayanan ZDL sangat memuaskan!",
     rating: 5,
   },
 ];
@@ -400,26 +419,8 @@ export function generateInvoiceNumber(): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
-  // SECURITY: Always use crypto — no Math.random fallback
-  // In Node.js server context, crypto is always available
-  if (typeof crypto === "undefined" || !crypto.randomUUID) {
-    throw new Error("[SECURITY] crypto.randomUUID is not available. Cannot generate secure invoice number.");
-  }
-  const random = String(crypto.randomUUID().replace(/-/g, "").slice(0, 4));
+  const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
   return `ZDL-${year}${month}${day}-${random}`;
-}
-
-export function generateTicketNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  // SECURITY: Always use crypto — no Math.random fallback
-  if (typeof crypto === "undefined" || !crypto.randomUUID) {
-    throw new Error("[SECURITY] crypto.randomUUID is not available. Cannot generate secure ticket number.");
-  }
-  const random = String(crypto.randomUUID().replace(/-/g, "").slice(0, 4));
-  return `TKT-${year}${month}${day}-${random}`;
 }
 
 export interface PriceBreakdown {

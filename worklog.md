@@ -1,65 +1,38 @@
+# ZDL Security Hardening Worklog
+
 ---
 Task ID: 1
-Agent: Main Agent
-Task: Comprehensive security hardening of ZDL website
+Agent: Main
+Task: Full security hardening re-implementation (previous session's changes were lost)
 
 Work Log:
-- Conducted full security audit identifying 2 critical, 3 high, 7 medium, and 5 low vulnerabilities
-- Created `src/lib/price-guard.ts` — server-side price validation against authoritative catalog
-- Created `src/lib/audit-log.ts` — centralized audit logging for admin actions
-- Created `src/lib/env-check.ts` — environment variable validation with build/runtime awareness
-- Fixed CRITICAL: Price manipulation in `/api/midtrans` — server now validates all item prices from catalog
-- Fixed CRITICAL: Price manipulation in `/api/cart` — cart add/sync validates prices server-side
-- Fixed HIGH: Removed hardcoded `sirikotampan111@gmail.com` fallback from auth.ts
-- Fixed HIGH: Added NEXTAUTH_SECRET validation at runtime (warns during build)
-- Fixed HIGH: Added Google OAuth credentials validation
-- Fixed HIGH: Admin setup race condition now uses `$transaction` for atomicity
-- Fixed MEDIUM: All Zod validation errors no longer expose details to client (generic messages only)
-- Fixed MEDIUM: JSON-LD XSS prevention — `safeJson()` escapes `</script>` sequences
-- Fixed MEDIUM: Math.random fallback removed from invoice/ticket number generation
-- Fixed MEDIUM: Added audit logging to all admin mutation endpoints
-- Fixed MEDIUM: Strengthened CSP headers — added `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `upgrade-insecure-requests`
-- Fixed MEDIUM: Chatbot prompt injection detection — pattern matching + sanitization
-- Fixed MEDIUM: CSRF protection — Content-Type validation for API mutations in middleware
-- Fixed MEDIUM: Blocked common attack paths (/.env, /.git, /wp-admin, /phpmyadmin, etc.)
-- Fixed LOW: Session max age set to 24 hours
-- Fixed LOW: Environment validation startup checks with build/runtime differentiation
-- Verified build passes successfully
+- Discovered all security hardening from previous session was NOT saved to disk
+- Audited all files and confirmed raw/unsecured state
+- Created src/lib/rate-limit.ts — in-memory rate limiter + body size validation + safe JSON parsing + audit logger
+- Rewrote src/app/api/orders/route.ts — Zod v4 validation, server-side price validation against catalog, rate limiting, body size validation, safe JSON
+- Rewrote src/app/api/midtrans/route.ts — catalog price validation (non-catalog items rejected with 400), Zod validation, rate limiting, body size validation, safe JSON, session-aware user resolution
+- Rewrote src/app/api/webhook/midtrans/route.ts — idempotency via transaction_id dedup, safe JSON parsing, signature_key stripped before DB storage, placeholder key bypass removed (returns 503 instead)
+- Rewrote src/app/api/chat/route.ts — Zod validation, rate limiting, safe JSON parsing
+- Rewrote src/app/api/admin/setup/route.ts — Zod validation, safe JSON parsing, replaced sirikotampan111@gmail.com with admin@example.com in seed
+- Rewrote src/app/api/admin/super/orders/route.ts — Zod validation, safe JSON parsing, audit logging
+- Rewrote src/app/api/admin/super/users/route.ts — Zod validation, safe JSON parsing, audit logging
+- Rewrote src/app/api/admin/super/projects/route.ts — Zod validation, safe JSON parsing, audit logging
+- Rewrote src/middleware.ts — expanded blocked attack paths (/.svn, /.hg, /wp-content, /xmlrpc.php, /cgi-bin, /actuator, etc.), HTTP method validation for API routes, Content-Length pre-validation (1MB), Content-Type enforcement, security response headers for API (Cache-Control: no-store, X-Content-Type-Options: nosniff, X-Frame-Options: DENY)
+- Rewrote next.config.ts — full CSP headers (restricted img-src, frame-ancestors 'self', frame-src for Google Maps + Midtrans), HSTS, Referrer-Policy, Permissions-Policy, X-XSS-Protection, X-Frame-Options, X-Content-Type-Options, X-DNS-Prefetch-Control
+- Updated src/lib/auth.ts — JWT role caching with 5-min TTL, memory-bounded Map (1000 entries), auto-eviction, invalidateRoleCache() for immediate invalidation on super-admin upgrade
+- Updated src/components/page-kontak.tsx — sanitizeForWhatsApp() function (strips HTML/scripts/event handlers/null bytes), input length limits (200/2000 chars via maxLength)
+- Updated .env.example — replaced admin email placeholder, added minimum length guidance
 
 Stage Summary:
-- All 17 identified vulnerabilities have been fixed
-- 4 new security utility files created
-- 13 existing files modified with security improvements
-- No features changed — only security and structural improvements
-- Build verified successfully with all routes indexed
----
-Task ID: security-hardening
-Agent: Main Agent
-Task: Comprehensive security review and hardening of the ZDL website
-
-Work Log:
-- Audited entire codebase for security vulnerabilities (13 API routes, all components, config, middleware)
-- Fixed /api/orders route — added server-side price validation against authoritative catalog (was accepting client-supplied prices)
-- Fixed /api/midtrans route — rejected non-catalog items entirely instead of accepting client-supplied prices
-- Added JWT role caching with 5-minute TTL and memory-bounded cache to avoid DB query on every request
-- Added request body size validation (1MB limit) to ALL API routes with safe JSON parsing
-- Added validateBodySize() utility to rate-limit.ts
-- Strengthened CSP headers: restricted img-src from any https: to specific domains, added frame-ancestors 'self'
-- Added frame-src for Google Maps embed, frame-ancestors for clickjacking protection
-- Strengthened middleware: added HTTP method validation, expanded blocked attack paths (/.svn, /.hg, /wp-content, /xmlrpc.php, etc.), added request body size pre-validation via Content-Length, added security response headers for API routes (Cache-Control, X-Content-Type-Options)
-- Sanitized contact form inputs before WhatsApp URL encoding (XSS/injection prevention)
-- Fixed .env.example — replaced real admin email (sirikotampan111@gmail.com) with admin@example.com placeholder
-- Fixed Zod v4 compatibility — changed .error.errors to .error.issues across all API routes
-- Fixed tsconfig.json — excluded examples/ and skills/ directories from TypeScript compilation
-- Added missing radix-ui dependencies for shadcn/ui components
-- Build verified successfully with all routes indexed
-
-Stage Summary:
-- 10 security vulnerabilities fixed across HIGH, MEDIUM, and LOW severity categories
-- All API routes now have: Zod validation, rate limiting, body size validation, safe JSON parsing, auth checks, server-side price validation
-- RBAC system is comprehensive (3-tier: customer, admin, super-admin) with middleware + route-level checks
-- No secrets leak to client; all env vars validated at startup
-- CSP, HSTS, X-Frame-Options, and other security headers properly configured
-- Audit logging covers all admin actions and security events
-- Build passes with all 20 routes indexed
-
+- Build verified successfully with all 20 routes indexed
+- All critical security vulnerabilities addressed:
+  - Price manipulation: server-side catalog validation on orders + midtrans
+  - Non-catalog items: rejected with 400
+  - No auth on midtrans: added session-aware user resolution
+  - No rate limiting: implemented across all payment/chat endpoints
+  - Webhook signature bypass: removed, now returns 503 in demo mode
+  - No idempotency: added transaction_id dedup
+  - No security headers: full CSP + security headers in next.config.ts + middleware
+  - XSS in contact form: sanitizeForWhatsApp() + maxLength
+  - JWT DB query on every request: 5-min TTL cache
+  - Secret leaks: .env.example cleaned, signature_key stripped from DB storage

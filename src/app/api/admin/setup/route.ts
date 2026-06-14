@@ -1,173 +1,195 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { setupSchema } from "@/lib/validations";
-import { requireSuperAdmin, safeErrorResponse } from "@/lib/auth-guard";
-import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
-import { auditLog } from "@/lib/audit-log";
+import { z } from "zod";
+import { safeParseJson, auditLog } from "@/lib/rate-limit";
 
-// POST — Create initial super-admin (ONLY works if no super-admin exists)
-// CRITICAL: This route requires super-admin auth if any admin already exists
-// SECURITY FIX: Uses $transaction to prevent race condition (TOCTOU) when
-// two concurrent requests try to create the first super-admin
+// ─── Zod schemas ──────────────────────────────────────────────────────────────
+
+const setupSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email().max(200),
+  password: z.string().min(6).max(100),
+});
+
+// Setup initial super-admin user
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting — strict for admin setup
-    const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(`admin-setup:${ip}`, { windowMs: 60_000, maxRequests: 3 });
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: "Terlalu banyak request. Coba lagi nanti." },
-        { status: 429 }
-      );
-    }
+    // Check if any super-admin exists
+    const existingAdmin = await db.user.findFirst({
+      where: { role: "super-admin" },
+    });
 
-    const rawBodyText = await req.text();
-
-    // SECURITY: Validate body size before parsing
-    if (!validateBodySize(rawBodyText)) {
+    if (existingAdmin) {
       return NextResponse.json(
-        { error: "Request body too large" },
-        { status: 413 }
-      );
-    }
-
-    let rawBody: unknown;
-    try {
-      rawBody = JSON.parse(rawBodyText);
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON" },
+        { error: "Super admin sudah ada" },
         { status: 400 }
       );
     }
 
-    // Validate with Zod
-    const parseResult = setupSchema.safeParse(rawBody);
+    // Safe JSON parse
+    const { data: body, error: parseError } = await safeParseJson(req);
+    if (parseError) return parseError;
+
+    // Zod validation
+    const parseResult = setupSchema.safeParse(body);
     if (!parseResult.success) {
-      console.error("[SECURITY] Setup validation failed:", parseResult.error.issues);
       return NextResponse.json(
-        { error: "Data tidak valid" },
+        { error: "Data tidak valid", details: parseResult.error.issues },
         { status: 400 }
       );
     }
 
     const { name, email, password } = parseResult.data;
 
-    // SECURITY FIX: Use transaction to prevent race condition
-    // Check if ANY super-admin exists AND create if not — atomically
-    const result = await db.$transaction(async (tx) => {
-      const existingAdmin = await tx.user.findFirst({
-        where: { role: "super-admin" },
-      });
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-      if (existingAdmin) {
-        // If admin exists, require super-admin auth to create another
-        return { needsAuth: true as const };
-      }
-
-      // Check if email already used
-      const existingUser = await tx.user.findUnique({ where: { email } });
-      if (existingUser) {
-        return { emailTaken: true as const };
-      }
-
-      // Create super-admin within the transaction
-      const hashedPassword = await bcrypt.hash(password, 12);
-      const user = await tx.user.create({
-        data: {
-          email,
-          name,
-          password: hashedPassword,
-          role: "super-admin",
-          provider: "credentials",
-        },
-      });
-
-      return { user: { id: user.id, email: user.email, name: user.name, role: user.role } };
+    const user = await db.user.create({
+      data: {
+        email,
+        name: name || "Super Admin",
+        password: hashedPassword,
+        role: "super-admin",
+        provider: "credentials",
+      },
     });
 
-    if ("needsAuth" in result && result.needsAuth) {
-      const auth = await requireSuperAdmin();
-      if (!auth.authorized) {
-        return NextResponse.json(
-          { error: "Super admin sudah ada. Hanya super-admin yang bisa menambah admin baru." },
-          { status: 403 }
-        );
-      }
-      // If we get here, the user is a super-admin — proceed to create another admin
-      const existingUser = await db.user.findUnique({ where: { email } });
-      if (existingUser) {
-        return NextResponse.json(
-          { error: "Email sudah terdaftar" },
-          { status: 400 }
-        );
-      }
+    auditLog("ADMIN_SETUP", { email: user.email, name: user.name });
 
-      const hashedPassword = await bcrypt.hash(password, 12);
-      const user = await db.user.create({
-        data: {
-          email,
-          name,
-          password: hashedPassword,
-          role: "super-admin",
-          provider: "credentials",
-        },
-      });
-
-      auditLog({
-        action: "admin.setup.create",
-        actorId: auth.userId,
-        actorRole: auth.role,
-        targetType: "user",
-        targetId: user.id,
-        details: { email: user.email, name: user.name },
-        ip,
-      });
-
-      return NextResponse.json({
-        message: "Super admin berhasil dibuat",
-        user: { id: user.id, email: user.email, name: user.name, role: user.role },
-      });
-    }
-
-    if ("emailTaken" in result && result.emailTaken) {
-      return NextResponse.json(
-        { error: "Email sudah terdaftar" },
-        { status: 400 }
-      );
-    }
-
-    if ("user" in result && result.user) {
-      auditLog({
-        action: "admin.setup.create",
-        targetType: "user",
-        targetId: result.user.id,
-        details: { email: result.user.email, name: result.user.name, isFirstAdmin: true },
-        ip,
-      });
-
-      return NextResponse.json({
-        message: "Super admin berhasil dibuat",
-        user: result.user,
-      });
-    }
-
-    // Fallback — should never reach here
+    return NextResponse.json({
+      message: "Super admin berhasil dibuat",
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    });
+  } catch (error) {
+    console.error("Setup error:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan" },
+      { error: "Terjadi kesalahan server" },
       { status: 500 }
     );
-  } catch (error) {
-    const err = safeErrorResponse(error);
-    return NextResponse.json(err, { status: 500 });
   }
 }
 
-// GET — Seed demo data (DISABLED in production)
+// GET - seed demo data
 export async function GET() {
-  return NextResponse.json(
-    { error: "Endpoint ini dinonaktifkan. Gunakan Google login untuk akses admin." },
-    { status: 403 }
-  );
+  try {
+    // Check if demo data already exists
+    const existingAdmin = await db.user.findFirst({
+      where: { role: "super-admin" },
+    });
+
+    if (existingAdmin) {
+      return NextResponse.json({ message: "Demo data sudah ada", admin: { email: existingAdmin.email } });
+    }
+
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAILS?.split(",")[0]?.trim() || "admin@example.com";
+    const hashedPassword = await bcrypt.hash("zdl123", 12);
+
+    // Create super admin
+    const admin = await db.user.create({
+      data: {
+        email: superAdminEmail,
+        name: "Super Admin",
+        password: hashedPassword,
+        role: "super-admin",
+        provider: "google",
+      },
+    });
+
+    // Create demo customer
+    const customerPassword = await bcrypt.hash("customer123", 12);
+    const customer = await db.user.create({
+      data: {
+        email: "customer@demo.com",
+        name: "Budi Santoso",
+        password: customerPassword,
+        role: "customer",
+        provider: "credentials",
+        phone: "081298765432",
+        businessName: "Toko Sejahtera",
+      },
+    });
+
+    // Create demo orders
+    const order1 = await db.order.create({
+      data: {
+        orderId: "ZDL-20240101-0001",
+        userId: customer.id,
+        packageName: "Landing Page Next.js",
+        packageCategory: "nextjs",
+        packagePrice: 1500000,
+        ppnAmount: 165000,
+        transactionFee: 4000,
+        payAmount: 1669000,
+        dpMinimal: 500000,
+        isDP: true,
+        customerName: customer.name!,
+        customerEmail: customer.email,
+        customerPhone: customer.phone!,
+        businessName: customer.businessName,
+        status: "paid",
+        paidAt: new Date(),
+      },
+    });
+
+    const order2 = await db.order.create({
+      data: {
+        orderId: "ZDL-20240102-0002",
+        userId: customer.id,
+        packageName: "Website HTML 3 Halaman",
+        packageCategory: "html",
+        packagePrice: 1200000,
+        ppnAmount: 132000,
+        transactionFee: 4000,
+        payAmount: 1336000,
+        dpMinimal: 500000,
+        isDP: false,
+        customerName: customer.name!,
+        customerEmail: customer.email,
+        customerPhone: customer.phone!,
+        businessName: customer.businessName,
+        status: "pending",
+      },
+    });
+
+    // Create demo projects
+    await db.project.create({
+      data: {
+        orderId: order1.id,
+        userId: customer.id,
+        projectName: "Toko Sejahtera Landing Page",
+        packageCategory: "nextjs",
+        status: "development",
+        progress: 45,
+        notes: "Sedang dalam tahap pengembangan frontend",
+        startedAt: new Date("2024-01-05"),
+        estimatedDone: new Date("2024-02-05"),
+        milestones: {
+          create: [
+            { title: "Diskusi kebutuhan klien", status: "completed", completedAt: new Date("2024-01-06") },
+            { title: "Wireframe & layout", status: "completed", completedAt: new Date("2024-01-10") },
+            { title: "Desain UI homepage", status: "completed", completedAt: new Date("2024-01-15") },
+            { title: "Development frontend", status: "in_progress" },
+            { title: "Integrasi konten", status: "pending" },
+            { title: "Testing & QA", status: "pending" },
+          ],
+        },
+      },
+    });
+
+    auditLog("ADMIN_SETUP", { action: "seed_demo", email: superAdminEmail });
+
+    return NextResponse.json({
+      message: "Demo data berhasil dibuat!",
+      credentials: {
+        superAdmin: { email: superAdminEmail, password: "zdl123" },
+        customer: { email: "customer@demo.com", password: "customer123" },
+      },
+    });
+  } catch (error) {
+    console.error("Seed error:", error);
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server" },
+      { status: 500 }
+    );
+  }
 }

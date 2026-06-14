@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider          = "sqlite"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
 }
 
 model User {
@@ -24,13 +25,11 @@ model User {
   updatedAt    DateTime @updatedAt
   orders       Order[]
   projects     Project[]
-  cart         Cart?
 }
 
 model Order {
   id              String        @id @default(cuid())
   orderId         String        @unique
-  ticketNumber    String?
   userId          String
   packageName     String
   packageCategory String
@@ -69,6 +68,7 @@ model Transaction {
   grossAmount       Float?
   currency          String?
   fraudStatus       String?
+  signatureKey      String?
   rawResponse       String?
   createdAt         DateTime @default(now())
   order             Order    @relation(fields: [orderId], references: [id])
@@ -103,24 +103,4 @@ model Milestone {
   completedAt DateTime?
   createdAt   DateTime @default(now())
   project     Project  @relation(fields: [projectId], references: [id])
-}
-
-model Cart {
-  id        String     @id @default(cuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model CartItem {
-  id       String @id @default(cuid())
-  cartId   String
-  cart     Cart   @relation(fields: [cartId], references: [id])
-  itemId   String
-  name     String
-  price    Float
-  category String
-  quantity Int    @default(1)
 }

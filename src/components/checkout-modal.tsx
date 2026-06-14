@@ -31,8 +31,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ShieldCheck,
-  Banknote,
-  BadgeDollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
@@ -80,7 +78,6 @@ export function CheckoutModal({
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState("");
-  const [ticketNumber, setTicketNumber] = useState("");
   const [payAmount, setPayAmount] = useState(0);
 
   // Form state
@@ -90,13 +87,11 @@ export function CheckoutModal({
   const [business, setBusiness] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [paymentOption, setPaymentOption] = useState<"dp" | "full">("dp");
 
   // Price calculation
-  const isDPEligible = packageCategory === "html" || packageCategory === "nextjs";
   const breakdown = calculatePriceBreakdown(
     packagePrice,
-    isDPEligible && paymentOption === "dp"
+    packageCategory === "html" || packageCategory === "nextjs"
   );
 
   useEffect(() => {
@@ -114,9 +109,7 @@ export function CheckoutModal({
     setBusiness("");
     setNotes("");
     setPaymentMethod("");
-    setPaymentOption("dp");
     setOrderId("");
-    setTicketNumber("");
     setPayAmount(0);
     setLoading(false);
     onClose();
@@ -142,7 +135,6 @@ export function CheckoutModal({
           businessName: business,
           notes,
           paymentMethod,
-          paymentOption,
           userId: (session?.user as Record<string, unknown>)?.id || null,
         }),
       });
@@ -155,7 +147,6 @@ export function CheckoutModal({
 
       setOrderId(data.orderId);
       setPayAmount(data.payAmount);
-      if (data.ticketNumber) setTicketNumber(data.ticketNumber);
 
       if (data.isDemo) {
         // Demo mode - simulate payment
@@ -219,46 +210,6 @@ export function CheckoutModal({
                   <span className="text-muted-foreground">Harga Paket</span>
                   <span>{formatPrice(breakdown.basePrice)}</span>
                 </div>
-                {/* Payment Option: DP or Full */}
-                {isDPEligible && (
-                  <div className="py-2">
-                    <p className="text-sm font-medium text-foreground mb-2">Pilih Opsi Pembayaran</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentOption("dp")}
-                        className={`p-2.5 rounded-lg border-2 text-left transition-all ${
-                          paymentOption === "dp"
-                            ? "border-gold bg-gold/5"
-                            : "border-muted hover:border-gold/30"
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <Banknote className={`w-3.5 h-3.5 ${paymentOption === "dp" ? "text-gold" : "text-muted-foreground"}`} />
-                          <span className={`text-xs font-semibold ${paymentOption === "dp" ? "text-gold" : "text-muted-foreground"}`}>Bayar DP</span>
-                        </div>
-                        <p className="text-sm font-bold text-foreground">{formatPrice(500000)}</p>
-                        <p className="text-[10px] text-muted-foreground">Sisa setelah selesai</p>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPaymentOption("full")}
-                        className={`p-2.5 rounded-lg border-2 text-left transition-all ${
-                          paymentOption === "full"
-                            ? "border-gold bg-gold/5"
-                            : "border-muted hover:border-gold/30"
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <BadgeDollarSign className={`w-3.5 h-3.5 ${paymentOption === "full" ? "text-gold" : "text-muted-foreground"}`} />
-                          <span className={`text-xs font-semibold ${paymentOption === "full" ? "text-gold" : "text-muted-foreground"}`}>Bayar Penuh</span>
-                        </div>
-                        <p className="text-sm font-bold text-foreground">{formatPrice(breakdown.basePrice)}</p>
-                        <p className="text-[10px] text-muted-foreground">Lunas sekaligus</p>
-                      </button>
-                    </div>
-                  </div>
-                )}
                 {breakdown.isDP && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">DP Minimal</span>
@@ -286,11 +237,6 @@ export function CheckoutModal({
                   <p className="text-xs text-muted-foreground">
                     DP dari {formatPrice(breakdown.basePrice)}. Sisa pelunasan:{" "}
                     {formatPrice(breakdown.basePrice - breakdown.dpAmount)}
-                  </p>
-                )}
-                {!breakdown.isDP && isDPEligible && paymentOption === "full" && (
-                  <p className="text-xs text-muted-foreground">
-                    Pembayaran penuh. Tidak ada sisa pelunasan.
                   </p>
                 )}
               </div>
@@ -478,14 +424,6 @@ export function CheckoutModal({
                     {orderId}
                   </span>
                 </div>
-                {ticketNumber && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Nomor Tiket</span>
-                    <span className="font-mono font-bold text-green-600 dark:text-green-400">
-                      {ticketNumber}
-                    </span>
-                  </div>
-                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Paket</span>
                   <span>{packageName}</span>
@@ -496,13 +434,6 @@ export function CheckoutModal({
                     {formatPrice(payAmount || breakdown.total)}
                   </span>
                 </div>
-                {ticketNumber && (
-                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-xs text-center mt-2">
-                    <span className="text-green-700 dark:text-green-400 font-semibold">
-                      Simpan nomor tiket {ticketNumber} untuk tracking
-                    </span>
-                  </div>
-                )}
               </div>
               <div className="flex gap-2">
                 {session && (
