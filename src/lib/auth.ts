@@ -62,6 +62,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
     CredentialsProvider({
       name: "credentials",
@@ -74,30 +81,43 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email dan password harus diisi");
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!user || !user.password) {
-          throw new Error("Email atau password salah");
+          if (!user || !user.password) {
+            throw new Error("Email atau password salah");
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+
+          if (!isValid) {
+            throw new Error("Email atau password salah");
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.role,
+          };
+        } catch (error: unknown) {
+          // Re-throw known auth errors
+          if (error instanceof Error && (
+            error.message === "Email atau password salah" ||
+            error.message === "Email dan password harus diisi"
+          )) {
+            throw error;
+          }
+          // Unknown error (likely DB connection issue)
+          console.error("[AUTH] authorize() error:", error);
+          throw new Error("Terjadi kesalahan server. Coba lagi nanti.");
         }
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!isValid) {
-          throw new Error("Email atau password salah");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
-        };
       },
     }),
   ],
@@ -108,28 +128,36 @@ export const authOptions: NextAuthOptions = {
 
         const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-        const existingUser = await db.user.findUnique({
-          where: { email: user.email },
-        });
+        try {
+          const existingUser = await db.user.findUnique({
+            where: { email: user.email },
+          });
 
-        if (!existingUser) {
-          await db.user.create({
-            data: {
-              email: user.email,
-              name: user.name || "",
-              image: user.image,
-              provider: "google",
-              role: isSuperAdmin ? "super-admin" : "customer",
-            },
-          });
-        } else if (isSuperAdmin && existingUser.role !== "super-admin") {
-          // Auto-upgrade to super-admin if email is in SUPER_ADMIN_EMAILS
-          await db.user.update({
-            where: { id: existingUser.id },
-            data: { role: "super-admin" },
-          });
-          // Invalidate cache so next request gets fresh role
-          invalidateRoleCache(user.email);
+          if (!existingUser) {
+            await db.user.create({
+              data: {
+                email: user.email,
+                name: user.name || "",
+                image: user.image,
+                provider: "google",
+                role: isSuperAdmin ? "super-admin" : "customer",
+              },
+            });
+            console.log(`[AUTH] New Google user created: ${user.email}`);
+          } else if (isSuperAdmin && existingUser.role !== "super-admin") {
+            // Auto-upgrade to super-admin if email is in SUPER_ADMIN_EMAILS
+            await db.user.update({
+              where: { id: existingUser.id },
+              data: { role: "super-admin" },
+            });
+            // Invalidate cache so next request gets fresh role
+            invalidateRoleCache(user.email);
+            console.log(`[AUTH] User ${user.email} upgraded to super-admin`);
+          }
+        } catch (error) {
+          console.error("[AUTH] Google signIn DB error:", error);
+          // Don't block login if DB write fails — user can still authenticate
+          // The role will be resolved from JWT/DB on next request
         }
       }
       return true;
@@ -152,13 +180,18 @@ export const authOptions: NextAuthOptions = {
           token.role = cachedRole;
         } else {
           // Cache miss — fetch from DB
-          const dbUser = await db.user.findUnique({
-            where: { email: token.email as string },
-            select: { role: true },
-          });
-          if (dbUser) {
-            token.role = dbUser.role;
-            setCachedRole(token.email as string, dbUser.role);
+          try {
+            const dbUser = await db.user.findUnique({
+              where: { email: token.email as string },
+              select: { role: true },
+            });
+            if (dbUser) {
+              token.role = dbUser.role;
+              setCachedRole(token.email as string, dbUser.role);
+            }
+          } catch (error) {
+            console.error("[AUTH] JWT role fetch error:", error);
+            // Keep existing token role if DB is temporarily unavailable
           }
         }
       }
@@ -175,9 +208,11 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };

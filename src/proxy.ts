@@ -64,6 +64,14 @@ const API_METHOD_RULES: Array<{ pattern: RegExp; methods: string[] }> = [
 
 const MAX_CONTENT_LENGTH = 1024 * 1024; // 1MB
 
+// ─── Paths that should skip Content-Type and body validation ────────────────
+// NextAuth handles its own body parsing and Content-Type
+
+const SKIP_BODY_VALIDATION_PATHS = [
+  "/api/auth",       // NextAuth routes (OAuth callbacks, CSRF, session, etc.)
+  "/api/webhook",    // Webhooks (Midtrans sends form-urlencoded sometimes)
+];
+
 // ─── Proxy ────────────────────────────────────────────────────────────────
 
 export async function proxy(req: NextRequest) {
@@ -92,26 +100,34 @@ export async function proxy(req: NextRequest) {
       }
     }
 
-    // Content-Length pre-validation for mutation requests
-    if (method === "POST" || method === "PATCH" || method === "PUT") {
-      const contentLength = req.headers.get("content-length");
-      if (contentLength) {
-        const length = parseInt(contentLength, 10);
-        if (!isNaN(length) && length > MAX_CONTENT_LENGTH) {
+    // Skip Content-Type and body validation for auth and webhook routes
+    // These routes handle their own body parsing differently
+    const shouldSkipBodyValidation = SKIP_BODY_VALIDATION_PATHS.some(
+      (p) => pathname.startsWith(p)
+    );
+
+    if (!shouldSkipBodyValidation) {
+      // Content-Length pre-validation for mutation requests
+      if (method === "POST" || method === "PATCH" || method === "PUT") {
+        const contentLength = req.headers.get("content-length");
+        if (contentLength) {
+          const length = parseInt(contentLength, 10);
+          if (!isNaN(length) && length > MAX_CONTENT_LENGTH) {
+            return NextResponse.json(
+              { error: "Payload terlalu besar (maks 1MB)" },
+              { status: 413 }
+            );
+          }
+        }
+
+        // Enforce Content-Type for mutation requests
+        const contentType = req.headers.get("content-type");
+        if (contentType && !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
           return NextResponse.json(
-            { error: "Payload terlalu besar (maks 1MB)" },
-            { status: 413 }
+            { error: "Content-Type harus application/json" },
+            { status: 415 }
           );
         }
-      }
-
-      // Enforce Content-Type for mutation requests
-      const contentType = req.headers.get("content-type");
-      if (contentType && !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
-        return NextResponse.json(
-          { error: "Content-Type harus application/json" },
-          { status: 415 }
-        );
       }
     }
 

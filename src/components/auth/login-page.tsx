@@ -1,22 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Mail, Lock, User, Building2, Phone, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, User, Building2, Phone, ArrowLeft, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Login fields
   const [email, setEmail] = useState("");
@@ -29,8 +31,30 @@ export function LoginPage() {
   const [regPhone, setRegPhone] = useState("");
   const [regBusiness, setRegBusiness] = useState("");
 
+  // Check for auth errors in URL params (from NextAuth redirects)
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        OAuthSignin: "Gagal memulai login dengan Google.",
+        OAuthCallback: "Gagal menyelesaikan login dengan Google.",
+        OAuthCreateAccount: "Gagal membuat akun dari Google.",
+        EmailCreateAccount: "Gagal membuat akun dengan email ini.",
+        Callback: "Gagal menyelesaikan proses login.",
+        OAuthAccountNotLinked: "Akun Google belum terhubung. Coba login dengan email & password.",
+        CredentialsSignin: "Email atau password salah.",
+        SessionRequired: "Silakan login terlebih dahulu.",
+        default: "Terjadi kesalahan saat login. Coba lagi.",
+      };
+      const message = errorMessages[error] || errorMessages.default;
+      setAuthError(message);
+      toast.error(message);
+    }
+  }, [searchParams]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     if (!email || !password) {
       toast.error("Email dan password harus diisi");
       return;
@@ -43,13 +67,23 @@ export function LoginPage() {
         redirect: false,
       });
       if (result?.error) {
-        toast.error(result.error);
-      } else {
+        const errorMsg = result.error === "CredentialsSignin"
+          ? "Email atau password salah"
+          : result.error;
+        setAuthError(errorMsg);
+        toast.error(errorMsg);
+      } else if (result?.ok) {
         toast.success("Login berhasil!");
         router.push("/dashboard");
+      } else {
+        // No error and no ok - unexpected
+        setAuthError("Terjadi kesalahan yang tidak diketahui.");
+        toast.error("Terjadi kesalahan yang tidak diketahui.");
       }
     } catch (error) {
-      toast.error("Terjadi kesalahan");
+      console.error("[LOGIN] Error:", error);
+      setAuthError("Terjadi kesalahan koneksi. Coba lagi.");
+      toast.error("Terjadi kesalahan koneksi");
     } finally {
       setLoading(false);
     }
@@ -57,6 +91,7 @@ export function LoginPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     if (!regEmail || !regPassword) {
       toast.error("Email dan password harus diisi");
       return;
@@ -82,7 +117,9 @@ export function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error || "Registrasi gagal");
+        const errorMsg = data.error || "Registrasi gagal";
+        setAuthError(errorMsg);
+        toast.error(errorMsg);
         return;
       }
 
@@ -91,13 +128,16 @@ export function LoginPage() {
       setEmail(regEmail);
       setPassword("");
     } catch (error) {
-      toast.error("Terjadi kesalahan");
+      console.error("[REGISTER] Error:", error);
+      setAuthError("Terjadi kesalahan koneksi. Coba lagi.");
+      toast.error("Terjadi kesalahan koneksi");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
+    // Use callbackUrl to redirect back to dashboard after Google login
     signIn("google", { callbackUrl: "/dashboard" });
   };
 
@@ -133,6 +173,31 @@ export function LoginPage() {
           </CardHeader>
 
           <CardContent>
+            {/* Auth Error Banner */}
+            {authError && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2"
+              >
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-red-700 dark:text-red-300">{authError}</p>
+                  {authError.includes("Google") && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Pastikan Google OAuth sudah dikonfigurasi di Vercel environment variables.
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setAuthError(null)}
+                  className="text-red-400 hover:text-red-600 ml-auto shrink-0"
+                >
+                  ×
+                </button>
+              </motion.div>
+            )}
+
             <AnimatePresence mode="wait">
               {isLogin ? (
                 <motion.form
@@ -154,6 +219,7 @@ export function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
+                        autoComplete="email"
                       />
                     </div>
                   </div>
@@ -168,6 +234,7 @@ export function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
+                        autoComplete="current-password"
                       />
                       <button
                         type="button"
@@ -206,6 +273,7 @@ export function LoginPage() {
                     variant="outline"
                     className="w-full"
                     onClick={handleGoogleLogin}
+                    disabled={loading}
                   >
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -251,6 +319,7 @@ export function LoginPage() {
                           onChange={(e) => setRegEmail(e.target.value)}
                           className="pl-10"
                           required
+                          autoComplete="email"
                         />
                       </div>
                     </div>
@@ -266,6 +335,7 @@ export function LoginPage() {
                           onChange={(e) => setRegPassword(e.target.value)}
                           className="pl-10"
                           required
+                          autoComplete="new-password"
                         />
                       </div>
                     </div>
@@ -296,7 +366,7 @@ export function LoginPage() {
                           className="pl-10"
                         />
                       </div>
-                    </div>
+                  </div>
                   </div>
 
                   <Button
@@ -326,6 +396,7 @@ export function LoginPage() {
                     variant="outline"
                     className="w-full"
                     onClick={handleGoogleLogin}
+                    disabled={loading}
                   >
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -347,6 +418,7 @@ export function LoginPage() {
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setShowPassword(false);
+                  setAuthError(null);
                 }}
                 className="text-gold font-medium hover:underline"
               >

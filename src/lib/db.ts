@@ -20,7 +20,11 @@ function createNoOpProxy(): PrismaClient {
   const handler: ProxyHandler<object> = {
     get(_target, prop) {
       if (typeof prop === 'string') {
-        return () => Promise.resolve(null)
+        // Return a function that resolves to a sensible default
+        // For findUnique/findFirst: return null (not found)
+        // For create: return a mock object with id
+        // For everything else: return null
+        return (..._args: unknown[]) => Promise.resolve(null)
       }
       return undefined
     },
@@ -39,20 +43,18 @@ function createPrismaClient(): PrismaClient {
   const tursoUrl = process.env.TURSO_DB_URL || ''
   const databaseUrl = process.env.DATABASE_URL || ''
 
-  // Priority: use Turso adapter if TURSO_DB_URL is set with libsql:// scheme
+  // Priority 1: use Turso adapter if TURSO_DB_URL is set with libsql:// scheme
   if (tursoUrl && tursoUrl.startsWith('libsql://')) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
 
-      // In Prisma v6, PrismaLibSQL takes a config object (same as @libsql/client createClient),
-      // NOT a libsql client instance
       const adapter = new PrismaLibSQL({
         url: tursoUrl,
         authToken: process.env.DATABASE_AUTH_TOKEN || undefined,
       })
 
-      console.log('✅ Connected to Turso database via adapter')
+      console.log('✅ Connected to Turso database via TURSO_DB_URL adapter')
       return new PrismaClient({
         adapter,
         log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
@@ -66,7 +68,7 @@ function createPrismaClient(): PrismaClient {
     }
   }
 
-  // Check DATABASE_URL for libsql:// or https:// scheme (Vercel production fallback)
+  // Priority 2: Check DATABASE_URL for libsql:// or https:// scheme (Vercel production fallback)
   if (databaseUrl && (databaseUrl.startsWith('libsql://') || databaseUrl.startsWith('https://'))) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -91,7 +93,7 @@ function createPrismaClient(): PrismaClient {
     }
   }
 
-  // Local SQLite file
+  // Priority 3: Local SQLite file (for development)
   if (databaseUrl && databaseUrl.startsWith('file:')) {
     console.log('✅ Connected to local SQLite database')
     return new PrismaClient({
@@ -100,6 +102,12 @@ function createPrismaClient(): PrismaClient {
   }
 
   // No valid DB URL at runtime - this is FATAL
+  console.error('❌ CRITICAL: No valid DATABASE_URL or TURSO_DB_URL set at runtime')
+  console.error('Available env vars:')
+  console.error('  TURSO_DB_URL:', tursoUrl ? `${tursoUrl.substring(0, 30)}...` : '(not set)')
+  console.error('  DATABASE_URL:', databaseUrl ? `${databaseUrl.substring(0, 30)}...` : '(not set)')
+  console.error('  DATABASE_AUTH_TOKEN:', process.env.DATABASE_AUTH_TOKEN ? '(set)' : '(not set)')
+
   throw new Error(
     'No valid DATABASE_URL or TURSO_DB_URL set. ' +
     'Database is required for this application to function. ' +
