@@ -7,7 +7,9 @@ import { db } from "@/lib/db";
 // ─── NEXTAUTH_URL normalization ────────────────────────────────────────────────
 // Ensure NEXTAUTH_URL is always correct, even if env var is misconfigured
 function getNormalizedNextAuthUrl(): string {
-  let url = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
+  // IMPORTANT: Vercel redirects zdl.my.id → www.zdl.my.id (307)
+  // The OAuth redirect URI must match the ACTUAL domain users end up on
+  let url = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id";
 
   // Remove trailing slashes
   url = url.replace(/\/+$/, "");
@@ -26,8 +28,17 @@ function getNormalizedNextAuthUrl(): string {
 }
 
 // Set NEXTAUTH_URL early so NextAuth uses the correct value
-if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("vercel.app") || process.env.NEXTAUTH_URL.endsWith("/")) {
+// Always override if: not set, using vercel.app domain, has trailing slash, or missing www
+const currentUrl = process.env.NEXTAUTH_URL || "";
+const needsOverride =
+  !currentUrl ||
+  currentUrl.includes("vercel.app") ||
+  currentUrl.endsWith("/") ||
+  currentUrl === "https://zdl.my.id"; // Must be www.zdl.my.id due to Vercel redirect
+
+if (needsOverride) {
   process.env.NEXTAUTH_URL = getNormalizedNextAuthUrl();
+  console.log(`[AUTH] NEXTAUTH_URL overridden to: ${process.env.NEXTAUTH_URL}`);
 }
 
 // Default super-admin emails: fallback to hardcoded if env var not set
