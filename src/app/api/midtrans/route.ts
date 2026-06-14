@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
       isDemo = true;
     } else {
       // Build Midtrans item_details with SERVER-VALIDATED prices
-      // IMPORTANT: Midtrans requires gross_amount == sum of (price * quantity) for all items
+      // IMPORTANT: Midtrans requires gross_amount == sum of (price * quantity) for ALL items
       // In DP mode, we must adjust item prices so the sum matches the DP amount
       
       const itemDetails = orderItems.map((i) => ({
@@ -210,16 +210,16 @@ export async function POST(req: NextRequest) {
         category: "Website Services",
       }));
 
-      // Verify item total matches basePayAmount (with rounding adjustment)
-      const itemTotal = itemDetails.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      const roundingDiff = basePayAmount - itemTotal;
-      
+      // Add PPN and transaction fee items FIRST
       itemDetails.push(
         { id: "ppn-11%", price: ppnAmount, quantity: 1, name: "PPN 11%", category: "Tax" },
         { id: "transaction-fee", price: TRANSACTION_FEE, quantity: 1, name: "Biaya Transaksi", category: "Fee" }
       );
 
-      // If there's a rounding difference, add it to the first item or as adjustment
+      // NOW verify the total matches gross_amount (with rounding adjustment to first item)
+      // gross_amount = totalPayAmount = basePayAmount + ppnAmount + TRANSACTION_FEE
+      const calculatedTotal = itemDetails.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const roundingDiff = totalPayAmount - calculatedTotal;
       if (roundingDiff !== 0 && itemDetails.length > 0) {
         itemDetails[0].price += roundingDiff;
       }
@@ -259,9 +259,14 @@ export async function POST(req: NextRequest) {
 
       const data = await response.json();
       if (!response.ok) {
+        console.error("[MIDTRANS] API rejected:", JSON.stringify(data));
+        // Midtrans returns 400/401 for client errors — don't mask as 500
+        const midtransMsg = Array.isArray(data.error_messages) && data.error_messages.length > 0
+          ? data.error_messages[0]
+          : data.error_message || "Gagal membuat transaksi Midtrans";
         return NextResponse.json(
-          { error: "Failed to create transaction", details: data },
-          { status: 500 }
+          { error: midtransMsg },
+          { status: 400 }
         );
       }
       snapToken = data.token;
@@ -393,9 +398,11 @@ export async function POST(req: NextRequest) {
       isDemo,
     });
   } catch (error) {
-    console.error("Create transaction error:", error);
+    console.error("[MIDTRANS] Unhandled error:", error);
+    // Provide more specific error message for debugging
+    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat membuat transaksi";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: message },
       { status: 500 }
     );
   }
