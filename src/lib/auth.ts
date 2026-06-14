@@ -318,6 +318,5 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  // Enable debug in production temporarily to diagnose OAuthCallback error
-  debug: true,
+  debug: process.env.NODE_ENV === "development",
 };
