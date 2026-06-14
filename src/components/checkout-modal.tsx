@@ -175,8 +175,12 @@ export function CheckoutModal({
             toast.info("Anda menutup halaman pembayaran.");
           },
         });
-      } else {
+      } else if (data.redirect_url) {
+        // Fallback: open Midtrans payment page in new tab if Snap JS not loaded
+        window.open(data.redirect_url, "_blank");
         setStep(3);
+      } else {
+        toast.error("Gagal memuat halaman pembayaran. Coba lagi.");
       }
     } catch {
       toast.error("Terjadi kesalahan");

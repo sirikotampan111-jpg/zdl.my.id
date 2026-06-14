@@ -105,7 +105,7 @@ export default function RootLayout({
           }
           data-client-key={
             process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
-            "SB-Mid-client-PLACEHOLDER"
+            "Mid-client-sS7YFMmkND3egUIW"
           }
           async
         />
