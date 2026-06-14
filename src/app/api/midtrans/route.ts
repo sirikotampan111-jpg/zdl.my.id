@@ -276,40 +276,55 @@ export async function POST(req: NextRequest) {
     const expiredAt = new Date();
     expiredAt.setHours(expiredAt.getHours() + 24);
 
-    // Resolve userId
-    let resolvedUserId = userId;
-    if (!resolvedUserId || resolvedUserId === "guest") {
-      // Try to get from session first
-      try {
-        const session = await getServerSession(authOptions);
-        if (session?.user) {
-          const sessionUserId = (session.user as { id?: string })?.id;
-          if (sessionUserId) {
-            resolvedUserId = sessionUserId;
+    // Resolve userId — ALWAYS verify against database to prevent FK constraint errors
+    let resolvedUserId: string | undefined;
+
+    // Step 1: Try to get userId from session (most reliable source)
+    try {
+      const session = await getServerSession(authOptions);
+      if (session?.user) {
+        const sessionUserId = (session.user as { id?: string })?.id;
+        if (sessionUserId) {
+          // Verify this user actually exists in DB
+          const dbUser = await db.user.findUnique({ where: { id: sessionUserId } });
+          if (dbUser) {
+            resolvedUserId = dbUser.id;
           }
         }
-      } catch {
-        // No session, continue with guest
       }
+    } catch {
+      // No session, continue
+    }
 
-      if (!resolvedUserId || resolvedUserId === "guest") {
-        const guestUser = await db.user.findFirst({ where: { email: customerEmail } });
-        if (guestUser) {
-          resolvedUserId = guestUser.id;
-        } else {
-          const newGuest = await db.user.create({
-            data: {
-              email: customerEmail,
-              name: customerName,
-              phone: customerPhone,
-              businessName: businessName || null,
-              role: "customer",
-              provider: "checkout",
-            },
-          });
-          resolvedUserId = newGuest.id;
-        }
+    // Step 2: If not resolved from session, try the frontend-provided userId
+    if (!resolvedUserId && userId && userId !== "guest") {
+      const dbUser = await db.user.findUnique({ where: { id: userId } });
+      if (dbUser) {
+        resolvedUserId = dbUser.id;
       }
+    }
+
+    // Step 3: If still not resolved, try to find by email
+    if (!resolvedUserId) {
+      const emailUser = await db.user.findFirst({ where: { email: customerEmail } });
+      if (emailUser) {
+        resolvedUserId = emailUser.id;
+      }
+    }
+
+    // Step 4: Last resort — create a new user (guest checkout)
+    if (!resolvedUserId) {
+      const newGuest = await db.user.create({
+        data: {
+          email: customerEmail,
+          name: customerName,
+          phone: customerPhone,
+          businessName: businessName || null,
+          role: "customer",
+          provider: "checkout",
+        },
+      });
+      resolvedUserId = newGuest.id;
     }
 
     // Store serialized items info in notes
@@ -399,10 +414,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("[MIDTRANS] Unhandled error:", error);
-    // Provide more specific error message for debugging
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat membuat transaksi";
+    
+    // Detect FK constraint errors and return user-friendly message
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (errMsg.includes("FOREIGN KEY") || errMsg.includes("SQLITE_CONSTRAINT")) {
+      return NextResponse.json(
+        { error: "Gagal memproses pesanan. Silakan login ulang dan coba lagi." },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: message },
+      { error: "Terjadi kesalahan saat membuat transaksi. Silakan coba lagi." },
       { status: 500 }
     );
   }

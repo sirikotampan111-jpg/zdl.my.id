@@ -44,3 +44,27 @@ Stage Summary:
 - Midtrans API rejection was masked as 500 Internal Server Error
 - All pricing calculations verified correct
 - Build succeeds
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix Internal Server Error on checkout (FOREIGN KEY constraint failed)
+
+Work Log:
+- Tested midtrans API endpoint locally and reproduced the error
+- Root cause: SQLITE_CONSTRAINT FOREIGN KEY constraint failed on db.order.create()
+- The midtrans route used userId from frontend/session without verifying it exists in DB
+- When user logs in via Google OAuth, session userId may not match any row in User table
+- Fixed: Rewrote userId resolution logic with 4-step verification:
+  1. Try session userId → verify against DB
+  2. Try frontend-provided userId → verify against DB
+  3. Try to find user by customerEmail
+  4. Last resort: create new guest user
+- Also improved error handling: FK constraint errors now return 400 with user-friendly message instead of 500
+- Tested both non-existent and valid userId scenarios — both pass
+
+Stage Summary:
+- Root cause: userId from session not verified against DB before creating Order (FK violation)
+- Fix: Always verify userId exists in DB, fallback to email lookup then create new user
+- FK constraint errors now return 400 instead of 500 with clear message
+- Build succeeds, both test cases pass
