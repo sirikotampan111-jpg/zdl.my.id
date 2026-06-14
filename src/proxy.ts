@@ -52,6 +52,7 @@ const BLOCKED_PATHS = [
 const API_METHOD_RULES: Array<{ pattern: RegExp; methods: string[] }> = [
   { pattern: /^\/api\/orders$/, methods: ["GET", "POST"] },
   { pattern: /^\/api\/midtrans$/, methods: ["POST"] },
+  { pattern: /^\/api\/midtrans\/check$/, methods: ["GET"] },
   { pattern: /^\/api\/webhook\/midtrans$/, methods: ["POST"] },
   { pattern: /^\/api\/chat$/, methods: ["POST"] },
   { pattern: /^\/api\/auth\/register$/, methods: ["POST"] },
