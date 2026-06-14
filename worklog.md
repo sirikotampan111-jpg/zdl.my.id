@@ -1,22 +1,23 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Fix Google OAuth redirect_uri_mismatch + super-admin access + registration
+Task: Fix checkout flow bugs - DP calculation, Project unique constraint, Cart models, TypeScript errors
 
 Work Log:
-- Discovered root cause: Vercel redirects zdl.my.id → www.zdl.my.id (307), causing NextAuth to send redirect URI as https://www.zdl.my.id/api/auth/callback/google but Google Cloud Console only had https://zdl.my.id/api/auth/callback/google
-- Fixed NEXTAUTH_URL normalization in auth.ts to default to https://www.zdl.my.id
-- Added override logic when NEXTAUTH_URL is set to non-www or vercel.app domain
-- Fixed CSP form-action to include https://accounts.google.com for OAuth flow
-- Created /api/admin/force-upgrade endpoint (auth via NEXTAUTH_SECRET) for manual super-admin promotion
-- Created /api/auth/debug diagnostic endpoint showing OAuth config without exposing secrets
-- Added method rules in proxy.ts for /api/auth/register, /api/auth/debug, /api/admin/force-upgrade
-- Enhanced super-admin auto-upgrade: now checks on EVERY JWT callback, not just on sign-in
-- Seeded super-admin user via /api/admin/setup GET endpoint (sirikotampan111@gmail.com, password: zdl123)
-- Verified: registration works, credentials login works, super-admin role works
+- Identified DP calculation mismatch: frontend CheckoutModal used DP_RATE (50%) while backend used DP_MINIMAL (Rp500.000)
+- Fixed calculatePriceBreakdown() in lib/data.ts to use DP_MINIMAL consistently
+- Extended PriceBreakdown interface with fullTotal, fullPPN, dpPPN, dpTotal, sisaTotal
+- Fixed Project unique constraint violation: changed from creating multiple projects per cart item to single combined project
+- Added Cart and CartItem models to Prisma schema
+- Fixed cart/route.ts validateBodySize() call (was passing string instead of Request)
+- Fixed webhook/midtrans/route.ts type errors (added MidtransWebhookBody interface)
+- Fixed price-calculator.tsx to use new PriceBreakdown properties
+- Regenerated Prisma client and pushed schema to SQLite DB
+- Verified Next.js build succeeds with no errors
 
 Stage Summary:
-- Root cause of redirect_uri_mismatch: www vs non-www domain mismatch
-- All runtime features verified working: registration ✅, login ✅, super-admin ✅
-- Google OAuth requires user to add https://www.zdl.my.id/api/auth/callback/google to Google Cloud Console
-- Deployed commit: fix: NEXTAUTH_URL must use www.zdl.my.id (Vercel 307 redirect)
+- All checkout-related TypeScript errors resolved
+- DP calculation now consistent: DP_MINIMAL (Rp500.000) across frontend and backend
+- Cart API now has proper Prisma models (Cart, CartItem)
+- Project creation now handles multi-item carts without unique constraint violation
+- Build passes successfully

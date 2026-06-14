@@ -422,9 +422,7 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
                   PPN {(PPN_RATE * 100).toFixed(0)}%
                 </span>
                 <span className="font-medium">
-                  {formatPrice(
-                    "ppn" in breakdown ? breakdown.ppn : breakdown.basePrice * PPN_RATE,
-                  )}
+                  {formatPrice(breakdown.fullPPN)}
                 </span>
               </div>
 
@@ -454,7 +452,7 @@ export function PriceCalculator({ onOrder }: PriceCalculatorProps) {
 
               <div className="flex justify-between text-sm">
                 <span className="text-white/70">DP minimal</span>
-                <span className="font-medium">{formatPrice(breakdown.dpBase)}</span>
+                <span className="font-medium">{formatPrice(breakdown.dpAmount)}</span>
               </div>
 
               <div className="flex justify-between text-sm">

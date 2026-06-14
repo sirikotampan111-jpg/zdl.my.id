@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cartActionSchema } from "@/lib/validations";
 import { requireAuth, safeErrorResponse } from "@/lib/auth-guard";
-import { checkRateLimit, getClientIp, RATE_LIMITS, validateBodySize } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 import { validateServiceItem } from "@/lib/price-guard";
 import { auditLog } from "@/lib/audit-log";
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const rawBodyText = await req.text();
 
     // SECURITY: Validate body size before parsing
-    if (!validateBodySize(rawBodyText)) {
+    if (rawBodyText.length > 1024 * 1024) {
       return NextResponse.json(
         { error: "Request body too large" },
         { status: 413 }

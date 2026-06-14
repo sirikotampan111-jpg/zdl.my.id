@@ -339,25 +339,31 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Create projects for each eligible item in the cart
+    // Create a single project for this order (schema has @unique on orderId)
     const projectItems = isCartMode
       ? orderItems.filter((i) => ["html", "nextjs", "admin"].includes(i.category))
       : ["html", "nextjs", "admin"].includes(primaryCategory)
         ? orderItems
         : [];
 
-    for (const projectItem of projectItems) {
+    if (projectItems.length > 0) {
+      // Combine all project items into one project
+      const combinedName = projectItems.map((i) => i.name).join(" + ");
+      const maxCategory = projectItems.find((i) => i.category === "nextjs" || i.category === "admin")
+        ? projectItems.find((i) => i.category === "nextjs" || i.category === "admin")!.category
+        : projectItems[0].category;
+
       const estimatedDone = new Date();
       estimatedDone.setDate(
-        estimatedDone.getDate() + (projectItem.category === "html" ? 7 : 14)
+        estimatedDone.getDate() + (maxCategory === "html" ? 7 : 14)
       );
 
       await db.project.create({
         data: {
           orderId: order.id,
           userId: resolvedUserId,
-          projectName: projectItem.name,
-          packageCategory: projectItem.category,
+          projectName: combinedName,
+          packageCategory: maxCategory,
           status: "planning",
           progress: 10,
           estimatedDone,

@@ -1,15 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
-import { safeParseJson, auditLog, MAX_BODY_SIZE } from "@/lib/rate-limit";
+import { safeParseJson, auditLog } from "@/lib/rate-limit";
+
+interface MidtransWebhookBody {
+  order_id: string;
+  transaction_id?: string;
+  transaction_status: string;
+  transaction_time?: string;
+  payment_type?: string;
+  gross_amount?: string;
+  currency?: string;
+  fraud_status?: string;
+  signature_key?: string;
+  status_code?: string;
+}
 
 // ─── POST /api/webhook/midtrans ──────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
     // Safe JSON parse with body size check
-    const { data: body, error: parseError } = await safeParseJson(req);
+    const { data: body, error: parseError } = await safeParseJson<MidtransWebhookBody>(req);
     if (parseError) return parseError;
+
+    if (!body) {
+      return NextResponse.json({ error: "Empty body" }, { status: 400 });
+    }
 
     const {
       order_id,
@@ -85,7 +102,7 @@ export async function POST(req: NextRequest) {
         rawResponse: JSON.stringify({
           ...body,
           signature_key: undefined, // strip signature key before storing
-        }),
+        } as Record<string, unknown>),
       },
     });
 

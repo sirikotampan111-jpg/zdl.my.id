@@ -422,6 +422,13 @@ export interface PriceBreakdown {
   ppn: number;
   transactionFee: number;
   total: number;
+  // Full payment breakdown (bayar penuh tanpa DP)
+  fullPPN: number;
+  fullTotal: number;
+  // DP breakdown
+  dpPPN: number;
+  dpTotal: number;
+  sisaTotal: number;
 }
 
 export function calculatePriceBreakdown(
@@ -429,11 +436,22 @@ export function calculatePriceBreakdown(
   isDPEligible: boolean
 ): PriceBreakdown {
   const basePrice = price;
-  const isDP = isDPEligible && price >= 1000000;
-  const dpAmount = isDP ? Math.ceil(basePrice * DP_RATE) : basePrice;
+  // DP eligible: bayar DP_MINIMAL (Rp500.000) sebagai uang muka
+  // Selaras dengan backend midtrans route yang juga pakai DP_MINIMAL
+  const isDP = isDPEligible && price > DP_MINIMAL;
+  const dpAmount = isDP ? DP_MINIMAL : basePrice;
   const chargeable = dpAmount;
   const ppn = Math.ceil(chargeable * PPN_RATE);
   const total = chargeable + ppn + TRANSACTION_FEE;
+
+  // Full payment breakdown
+  const fullPPN = Math.ceil(basePrice * PPN_RATE);
+  const fullTotal = basePrice + fullPPN + TRANSACTION_FEE;
+
+  // DP breakdown
+  const dpPPN = isDP ? ppn : 0;
+  const dpTotal = isDP ? total : 0;
+  const sisaTotal = isDP ? basePrice - dpAmount : 0;
 
   return {
     basePrice,
@@ -442,5 +460,10 @@ export function calculatePriceBreakdown(
     ppn,
     transactionFee: TRANSACTION_FEE,
     total,
+    fullPPN,
+    fullTotal,
+    dpPPN,
+    dpTotal,
+    sisaTotal,
   };
 }
