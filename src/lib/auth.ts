@@ -108,12 +108,9 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-        },
-      },
+      // Use default authorization params - don't override
+      // Removing prompt: "consent" and access_type: "offline" as they can
+      // cause OAuthCallback errors with some Google Cloud Console configs
     }),
     CredentialsProvider({
       name: "credentials",

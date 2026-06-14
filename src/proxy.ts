@@ -56,6 +56,7 @@ const API_METHOD_RULES: Array<{ pattern: RegExp; methods: string[] }> = [
   { pattern: /^\/api\/chat$/, methods: ["POST"] },
   { pattern: /^\/api\/auth\/register$/, methods: ["POST"] },
   { pattern: /^\/api\/auth\/debug$/, methods: ["GET"] },
+  { pattern: /^\/api\/auth\/test-oauth$/, methods: ["GET"] },
   { pattern: /^\/api\/admin\/setup$/, methods: ["GET", "POST"] },
   { pattern: /^\/api\/admin\/force-upgrade$/, methods: ["POST"] },
   { pattern: /^\/api\/admin\/super\/orders$/, methods: ["GET", "PATCH", "DELETE"] },
