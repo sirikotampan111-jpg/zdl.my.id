@@ -195,18 +195,34 @@ export async function POST(req: NextRequest) {
       isDemo = true;
     } else {
       // Build Midtrans item_details with SERVER-VALIDATED prices
+      // IMPORTANT: Midtrans requires gross_amount == sum of (price * quantity) for all items
+      // In DP mode, we must adjust item prices so the sum matches the DP amount
+      
       const itemDetails = orderItems.map((i) => ({
         id: i.id,
-        price: i.price,
+        // In DP mode: use proportional price so items sum to basePayAmount
+        // In full payment mode: use actual price
+        price: showDP
+          ? Math.round((i.price * i.quantity / totalPackagePrice) * basePayAmount / i.quantity)
+          : i.price,
         quantity: i.quantity,
         name: i.name.length > 50 ? i.name.substring(0, 47) + "..." : i.name,
         category: "Website Services",
       }));
 
+      // Verify item total matches basePayAmount (with rounding adjustment)
+      const itemTotal = itemDetails.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const roundingDiff = basePayAmount - itemTotal;
+      
       itemDetails.push(
         { id: "ppn-11%", price: ppnAmount, quantity: 1, name: "PPN 11%", category: "Tax" },
         { id: "transaction-fee", price: TRANSACTION_FEE, quantity: 1, name: "Biaya Transaksi", category: "Fee" }
       );
+
+      // If there's a rounding difference, add it to the first item or as adjustment
+      if (roundingDiff !== 0 && itemDetails.length > 0) {
+        itemDetails[0].price += roundingDiff;
+      }
 
       const parameter = {
         transaction_details: {
@@ -220,9 +236,9 @@ export async function POST(req: NextRequest) {
           phone: customerPhone,
         },
         callbacks: {
-          finish: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/dashboard?payment=finish`,
-          error: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/dashboard?payment=error`,
-          pending: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/dashboard?payment=pending`,
+          finish: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id"}/dashboard?payment=finish`,
+          error: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id"}/dashboard?payment=error`,
+          pending: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id"}/dashboard?payment=pending`,
         },
       };
 
