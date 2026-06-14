@@ -69,7 +69,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https: blob:",
               "connect-src 'self' https://api.midtrans.com https://app.sandbox.midtrans.com https://app.midtrans.com https://*.z.ai",
               // frame-src: Google Maps embed + Midtrans Snap + portfolio live previews
-              "frame-src https://www.google.com https://maps.google.com https://app.sandbox.midtrans.com https://app.midtrans.com https://genesisxproperty.com https://pawonbhoga.id https://liaviarealestate.asia https://lianahomeinterior.com https://designhomeliving.org https://terradekor.com https://kopikir.store https://kementriansegosbebek.com https://bimbelstarlish.com https://kirimikanhias.com",
+              "frame-src https://www.google.com https://maps.google.com https://app.sandbox.midtrans.com https://app.midtrans.com https://liaviarealestate.asia https://lianahomeinterior.com https://designhomeliving.org https://terradekor.com https://kopikir.store https://kementriansegosbebek.com https://bimbelstarlish.com https://kirimikanhias.com",
               // frame-ancestors: only same origin can embed
               "frame-ancestors 'self'",
               "form-action 'self'",

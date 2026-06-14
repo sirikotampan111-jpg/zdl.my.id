@@ -35,12 +35,118 @@ const chatBodySchema = z.object({
   sessionId: z.string().max(100).optional(),
 });
 
+// ─── Smart Fallback (pattern matching) ──────────────────────────────────────
+// Used when the AI SDK is unavailable (e.g., Vercel production without ZAI keys)
+
+interface FallbackRule {
+  patterns: RegExp[];
+  response: string;
+}
+
+const fallbackRules: FallbackRule[] = [
+  {
+    patterns: [/harga|biaya|tarif|berapa|cost|price/i],
+    response:
+      "Harga layanan kami mulai dari Rp600.000 untuk website HTML hingga Rp3.000.000 untuk website Next.js. Admin Panel tersedia seharga Rp2.000.000. Layanan tambahan seperti Email Bisnis (Rp500K), SEO (Rp1.2M), dan Ads Setup (Rp350K) juga tersedia. DP minimal Rp500K + PPN 11% + biaya transaksi Rp4.000. Untuk penawaran khusus, hubungi kami via WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/html|statis|landing/i],
+    response:
+      "Paket HTML Website kami mulai dari Rp600.000 (Landing Page) hingga Rp1.500.000 (5 Halaman). Cocok untuk bisnis yang butuh website ringan dan cepat. Sudah termasuk domain .com/.net, hosting, responsive, basic SEO, dan 2x revisi gratis. Mau konsultasi lebih lanjut? Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/next\.?js|nextjs|dinamis|modern/i],
+    response:
+      "Paket Next.js Website kami mulai dari Rp1.500.000 (Landing Page) hingga Rp3.000.000 (5 Halaman). Cocok untuk bisnis yang butuh website modern dengan performa tinggi dan SEO optimal. Sudah termasuk domain gratis (.id/.co.id/.com/.net/.org), hosting, dan revisi gratis selama 1 bulan. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
+  },
+  {
+    patterns: [/admin|dashboard|panel|crud|database/i],
+    response:
+      "Layanan Admin Panel kami seharga Rp2.000.000, termasuk dashboard admin, login, database, CRUD data, kelola produk/artikel/customer, dan sistem pemesanan. Bisa ditambahkan ke paket HTML atau Next.js manapun. Hubungi WhatsApp 0889-7374-5596 untuk detail 😊",
+  },
+  {
+    patterns: [/bayar|pembayaran|payment|dp|pelunasan|transfer/i],
+    response:
+      "Pembayaran bisa melalui website kami dengan Midtrans (QRIS, Transfer Bank BCA/BNI/BRI/Mandiri, E-Wallet GoPay/OVO/DANA/ShopeePay, Kartu Kredit). DP minimal Rp500K untuk paket HTML & Next.js. PPN 11% + biaya transaksi Rp4.000 berlaku. Pelunasan setelah website selesai dan online. Untuk konfirmasi pembayaran, hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/domain|hosting|\.com|\.id|\.net/i],
+    response:
+      "Semua paket sudah termasuk domain dan hosting! Paket HTML mendapat domain .com/.net, sedangkan paket Next.js mendapat domain gratis termasuk .id, .co.id, .com, .net, dan .org. Tidak perlu repot cari sendiri, semuanya kami yang urus 😊 Hubungi WhatsApp 0889-7374-5596 untuk info lebih lanjut.",
+  },
+  {
+    patterns: [/waktu|lama|selesai|pengerjaan|deadline|durasi/i],
+    response:
+      "Waktu pengerjaan tergantung kompleksitas: Landing Page 3-5 hari kerja, website multi-halaman 7-14 hari kerja, website + admin panel 14-21 hari kerja. Kami selalu usahakan tepat waktu dan berkualitas. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi project Anda 😊",
+  },
+  {
+    patterns: [/revisi|ubah|ganti|koreksi/i],
+    response:
+      "Paket HTML mendapat gratis 2x revisi, dan paket Next.js mendapat revisi gratis selama 1 bulan setelah website online. Revisi tambahan bisa dibicarakan lebih lanjut. Kami pastikan hasil sesuai keinginan Anda! Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/seo|google|ranking|pencarian|search/i],
+    response:
+      "Semua website kami sudah SEO friendly! Paket HTML mendapat basic SEO one page, dan paket Next.js sudah full SEO optimized. Kami juga menyediakan layanan SEO Website terpisah seharga Rp1.200.000 untuk optimasi lebih mendalam. Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/kontak|hubungi|wa|whatsapp|telepon|phone|alamat/i],
+    response:
+      "Anda bisa menghubungi kami melalui:\n📱 WhatsApp: 0889-7374-5596\n🌐 Website: zdl.my.id\n📍 Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangerang, Banten 17510\n\nTim kami siap membantu Anda! 😊",
+  },
+  {
+    patterns: [/bundle|paket|promo|diskon|paket combo/i],
+    response:
+      "Kami menyediakan paket bundle:\n🟡 Starter Pack — Rp1.000K (HTML Landing Page + domain + hosting)\n🟠 Business Pack — Rp3.800K (Next.js 3 halaman + Admin Panel + domain + hosting)\n🔴 All-In Pack — Rp5.950K (Next.js 5 halaman + Admin Panel + Email Bisnis + SEO + Ads Setup)\n\nHubungi WhatsApp 0889-7374-5596 untuk penawaran terbaik! 😊",
+  },
+  {
+    patterns: [/maintenance|support|perawatan|update/i],
+    response:
+      "Layanan maintenance kami:\n🟢 Basic — Rp150.000/bulan (update keamanan, monitoring)\n🟡 Pro — Rp300.000/bulan (update keamanan + revisi minor + backup)\n🔴 Premium — Rp500.000/bulan (semua fitur Pro + revisi mayor + prioritas support)\n\nHubungi WhatsApp 0889-7374-5596 untuk berlangganan 😊",
+  },
+  {
+    patterns: [/email|bisnis|profesional|domain email/i],
+    response:
+      "Layanan Email Bisnis kami seharga Rp500.000, termasuk email profesional dengan domain sendiri (misal: info@domainanda.com). Meningkatkan kredibilitas bisnis Anda! Bisa ditambahkan ke paket manapun. Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/portofolio|portfolio|hasil|contoh|sample|project/i],
+    response:
+      "Kami telah menyelesaikan 150+ project untuk berbagai kategori: Properti, Interior, Kuliner, dan Bisnis & Edukasi. Beberapa klien kami: Liavia Real Estate, Liana Home Interior, Kopikir Store, Bimbel Starlish, dan masih banyak lagi. Kunjungi halaman Portofolio di zdl.my.id untuk melihat hasil karya kami! 😊",
+  },
+  {
+    patterns: [/order|pesan|daftar|mulai|booking/i],
+    response:
+      "Untuk memesan, Anda bisa:\n1️⃣ Kunjungi zdl.my.id dan pilih paket yang diinginkan\n2️⃣ Hubungi kami via WhatsApp 0889-7374-5596\n3️⃣ Konsultasi gratis dulu, baru order\n\nProsesnya: Konsultasi → Pilih Paket → Bayar DP → Development → Review → Pelunasan → Online! 😊",
+  },
+  {
+    patterns: [/halo|hai|hi|hello|selamat|assalam|salam/i],
+    response:
+      "Halo! 👋 Selamat datang di Zheng Digital Lab! Kami siap membantu Anda membuat website profesional. Ada yang bisa kami bantu? Tanyakan tentang layanan, harga, atau cara memesan! 😊",
+  },
+  {
+    patterns: [/terima kasih|makasih|thanks|thank/i],
+    response:
+      "Sama-sama! 😊 Senang bisa membantu. Kalau ada pertanyaan lain, jangan ragu untuk bertanya atau hubungi kami via WhatsApp 0889-7374-5596. Sukses untuk bisnis Anda! 🚀",
+  },
+];
+
+function getSmartFallback(userMessage: string): string {
+  for (const rule of fallbackRules) {
+    if (rule.patterns.some((pattern) => pattern.test(userMessage))) {
+      return rule.response;
+    }
+  }
+  return "Terima kasih atas pertanyaan Anda! Untuk informasi lebih detail, silakan hubungi kami via WhatsApp di 0889-7374-5596 atau kunjungi zdl.my.id. Tim kami siap membantu! 😊";
+}
+
 // ─── ZAI SDK Init ─────────────────────────────────────────────────────────────
 
 let zaiInitialized = false;
+let zaiAvailable = false;
 
-async function ensureZaiConfig(): Promise<void> {
-  if (zaiInitialized) return;
+async function ensureZaiConfig(): Promise<boolean> {
+  if (zaiInitialized) return zaiAvailable;
 
   // Try to find config file in standard locations first (sandbox env)
   const fs = await import("fs/promises");
@@ -49,7 +155,8 @@ async function ensureZaiConfig(): Promise<void> {
     try {
       await fs.access(p);
       zaiInitialized = true;
-      return;
+      zaiAvailable = true;
+      return true;
     } catch {
       // not found, try next
     }
@@ -68,17 +175,25 @@ async function ensureZaiConfig(): Promise<void> {
     try {
       await mkdir("/tmp", { recursive: true });
       await writeFile("/tmp/.z-ai-config", JSON.stringify(config));
+      zaiInitialized = true;
+      zaiAvailable = true;
+      return true;
     } catch {
       // /tmp might not be writable in some environments
     }
     try {
       await writeFile(join(process.cwd(), ".z-ai-config"), JSON.stringify(config));
+      zaiInitialized = true;
+      zaiAvailable = true;
+      return true;
     } catch {
       // CWD might be read-only on Vercel
     }
   }
 
   zaiInitialized = true;
+  zaiAvailable = false;
+  return false;
 }
 
 // ─── POST /api/chat ──────────────────────────────────────────────────────────
@@ -90,7 +205,7 @@ export async function POST(request: NextRequest) {
     const rateResult = checkRateLimit(`chat:${ip}`, { windowMs: 60_000, maxRequests: 10 });
     if (!rateResult.allowed) {
       return NextResponse.json(
-        { message: "Terlalu banyak pesan. Tunggu sebentar ya!", sessionId: randomUUID() },
+        { message: "Terlalu banyak pesan. Tunggu sebentar ya! 😊", sessionId: randomUUID() },
         { status: 429 }
       );
     }
@@ -111,33 +226,43 @@ export async function POST(request: NextRequest) {
     const { messages, sessionId } = parseResult.data;
     const newSessionId = sessionId || randomUUID();
 
+    // Get the last user message for fallback
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+    const userContent = lastUserMsg?.content || "";
+
     try {
       // Ensure ZAI config is available
-      await ensureZaiConfig();
+      const isZaiReady = await ensureZaiConfig();
 
-      const ZAI = (await import("z-ai-web-dev-sdk")).default;
-      const zai = await ZAI.create();
-      const completion = await zai.chat.completions.create({
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages.map((m) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })),
-        ],
-      });
+      if (isZaiReady) {
+        // Try using the ZAI SDK
+        const ZAI = (await import("z-ai-web-dev-sdk")).default;
+        const zai = await ZAI.create();
+        const completion = await zai.chat.completions.create({
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            ...messages.map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            })),
+          ],
+        });
 
-      const reply =
-        completion.choices?.[0]?.message?.content ||
-        "Maaf, saya tidak bisa memproses permintaan Anda. Hubungi WhatsApp 0889-7374-5596 😊";
+        const reply =
+          completion.choices?.[0]?.message?.content ||
+          getSmartFallback(userContent);
 
-      return NextResponse.json({ message: reply, sessionId: newSessionId });
+        return NextResponse.json({ message: reply, sessionId: newSessionId });
+      } else {
+        // ZAI SDK not available — use smart fallback
+        const reply = getSmartFallback(userContent);
+        return NextResponse.json({ message: reply, sessionId: newSessionId });
+      }
     } catch (aiError) {
-      console.error("[CHAT] AI error:", aiError);
-      return NextResponse.json({
-        message: "Maaf, gangguan teknis. Hubungi WhatsApp 0889-7374-5596 😊",
-        sessionId: newSessionId,
-      });
+      console.error("[CHAT] AI error, using smart fallback:", aiError);
+      // Fallback to smart pattern matching instead of just an error message
+      const reply = getSmartFallback(userContent);
+      return NextResponse.json({ message: reply, sessionId: newSessionId });
     }
   } catch (error) {
     console.error("[CHAT] Server error:", error);

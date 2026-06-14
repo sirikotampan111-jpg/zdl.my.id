@@ -40,16 +40,6 @@ export interface StatItem {
 export const portfolios: PortfolioItem[] = [
   // Properti
   {
-    id: "genesisxproperty",
-    domain: "genesisxproperty.com",
-    category: "Properti",
-    gradient: "from-blue-600 to-cyan-500",
-    image: "/portfolio/genesisxproperty.png",
-    url: "https://genesisxproperty.com",
-    description: "Website properti modern dengan fitur listing properti, pencarian lanjutan, dan tampilan premium untuk agen real estate.",
-    livePreview: true,
-  },
-  {
     id: "liaviarealestate",
     domain: "liaviarealestate.asia",
     category: "Properti",
@@ -57,6 +47,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/liaviarealestate.png",
     url: "https://liaviarealestate.asia",
     description: "Platform real estate Asia dengan desain elegan, katalog properti mewah, dan sistem booking online.",
+    livePreview: true,
   },
   // Interior
   {
@@ -67,6 +58,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/lianahomeinterior.png",
     url: "https://lianahomeinterior.com",
     description: "Website jasa interior design dengan galeri portofolio yang menarik, katalog desain, dan sistem konsultasi online.",
+    livePreview: true,
   },
   {
     id: "designhomeliving",
@@ -76,6 +68,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/designhomeliving.png",
     url: "https://designhomeliving.org",
     description: "Platform desain rumah dan hunian dengan showcare galeri, inspirasi interior, dan layanan konsultasi desain.",
+    livePreview: true,
   },
   {
     id: "terradekor",
@@ -85,6 +78,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/terradekor.png",
     url: "https://terradekor.com",
     description: "Website dekorasi dan desain interior dengan nuansa terracotta, galeri proyek, dan katalog produk dekorasi.",
+    livePreview: true,
   },
   // Kuliner
   {
@@ -95,15 +89,6 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/kopikir.png",
     url: "https://kopikir.store",
     description: "Website coffee shop dengan menu online, pemesanan takeaway, dan branding kopi spesialti yang modern.",
-  },
-  {
-    id: "pawonbhoga",
-    domain: "pawonbhoga.id",
-    category: "Kuliner",
-    gradient: "from-red-500 to-orange-500",
-    image: "/portfolio/pawonbhoga.png",
-    url: "https://pawonbhoga.id",
-    description: "Website restoran kuliner nusantara dengan menu tradisional, reservasi online, dan galeri hidangan khas Indonesia.",
     livePreview: true,
   },
   {
@@ -114,6 +99,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/kementriansegosbebek.png",
     url: "https://kementriansegosbebek.com",
     description: "Website franchise bebek goreng dengan lokasi outlet, menu signature, dan sistem pemesanan online yang menyenangkan.",
+    livePreview: true,
   },
   // Bisnis & Edukasi
   {
@@ -124,6 +110,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/bimbelstarlish.png",
     url: "https://bimbelstarlish.com",
     description: "Platform bimbingan belajar online dengan jadwal kelas, materi pembelajaran, dan sistem pendaftaran siswa.",
+    livePreview: true,
   },
   {
     id: "kirimikanhias",
@@ -133,6 +120,7 @@ export const portfolios: PortfolioItem[] = [
     image: "/portfolio/kirimikanhias.png",
     url: "https://kirimikanhias.com",
     description: "Toko online ikan hias dengan katalog lengkap, sistem pemesanan dan pengiriman, serta tips perawatan akuarium.",
+    livePreview: true,
   },
 ];
 
@@ -282,10 +270,10 @@ export const adminFeatures = [
 export const testimonials: Testimonial[] = [
   {
     id: "1",
-    name: "Budi Santoso",
-    business: "Genesis X Property",
+    name: "Andi Wijaya",
+    business: "Liavia Real Estate",
     quote:
-      "Website yang dibuat oleh Zheng Digital Lab sangat profesional dan cepat. Klien kami langsung tertarik melihat tampilannya. Sangat recommended!",
+      "Website properti kami jadi terlihat sangat profesional dan elegan. Klien kami langsung percaya melihat tampilannya. Sangat recommended!",
     rating: 5,
   },
   {

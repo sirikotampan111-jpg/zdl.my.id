@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { PortfolioItem } from "@/lib/data";
 import {
   Dialog,
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Globe, Tag, Loader2 } from "lucide-react";
+import { ExternalLink, Globe, Tag, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 interface PortfolioModalProps {
@@ -25,17 +25,55 @@ export function PortfolioModal({
   onClose,
 }: PortfolioModalProps) {
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
+  const [iframeTimeout, setIframeTimeout] = useState(false);
+
+  // Reset state when portfolio changes
+  useEffect(() => {
+    if (open) {
+      setIframeLoading(true);
+      setIframeError(false);
+      setIframeTimeout(false);
+    }
+  }, [open, portfolio?.id]);
+
+  // Set a timeout to detect if iframe can't load (e.g., X-Frame-Options blocking)
+  useEffect(() => {
+    if (!open || !portfolio?.livePreview) return;
+
+    const timer = setTimeout(() => {
+      // If still loading after 15 seconds, show a gentle warning
+      setIframeTimeout(true);
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, [open, portfolio?.livePreview, portfolio?.id]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setIframeLoading(true);
+      setIframeError(false);
+      setIframeTimeout(false);
       onClose();
     }
   };
 
   const handleIframeLoad = useCallback(() => {
     setIframeLoading(false);
+    setIframeError(false);
+    setIframeTimeout(false);
   }, []);
+
+  const handleIframeError = useCallback(() => {
+    setIframeLoading(false);
+    setIframeError(true);
+  }, []);
+
+  const handleRetry = () => {
+    setIframeLoading(true);
+    setIframeError(false);
+    setIframeTimeout(false);
+  };
 
   if (!portfolio) return null;
 
@@ -97,14 +135,79 @@ export function PortfolioModal({
 
           {/* iframe container */}
           <div className="flex-1 relative bg-white">
-            {iframeLoading && (
+            {/* Loading state */}
+            {iframeLoading && !iframeError && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-background z-10">
                 <Loader2 className="w-8 h-8 text-gold animate-spin mb-3" />
                 <p className="text-sm text-muted-foreground">
                   Memuat website {portfolio.domain}...
                 </p>
+                {iframeTimeout && (
+                  <div className="mt-4 text-center max-w-sm px-4">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Website membutuhkan waktu lama untuk dimuat. Beberapa website mungkin tidak dapat ditampilkan di sini.
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleRetry}
+                      >
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        Coba Lagi
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-gold hover:bg-gold/90 text-navy"
+                        onClick={() =>
+                          window.open(portfolio.url, "_blank", "noopener")
+                        }
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Buka di Tab Baru
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Error state - iframe blocked */}
+            {iframeError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background z-10 p-6">
+                <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
+                  <AlertTriangle className="w-8 h-8 text-amber-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Tidak Dapat Memuat Preview</h3>
+                <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+                  Website {portfolio.domain} tidak dapat ditampilkan langsung di sini karena pengaturan keamanan website tersebut.
+                  Klik tombol di bawah untuk membuka website langsung di tab baru.
+                </p>
+                <p className="text-xs text-muted-foreground text-center max-w-sm mb-5">
+                  {portfolio.description}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRetry}
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Coba Lagi
+                  </Button>
+                  <Button
+                    className="bg-gold hover:bg-gold/90 text-navy font-semibold"
+                    onClick={() =>
+                      window.open(portfolio.url, "_blank", "noopener")
+                    }
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Buka Website
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <iframe
               key={portfolio.id}
               src={portfolio.url}
@@ -112,6 +215,7 @@ export function PortfolioModal({
               title={portfolio.domain}
               sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               onLoad={handleIframeLoad}
+              onError={handleIframeError}
             />
           </div>
         </DialogContent>
