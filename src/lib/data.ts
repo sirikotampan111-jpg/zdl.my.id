@@ -40,12 +40,12 @@ export interface StatItem {
 export const portfolios: PortfolioItem[] = [
   // Properti
   {
-    id: "liaviarealestate",
-    domain: "liaviarealestate.asia",
+    id: "liviarealestate",
+    domain: "liviarealestate.asia",
     category: "Properti",
     gradient: "from-emerald-600 to-teal-500",
     image: "/portfolio/liaviarealestate.png",
-    url: "https://liaviarealestate.asia",
+    url: "https://liviarealestate.asia",
     description: "Platform real estate Asia dengan desain elegan, katalog properti mewah, dan sistem booking online.",
     livePreview: true,
   },
@@ -92,12 +92,12 @@ export const portfolios: PortfolioItem[] = [
     livePreview: true,
   },
   {
-    id: "kementriansegosbebek",
-    domain: "kementriansegosbebek.com",
+    id: "kementriasegosbebek",
+    domain: "kementriasegosbebek.id",
     category: "Kuliner",
     gradient: "from-lime-500 to-green-500",
     image: "/portfolio/kementriansegosbebek.png",
-    url: "https://kementriansegosbebek.com",
+    url: "https://kementriasegosbebek.id",
     description: "Website franchise bebek goreng dengan lokasi outlet, menu signature, dan sistem pemesanan online yang menyenangkan.",
     livePreview: true,
   },
@@ -272,7 +272,7 @@ export const testimonials: Testimonial[] = [
   {
     id: "1",
     name: "Andi Wijaya",
-    business: "Liavia Real Estate",
+    business: "Livia Real Estate",
     quote:
       "Website properti kami jadi terlihat sangat profesional dan elegan. Klien kami langsung percaya melihat tampilannya. Sangat recommended!",
     rating: 5,

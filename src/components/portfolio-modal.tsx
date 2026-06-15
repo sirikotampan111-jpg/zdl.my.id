@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Globe, Tag, Loader2, AlertTriangle, RefreshCw, Monitor } from "lucide-react";
+import { ExternalLink, Globe, Tag, Loader2, Monitor } from "lucide-react";
 import Image from "next/image";
 
 interface PortfolioModalProps {
@@ -27,20 +27,25 @@ export function PortfolioModal({
   const [iframeState, setIframeState] = useState<
     "loading" | "loaded" | "error" | "timeout"
   >("loading");
-  // Show iframe or live screenshot in modal
-  const [showIframe, setShowIframe] = useState(true);
+  // Default: show live screenshot (tampilan asli dari tautan)
+  // User can switch to iframe with "Coba Live" button
+  const [showIframe, setShowIframe] = useState(false);
+  const [screenshotLoaded, setScreenshotLoaded] = useState(false);
+  const [screenshotError, setScreenshotError] = useState(false);
 
   // Reset state when portfolio changes
   useEffect(() => {
     if (open) {
       setIframeState("loading");
-      setShowIframe(true);
+      setShowIframe(false);
+      setScreenshotLoaded(false);
+      setScreenshotError(false);
     }
   }, [open, portfolio?.id]);
 
-  // Set a timeout to detect if iframe can't load (e.g., X-Frame-Options blocking)
+  // Set a timeout to detect if iframe can't load
   useEffect(() => {
-    if (!open || !portfolio?.livePreview || !showIframe) return;
+    if (!open || !showIframe) return;
 
     const timer = setTimeout(() => {
       if (iframeState === "loading") {
@@ -49,12 +54,14 @@ export function PortfolioModal({
     }, 15000);
 
     return () => clearTimeout(timer);
-  }, [open, portfolio?.livePreview, portfolio?.id, showIframe, iframeState]);
+  }, [open, showIframe, iframeState]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setIframeState("loading");
-      setShowIframe(true);
+      setShowIframe(false);
+      setScreenshotLoaded(false);
+      setScreenshotError(false);
       onClose();
     }
   };
@@ -67,12 +74,12 @@ export function PortfolioModal({
     setIframeState("error");
   }, []);
 
-  const handleRetry = () => {
+  const handleTryLive = () => {
     setIframeState("loading");
     setShowIframe(true);
   };
 
-  const handleShowScreenshot = () => {
+  const handleBackToScreenshot = () => {
     setShowIframe(false);
   };
 
@@ -104,22 +111,32 @@ export function PortfolioModal({
                     {portfolio.category}
                   </Badge>
                   <span className="text-[10px] text-muted-foreground">
-                    {showIframe && iframeState === "loaded"
-                      ? "Live Preview"
-                      : showIframe
-                        ? "Memuat..."
-                        : "Tampilan Asli"}
+                    {showIframe
+                      ? iframeState === "loaded"
+                        ? "Live Preview"
+                        : "Memuat..."
+                      : "Tampilan Asli dari Tautan"}
                   </span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              {portfolio.livePreview && !showIframe && (
+              {showIframe && (
                 <Button
                   size="sm"
                   variant="outline"
                   className="text-xs h-8"
-                  onClick={handleRetry}
+                  onClick={handleBackToScreenshot}
+                >
+                  Kembali ke Screenshot
+                </Button>
+              )}
+              {!showIframe && portfolio.livePreview && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-8"
+                  onClick={handleTryLive}
                 >
                   <Monitor className="w-3 h-3 mr-1" />
                   Coba Live
@@ -154,7 +171,7 @@ export function PortfolioModal({
 
         {/* Content area */}
         <div className="flex-1 relative bg-white overflow-hidden">
-          {showIframe && portfolio.livePreview ? (
+          {showIframe ? (
             <>
               {/* Loading state */}
               {iframeState === "loading" && (
@@ -169,28 +186,18 @@ export function PortfolioModal({
               {/* Timeout state */}
               {iframeState === "timeout" && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-background z-10 p-6">
-                  <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
-                    <Monitor className="w-7 h-7 text-amber-500" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Website Membutuhkan Waktu Lama</h3>
+                  <Monitor className="w-12 h-12 text-amber-500 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Preview Langsung Tidak Tersedia</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-                    Website {portfolio.domain} tidak dapat ditampilkan langsung di sini karena pengaturan keamanan website tersebut. Klik &quot;Lihat Tampilan Asli&quot; untuk melihat screenshot dari website.
+                    Website {portfolio.domain} tidak dapat ditampilkan langsung karena pengaturan keamanan.
                   </p>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={handleShowScreenshot}
+                      onClick={handleBackToScreenshot}
                     >
-                      Lihat Tampilan Asli
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleRetry}
-                    >
-                      <RefreshCw className="w-3 h-3 mr-1" />
-                      Coba Lagi
+                      Kembali ke Screenshot
                     </Button>
                     <Button
                       size="sm"
@@ -200,48 +207,36 @@ export function PortfolioModal({
                       }
                     >
                       <ExternalLink className="w-3 h-3 mr-1" />
-                      Buka di Tab Baru
+                      Buka Website
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* Error state - iframe blocked */}
+              {/* Error state */}
               {iframeState === "error" && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-background z-10 p-6">
-                  <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
-                    <AlertTriangle className="w-8 h-8 text-amber-500" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Tidak Dapat Memuat Preview Langsung</h3>
+                  <Monitor className="w-12 h-12 text-amber-500 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Preview Langsung Gagal</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-                    Website {portfolio.domain} memblokir preview langsung karena pengaturan keamanan. Klik &quot;Lihat Tampilan Asli&quot; untuk melihat screenshot dari website.
-                  </p>
-                  <p className="text-xs text-muted-foreground text-center max-w-sm mb-5">
-                    {portfolio.description}
+                    Website {portfolio.domain} memblokir preview langsung.
                   </p>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      className="bg-gold hover:bg-gold/90 text-navy font-semibold"
-                      onClick={handleShowScreenshot}
+                      variant="outline"
+                      onClick={handleBackToScreenshot}
                     >
-                      Lihat Tampilan Asli
+                      Kembali ke Screenshot
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={handleRetry}
-                    >
-                      <RefreshCw className="w-3 h-3 mr-1" />
-                      Coba Lagi
-                    </Button>
-                    <Button
-                      className="bg-navy text-white hover:bg-navy/90 font-semibold"
+                      className="bg-gold hover:bg-gold/90 text-navy"
                       onClick={() =>
                         window.open(portfolio.url, "_blank", "noopener")
                       }
                     >
-                      <ExternalLink className="w-4 h-4 mr-2" />
+                      <ExternalLink className="w-3 h-3 mr-1" />
                       Buka Website
                     </Button>
                   </div>
@@ -260,17 +255,50 @@ export function PortfolioModal({
               />
             </>
           ) : (
-            /* Live screenshot view — captured from actual website URL */
-            <div className="flex items-center justify-center h-full bg-muted p-4 overflow-auto">
-              <div className="relative w-full max-w-4xl mx-auto" style={{ aspectRatio: "16/10" }}>
+            /* Default: Live screenshot view — captured from actual website URL */
+            <div className="flex items-center justify-center h-full bg-muted overflow-auto">
+              {/* Loading state for screenshot */}
+              {!screenshotLoaded && !screenshotError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
+                  <Loader2 className="w-8 h-8 text-gold animate-spin mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Mengambil tampilan dari {portfolio.domain}...
+                  </p>
+                </div>
+              )}
+
+              {/* Screenshot error */}
+              {screenshotError && (
+                <div className="flex flex-col items-center justify-center p-6">
+                  <Monitor className="w-12 h-12 text-amber-500 mb-4" />
+                  <p className="text-sm text-muted-foreground text-center mb-4">
+                    Gagal mengambil tampilan dari {portfolio.domain}
+                  </p>
+                  <Button
+                    size="sm"
+                    className="bg-gold hover:bg-gold/90 text-navy font-semibold"
+                    onClick={() =>
+                      window.open(portfolio.url, "_blank", "noopener")
+                    }
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Buka Website Langsung
+                  </Button>
+                </div>
+              )}
+
+              {/* The actual live screenshot from the website URL */}
+              <div className="relative w-full h-full max-w-4xl mx-auto">
                 <Image
                   src={liveScreenshotUrl}
                   alt={`Tampilan asli ${portfolio.domain}`}
                   fill
-                  className="object-contain rounded-lg shadow-lg"
+                  className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 900px"
                   priority
                   unoptimized
+                  onLoad={() => setScreenshotLoaded(true)}
+                  onError={() => setScreenshotError(true)}
                 />
               </div>
             </div>

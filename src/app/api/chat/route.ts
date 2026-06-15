@@ -208,7 +208,7 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/portofolio|portfolio|hasil|contoh|sample|project/i],
     response:
-      "Kami telah menyelesaikan 150+ project untuk berbagai kategori: Properti, Interior, Kuliner, dan Bisnis & Edukasi. Beberapa klien kami: Liavia Real Estate, Liana Home Interior, Kopikir Store, Bimbel Starlish, dan masih banyak lagi. Kunjungi halaman Portofolio di zdl.my.id untuk melihat hasil karya kami! 😊",
+      "Kami telah menyelesaikan 150+ project untuk berbagai kategori: Properti, Interior, Kuliner, dan Bisnis & Edukasi. Beberapa klien kami: Livia Real Estate, Liana Home Interior, Kopikir Store, Bimbel Starlish, dan masih banyak lagi. Kunjungi halaman Portofolio di zdl.my.id untuk melihat hasil karya kami! 😊",
   },
   {
     patterns: [/order|pesan|daftar|mulai|booking/i],
