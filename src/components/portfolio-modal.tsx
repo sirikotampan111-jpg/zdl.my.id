@@ -27,7 +27,7 @@ export function PortfolioModal({
   const [iframeState, setIframeState] = useState<
     "loading" | "loaded" | "error" | "timeout"
   >("loading");
-  // Show iframe or screenshot in modal
+  // Show iframe or live screenshot in modal
   const [showIframe, setShowIframe] = useState(true);
 
   // Reset state when portfolio changes
@@ -78,6 +78,9 @@ export function PortfolioModal({
 
   if (!portfolio) return null;
 
+  // Live screenshot URL from actual website
+  const liveScreenshotUrl = `https://image.thum.io/get/width/1280/${portfolio.url}`;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-5xl h-[85vh] p-0 overflow-hidden flex flex-col">
@@ -101,7 +104,11 @@ export function PortfolioModal({
                     {portfolio.category}
                   </Badge>
                   <span className="text-[10px] text-muted-foreground">
-                    {showIframe ? "Live Preview" : "Screenshot"}
+                    {showIframe && iframeState === "loaded"
+                      ? "Live Preview"
+                      : showIframe
+                        ? "Memuat..."
+                        : "Tampilan Asli"}
                   </span>
                 </div>
               </div>
@@ -167,9 +174,16 @@ export function PortfolioModal({
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Website Membutuhkan Waktu Lama</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-                    Website {portfolio.domain} membutuhkan waktu lama untuk dimuat. Beberapa website mungkin tidak dapat ditampilkan langsung di sini karena pengaturan keamanan.
+                    Website {portfolio.domain} tidak dapat ditampilkan langsung di sini karena pengaturan keamanan website tersebut. Klik &quot;Lihat Tampilan Asli&quot; untuk melihat screenshot dari website.
                   </p>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleShowScreenshot}
+                    >
+                      Lihat Tampilan Asli
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -177,13 +191,6 @@ export function PortfolioModal({
                     >
                       <RefreshCw className="w-3 h-3 mr-1" />
                       Coba Lagi
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleShowScreenshot}
-                    >
-                      Lihat Screenshot
                     </Button>
                     <Button
                       size="sm"
@@ -205,9 +212,9 @@ export function PortfolioModal({
                   <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
                     <AlertTriangle className="w-8 h-8 text-amber-500" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Tidak Dapat Memuat Preview</h3>
+                  <h3 className="text-lg font-semibold mb-2">Tidak Dapat Memuat Preview Langsung</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-                    Website {portfolio.domain} tidak dapat ditampilkan langsung di sini karena pengaturan keamanan website tersebut.
+                    Website {portfolio.domain} memblokir preview langsung karena pengaturan keamanan. Klik &quot;Lihat Tampilan Asli&quot; untuk melihat screenshot dari website.
                   </p>
                   <p className="text-xs text-muted-foreground text-center max-w-sm mb-5">
                     {portfolio.description}
@@ -215,10 +222,10 @@ export function PortfolioModal({
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      className="bg-gold hover:bg-gold/90 text-navy font-semibold"
                       onClick={handleShowScreenshot}
                     >
-                      Lihat Screenshot
+                      Lihat Tampilan Asli
                     </Button>
                     <Button
                       size="sm"
@@ -229,7 +236,7 @@ export function PortfolioModal({
                       Coba Lagi
                     </Button>
                     <Button
-                      className="bg-gold hover:bg-gold/90 text-navy font-semibold"
+                      className="bg-navy text-white hover:bg-navy/90 font-semibold"
                       onClick={() =>
                         window.open(portfolio.url, "_blank", "noopener")
                       }
@@ -253,16 +260,17 @@ export function PortfolioModal({
               />
             </>
           ) : (
-            /* Screenshot view — shows the real website screenshot */
+            /* Live screenshot view — captured from actual website URL */
             <div className="flex items-center justify-center h-full bg-muted p-4 overflow-auto">
               <div className="relative w-full max-w-4xl mx-auto" style={{ aspectRatio: "16/10" }}>
                 <Image
-                  src={portfolio.image}
-                  alt={`Screenshot ${portfolio.domain}`}
+                  src={liveScreenshotUrl}
+                  alt={`Tampilan asli ${portfolio.domain}`}
                   fill
                   className="object-contain rounded-lg shadow-lg"
                   sizes="(max-width: 1024px) 100vw, 900px"
                   priority
+                  unoptimized
                 />
               </div>
             </div>
