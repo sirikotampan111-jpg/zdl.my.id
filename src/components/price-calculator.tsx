@@ -45,7 +45,7 @@ interface AddOn {
 const addOns: AddOn[] = [
   { id: "admin-panel", name: "Admin Panel", price: 2_000_000, icon: Database },
   { id: "email-bisnis", name: "Email Bisnis", price: 500_000, icon: Mail },
-  { id: "seo-website", name: "SEO Website", price: 1_200_000, icon: Search },
+  { id: "seo-website", name: "SEO + 4 Backlink Medium", price: 1_200_000, icon: Search },
   { id: "ads-setup", name: "Google / Meta Ads Setup", price: 350_000, icon: Megaphone },
 ];
 

@@ -399,7 +399,12 @@ export function PageLayanan() {
           >
             {additionalServices.map((s) => (
               <motion.div key={s.id} variants={item}>
-                <Card className="hover:border-gold/50 transition-colors">
+                <Card className={`hover:border-gold/50 transition-colors ${s.badge ? "ring-2 ring-gold/50" : ""}`}>
+                  {s.badge && (
+                    <Badge className="absolute -top-2 right-4 bg-gold text-navy text-[10px]">
+                      {s.badge}
+                    </Badge>
+                  )}
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-foreground">{s.name}</h3>
@@ -408,6 +413,28 @@ export function PageLayanan() {
                     <p className="text-2xl font-bold text-foreground">
                       {formatPrice(s.price)}
                     </p>
+                    {/* SEO backlink detail */}
+                    {s.id === "seo-website" && (
+                      <div className="space-y-1.5 p-3 bg-muted/50 rounded-lg border text-xs">
+                        <p className="font-semibold text-foreground text-[11px]">Termasuk 4 Backlink Medium:</p>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Check className="w-3 h-3 text-gold shrink-0" />
+                          <span>Google Business Profile</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Check className="w-3 h-3 text-gold shrink-0" />
+                          <span>Blogspot</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Check className="w-3 h-3 text-gold shrink-0" />
+                          <span>Linktree</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Check className="w-3 h-3 text-gold shrink-0" />
+                          <span>Google Sites</span>
+                        </div>
+                      </div>
+                    )}
                     <ServiceCardActions id={s.id} name={s.name} price={s.price} category={s.category} />
                   </CardContent>
                 </Card>

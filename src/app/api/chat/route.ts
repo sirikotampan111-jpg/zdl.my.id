@@ -13,7 +13,7 @@ Kamu adalah konsultan web dan digital marketing yang berpengalaman. Kamu bisa me
 2. Next.js Website — Rp1.500.000 - Rp3.000.000 (modern, dinamis, SEO optimal)
 3. Admin Panel — Rp2.000.000 (dashboard, CRUD, autentikasi)
 
-Layanan Tambahan: Email Bisnis Rp500K, SEO Rp1.2M, Google/Meta Ads Setup Rp350K
+Layanan Tambahan: Email Bisnis Rp500K, SEO + 4 Backlink Medium Rp1.2M (Google Business Profile, Blogspot, Linktree, Google Sites), Google/Meta Ads Setup Rp350K
 
 Paket Bundle: Starter Pack Rp1.000K, Business Pack Rp3.800K, All-In Pack Rp5.950K
 
@@ -53,7 +53,7 @@ Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangeran
 - Budget Rp2-3 juta: Next.js 2-3 halaman (SEO optimal, performa tinggi)
 - Budget Rp3-5 juta: Next.js + Admin Panel (Business Pack — kelola sendiri)
 - Budget > Rp5 juta: All-In Pack (Next.js + Admin + Email Bisnis + SEO + Ads Setup)
-- Tambahan: SEO service Rp1.2M (terpisah), Ads Setup Rp350K (terpisah)
+- Tambahan: SEO + 4 Backlink Medium Rp1.2M (terpisah, termasuk backlink Google Business Profile, Blogspot, Linktree, Google Sites), Ads Setup Rp350K (terpisah)
 
 ### Rekomendasi Berdasarkan Kebutuhan Bisnis
 - Kuliner/F&B: Landing Page + menu online + Google Maps + Ads Setup
@@ -101,16 +101,16 @@ interface FallbackRule {
 }
 
 const fallbackRules: FallbackRule[] = [
-  // ─── Technical: SEO ────────────────────────────────────────────────
+  // ─── Technical: Backlink ────────────────────────────────────────────────
   {
-    patterns: [/backlink|link.?building|taut.?balik/i],
+    patterns: [/backlin[gk]|link.?building|taut.?balik|back.?lin/i],
     response:
-      "Backlink adalah link dari website lain yang mengarah ke website Anda. Ini adalah salah satu faktor ranking terpenting di Google!\n\nJenis backlink yang berkualitas:\n- Editorial (disebutkan secara natural di artikel)\n- Guest post (menulis artikel di website lain)\n- Directory listing (daftar di direktori bisnis)\n- Social profiles (link dari sosial media)\n\nYang harus dihindari: link farm, PBN, spam comments — ini bisa membuat website kena penalti Google.\n\nHasil backlink biasanya baru terasa dalam 2-6 bulan. Kalau butuh bantuan optimasi SEO dan backlink, kami punya layanan SEO Website seharga Rp1.200.000. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi! 😊",
+      "Backlink adalah link dari website lain yang mengarah ke website Anda. Ini adalah salah satu faktor ranking terpenting di Google!\n\nJenis backlink yang berkualitas:\n- Editorial (disebutkan secara natural di artikel)\n- Guest post (menulis artikel di website lain)\n- Directory listing (daftar di direktori bisnis)\n- Social profiles (link dari sosial media)\n- Platform web 2.0 (Blogspot, WordPress.com, Google Sites)\n\nYang harus dihindari: link farm, PBN, spam comments — ini bisa membuat website kena penalti Google.\n\nFungsi backlink:\n1. Meningkatkan otoritas domain (DA/PA) website Anda\n2. Membantu Google mengenali website Anda sebagai sumber terpercaya\n3. Meningkatkan posisi ranking di hasil pencarian\n4. Mendatangkan traffic dari website lain yang memberi link\n\nHasil backlink biasanya baru terasa dalam 2-6 bulan. Layanan ZDL SEO + 4 Backlink Medium seharga Rp1.200.000 sudah termasuk backlink dari Google Business Profile, Blogspot, Linktree, dan Google Sites. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi! 😊",
   },
   {
-    patterns: [/seo|optimasi.?mesin.?cari|ranking.?google|peringkat/i],
+    patterns: [/seo|optimasi.?mesin.?cari|ranking.?google|peringkat|fungsi.?seo|seo.?apa|apa.?itu.?seo/i],
     response:
-      "SEO (Search Engine Optimization) adalah strategi agar website muncul di halaman pertama Google. Ada 3 pilar utama:\n\n1. On-Page SEO: meta tags, heading structure, keyword, schema markup, internal linking\n2. Off-Page SEO: backlink building, social signals, brand mentions\n3. Technical SEO: Core Web Vitals, page speed, mobile-friendly, sitemap, robots.txt\n\nSemua website ZDL sudah SEO-friendly! Paket HTML mendapat basic SEO, dan paket Next.js sudah full optimized (SSR/SSG untuk performa terbaik). Kami juga punya layanan SEO mendalam seharga Rp1.200.000.\n\nMau konsultasi strategi SEO untuk bisnis Anda? Hubungi WhatsApp 0889-7374-5596 😊",
+      "SEO (Search Engine Optimization) adalah strategi agar website muncul di halaman pertama Google. Ada 3 pilar utama:\n\n1. On-Page SEO: meta tags, heading structure, keyword, schema markup, internal linking\n2. Off-Page SEO: backlink building, social signals, brand mentions\n3. Technical SEO: Core Web Vitals, page speed, mobile-friendly, sitemap, robots.txt\n\nFungsi SEO untuk bisnis:\n- Menambah visibilitas website di Google\n- Mendatangkan pengunjung secara organik (tanpa bayar iklan)\n- Meningkatkan kepercayaan pelanggan\n- Mengungguli kompetitor di hasil pencarian\n- Jangka panjang: traffic gratis yang konsisten\n\nSemua website ZDL sudah SEO-friendly! Paket HTML mendapat basic SEO, dan paket Next.js sudah full optimized (SSR/SSG untuk performa terbaik). Kami juga punya layanan SEO + 4 Backlink Medium seharga Rp1.200.000 (termasuk backlink Google Business, Blogspot, Linktree, Google Sites).\n\nMau konsultasi strategi SEO untuk bisnis Anda? Hubungi WhatsApp 0889-7374-5596 😊",
   },
   {
     patterns: [/core.?web.?vital|lcp|fid|cls|page.?speed|kecepatan.?website/i],
@@ -145,9 +145,9 @@ const fallbackRules: FallbackRule[] = [
       "Layanan Google/Meta Ads Setup kami seharga Rp350.000, termasuk:\n\n- Google Ads: Search ads (muncul saat orang cari keyword), Display ads (banner visual), Shopping ads\n- Meta Ads: Feed ads, Stories ads, Reels ads, Carousel ads\n\nStrategi yang kami rekomendasikan:\n1. Mulai budget Rp50-100K/hari untuk testing\n2. A/B testing iklan untuk cari yang paling efektif\n3. Target audience spesifik (lokasi, minat, demografi)\n4. Retargeting untuk pengunjung yang sudah pernah lihat website\n5. Pasang Google Tag Manager + Facebook Pixel untuk tracking\n\nButuh bantuan setup iklan? Hubungi WhatsApp 0889-7374-5596 😊",
   },
   {
-    patterns: [/local.?seo|google.?business|google.?maps|bisnis.?lokal|nap/i],
+    patterns: [/local.?seo|google.?business|google.?maps|bisnis.?lokal|nap|google.?profil|profil.?bisnis/i],
     response:
-      "Local SEO sangat penting untuk bisnis yang melayani area tertentu! Langkah-langkahnya:\n\n1. Daftar Google Business Profile (gratis!) — ini yang muncul di Google Maps\n2. Pastikan NAP konsisten (Name, Address, Phone) di semua platform\n3. Daftar di direktori bisnis lokal (Foursquare, Yelp, dll)\n4. Kumpulkan review positif dari pelanggan\n5. Optimasi website dengan keyword lokal (contoh: 'jasa interior Tangerang')\n6. Tambahkan Google Maps embed di website\n\nSemua website ZDL sudah support Google Maps embed dan schema markup untuk local SEO. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
+      "Local SEO sangat penting untuk bisnis yang melayani area tertentu! Langkah-langkahnya:\n\n1. Daftar Google Business Profile (gratis!) — ini yang muncul di Google Maps\n2. Pastikan NAP konsisten (Name, Address, Phone) di semua platform\n3. Daftar di direktori bisnis lokal (Foursquare, Yelp, dll)\n4. Kumpulkan review positif dari pelanggan\n5. Optimasi website dengan keyword lokal (contoh: 'jasa interior Tangerang')\n6. Tambahkan Google Maps embed di website\n\nLayanan SEO + 4 Backlink Medium kami sudah termasuk Google Business Profile sebagai salah satu backlink berkualitas. Hanya Rp1.200.000!\n\nSemua website ZDL sudah support Google Maps embed dan schema markup untuk local SEO. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
   },
   // ─── General: Sales & Info ─────────────────────────────────────────
   {

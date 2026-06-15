@@ -218,9 +218,10 @@ export const additionalServices: ServiceItem[] = [
   },
   {
     id: "seo-website",
-    name: "SEO Website",
+    name: "SEO + 4 Backlink Medium",
     price: 1200000,
     category: "tambahan",
+    badge: "Best Deal",
   },
   {
     id: "ads-setup",
