@@ -103,10 +103,7 @@ export default function RootLayout({
               ? "https://app.midtrans.com/snap/v2/assets/snap.js"
               : "https://app.sandbox.midtrans.com/snap/v2/assets/snap.js"
           }
-          data-client-key={
-            process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
-            "Mid-client-sS7YFMmkND3egUIW"
-          }
+          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ""}
           async
         />
       </head>
