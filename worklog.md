@@ -92,3 +92,39 @@ Stage Summary:
 - Fix: Every DB operation in userId resolution now has its own try-catch
 - Production API verified working with both fake and real userId
 - Vercel deployment confirmed active
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Upgrade AI chatbot with technical consulting capabilities
+
+Work Log:
+- Read current chat route code and analyzed limitations
+- Previous chatbot was sales-only: could only answer pricing/package questions
+- Expanded system prompt with comprehensive technical knowledge:
+  - SEO: on-page, off-page, technical, local SEO, tools
+  - Backlink: types, quality metrics, strategies, what to avoid, timeline
+  - Technology comparison: HTML vs Next.js vs WordPress vs Admin Panel
+  - Budget-based recommendations: 5 tiers from <1M to >5M
+  - Business-type recommendations: 6 categories (Kuliner, Retail, Jasa, Properti, Pendidikan, Interior)
+  - Google/Meta Ads: types, strategy, budget, tracking
+- Added 8 new fallback patterns for technical topics:
+  - backlink/taut balik → detailed explanation with quality/strategy
+  - SEO deep-dive → 3 pillars explanation
+  - Core Web Vitals → LCP/FID/CLS metrics
+  - Technology recommendations → budget-based suggestions
+  - WordPress comparison → pros/cons vs Next.js
+  - Budget guidance → 5 tier recommendations
+  - Ads/marketing → Google/Meta ads strategy
+  - Local SEO → Google Business Profile + NAP
+- Changed chatbot identity from sales assistant to technical consultant
+- New communication guidelines: educate first, offer ZDL services if relevant
+- Instructed to never reveal it's an AI/chatbot
+- Build passes, committed and pushed to production
+
+Stage Summary:
+- AI chatbot upgraded from sales-only to technical consultant
+- Can now answer questions about SEO, backlinks, tech recommendations, budget guidance
+- 8 new fallback patterns added (total 24 patterns now)
+- System prompt expanded from 6 lines to 75+ lines with structured technical knowledge
+- Pushed to production via GitHub → Vercel auto-deploy
