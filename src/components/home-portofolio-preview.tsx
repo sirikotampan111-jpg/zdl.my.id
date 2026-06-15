@@ -4,12 +4,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useStore } from "@/store/use-store";
 import { portfolios, PortfolioItem } from "@/lib/data";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { LivePreviewCard } from "@/components/live-preview-card";
 import { PortfolioModal } from "@/components/portfolio-modal";
-import Image from "next/image";
 
 const container = {
   hidden: { opacity: 0 },
@@ -44,7 +42,7 @@ export function HomePortofolioPreview() {
             Portofolio <span className="gold-gradient-text">Terbaru Kami</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Beberapa project terbaru yang telah kami selesaikan untuk klien kami.
+            Beberapa project terbaru yang telah kami selesaikan — ditampilkan langsung dari website aslinya.
           </p>
         </motion.div>
 
@@ -57,36 +55,11 @@ export function HomePortofolioPreview() {
         >
           {featured.map((p) => (
             <motion.div key={p.id} variants={item}>
-              <Card
-                className="overflow-hidden group hover:border-gold/50 transition-colors cursor-pointer"
+              <LivePreviewCard
+                portfolio={p}
                 onClick={() => setSelectedPortfolio(p)}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <Image
-                    src={p.image}
-                    alt={p.domain}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-t ${p.gradient} opacity-30 group-hover:opacity-10 transition-opacity`}
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                    <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-medium text-sm">
-                      Lihat Detail
-                    </span>
-                  </div>
-                </div>
-                <CardContent className="pt-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-gold/10 text-gold border-gold/20"
-                  >
-                    {p.category}
-                  </Badge>
-                </CardContent>
-              </Card>
+                height="h-48"
+              />
             </motion.div>
           ))}
         </motion.div>

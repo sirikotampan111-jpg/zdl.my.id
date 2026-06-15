@@ -50,7 +50,10 @@ const BLOCKED_PATHS = [
 // ─── Allowed HTTP methods per route pattern ───────────────────────────────────
 
 const API_METHOD_RULES: Array<{ pattern: RegExp; methods: string[] }> = [
+  { pattern: /^\/api$/, methods: ["GET"] },
   { pattern: /^\/api\/orders$/, methods: ["GET", "POST"] },
+  { pattern: /^\/api\/projects$/, methods: ["GET"] },
+  { pattern: /^\/api\/cart$/, methods: ["GET", "POST", "DELETE"] },
   { pattern: /^\/api\/midtrans$/, methods: ["POST"] },
   { pattern: /^\/api\/midtrans\/check$/, methods: ["GET"] },
   { pattern: /^\/api\/webhook\/midtrans$/, methods: ["POST"] },
@@ -61,6 +64,7 @@ const API_METHOD_RULES: Array<{ pattern: RegExp; methods: string[] }> = [
   { pattern: /^\/api\/auth\/verify-secret$/, methods: ["GET"] },
   { pattern: /^\/api\/admin\/setup$/, methods: ["GET", "POST"] },
   { pattern: /^\/api\/admin\/force-upgrade$/, methods: ["POST"] },
+  { pattern: /^\/api\/admin\/users$/, methods: ["GET"] },
   { pattern: /^\/api\/admin\/super\/orders$/, methods: ["GET", "PATCH", "DELETE"] },
   { pattern: /^\/api\/admin\/super\/users$/, methods: ["GET", "PATCH", "DELETE"] },
   { pattern: /^\/api\/admin\/super\/projects$/, methods: ["GET", "PATCH", "DELETE"] },

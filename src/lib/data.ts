@@ -406,13 +406,22 @@ export const projectStages = [
   { key: "online", label: "Online", icon: "Rocket" as const },
 ] as const;
 
+// Counter-based invoice generation to prevent collisions
+let _invoiceCounter = 0;
+const _counterPrefix = Math.random().toString(36).substring(2, 6).toUpperCase();
+
 export function generateInvoiceNumber(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
-  const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-  return `ZDL-${year}${month}${day}-${random}`;
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+  _invoiceCounter++;
+  // Format: ZDL-YYYYMMDD-HHmmss-XXXX-counter — virtually collision-proof
+  const unique = `${_counterPrefix}${String(_invoiceCounter).padStart(3, "0")}`;
+  return `ZDL-${year}${month}${day}-${hours}${minutes}${seconds}-${unique}`;
 }
 
 export interface PriceBreakdown {

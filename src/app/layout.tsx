@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, Chatbot } from "@/components/client-providers";
+import { CartSync } from "@/components/cart-sync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -120,6 +121,7 @@ export default function RootLayout({
             {children}
             <Toaster richColors position="top-right" />
             <Chatbot />
+            <CartSync />
           </AuthProvider>
         </ThemeProvider>
       </body>
