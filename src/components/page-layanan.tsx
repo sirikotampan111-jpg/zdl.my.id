@@ -13,6 +13,8 @@ import {
   DP_MINIMAL,
 } from "@/lib/data";
 import { WHATSAPP_LINK, BANK_NAME, BANK_ACCOUNT } from "@/lib/config";
+import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useStore } from "@/store/use-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +30,7 @@ import {
   Building2,
   Info,
   ShoppingCart,
+  LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -72,9 +75,19 @@ interface ServiceCardProps {
 
 function ServiceCard({ id, name, price, category, badge, bestValue }: ServiceCardProps) {
   const { addToCart, cart, setCurrentPage } = useStore();
+  const { data: session } = useSession();
   const inCart = cart.find((c) => c.id === id);
 
   const handleAddToCart = () => {
+    if (!session) {
+      toast.error("Silakan login terlebih dahulu untuk menambahkan ke keranjang", {
+        action: {
+          label: "Login Gmail",
+          onClick: () => signIn("google"),
+        },
+      });
+      return;
+    }
     addToCart({ id, name, price, category });
     toast.success(`${name} ditambahkan ke keranjang!`);
   };
@@ -449,9 +462,19 @@ export function PageLayanan() {
 
 function ServiceCardActions({ id, name, price, category }: { id: string; name: string; price: number; category: string }) {
   const { addToCart, cart, setCurrentPage } = useStore();
+  const { data: session } = useSession();
   const inCart = cart.find((c) => c.id === id);
 
   const handleAddToCart = () => {
+    if (!session) {
+      toast.error("Silakan login terlebih dahulu untuk menambahkan ke keranjang", {
+        action: {
+          label: "Login Gmail",
+          onClick: () => signIn("google"),
+        },
+      });
+      return;
+    }
     addToCart({ id, name, price, category });
     toast.success(`${name} ditambahkan ke keranjang!`);
   };

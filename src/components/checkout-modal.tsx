@@ -245,26 +245,40 @@ export function CheckoutModal({
                 )}
               </div>
 
-              {/* Guest login prompt */}
-              {!session && (
-                <div className="bg-gold/5 border border-gold/20 rounded-lg p-3 flex items-center gap-3">
-                  <LogIn className="w-5 h-5 text-gold shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      Login untuk tracking pesanan
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Atau lanjutkan sebagai tamu
-                    </p>
+              {/* Login required - mandatory */}
+              {!session ? (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/30 rounded-xl flex items-center justify-center shrink-0">
+                      <LogIn className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                        Login wajib untuk checkout
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Masuk dengan Gmail untuk melanjutkan pemesanan
+                      </p>
+                    </div>
                   </div>
                   <Button
-                    size="sm"
-                    variant="outline"
                     onClick={() => signIn("google")}
-                    className="text-gold border-gold/30"
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold"
                   >
-                    Login
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Login dengan Gmail
                   </Button>
+                </div>
+              ) : (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-800/30 rounded-lg flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                      Login sebagai {session.user?.email}
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -317,6 +331,15 @@ export function CheckoutModal({
               <div className="flex justify-end">
                 <Button
                   onClick={() => {
+                    if (!session) {
+                      toast.error("Silakan login terlebih dahulu", {
+                        action: {
+                          label: "Login Gmail",
+                          onClick: () => signIn("google"),
+                        },
+                      });
+                      return;
+                    }
                     if (!name || !email || !phone) {
                       toast.error("Lengkapi data wajib (*)");
                       return;

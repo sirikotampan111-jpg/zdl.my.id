@@ -46,7 +46,7 @@ export const portfolios: PortfolioItem[] = [
     gradient: "from-emerald-600 to-teal-500",
     image: "/portfolio/liaviarealestate.png",
     url: "https://liviarealestate.asia",
-    description: "Platform real estate Asia dengan desain elegan, katalog properti mewah, dan sistem booking online.",
+    description: "Website properti hunian di Tangerang — rumah nyaman, strategis, bebas banjir, dengan harga terjangkau untuk keluarga dan investasi.",
     livePreview: true,
   },
   // Interior
@@ -92,13 +92,13 @@ export const portfolios: PortfolioItem[] = [
     livePreview: true,
   },
   {
-    id: "kementriasegosbebek",
-    domain: "kementriasegosbebek.id",
+    id: "kementriansegosbebek",
+    domain: "kementriansegosbebek.id",
     category: "Kuliner",
     gradient: "from-lime-500 to-green-500",
     image: "/portfolio/kementriansegosbebek.png",
-    url: "https://kementriasegosbebek.id",
-    description: "Website franchise bebek goreng dengan lokasi outlet, menu signature, dan sistem pemesanan online yang menyenangkan.",
+    url: "https://kementriansegosbebek.id",
+    description: "Restoran bebek bumbu hitam premium di Sidoarjo, Jawa Timur. Dine in, delivery, catering, dan franchise tersedia.",
     livePreview: true,
   },
   // Bisnis & Edukasi
