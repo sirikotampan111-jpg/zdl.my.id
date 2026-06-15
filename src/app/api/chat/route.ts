@@ -5,7 +5,10 @@ import { checkRateLimit, safeParseJson } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `Kamu adalah asisten virtual Zheng Digital Lab (ZDL), perusahaan jasa pembuatan website profesional. Gunakan Bahasa Indonesia.
 
-Layanan Utama:
+## Identitas
+Kamu adalah konsultan web dan digital marketing yang berpengalaman. Kamu bisa menjawab pertanyaan teknis mendalam tentang website, SEO, digital marketing, dan rekomendasi teknologi. Selain itu, kamu juga melayani pertanyaan umum tentang layanan ZDL.
+
+## Layanan Utama ZDL
 1. HTML Website — Rp600.000 - Rp1.500.000 (statis, ringan, cepat)
 2. Next.js Website — Rp1.500.000 - Rp3.000.000 (modern, dinamis, SEO optimal)
 3. Admin Panel — Rp2.000.000 (dashboard, CRUD, autentikasi)
@@ -21,7 +24,61 @@ Pembayaran: DP minimal Rp500K, PPN 11% + Rp4.000 biaya transaksi. Seabank: 90191
 Kontak: WhatsApp 0889-7374-5596, zdl.my.id
 Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangerang, Banten 17510
 
-Panduan: Sapa ramah, jika ditanya harga berikan range, jika mau order arahkan ke WhatsApp, gunakan emoji secukupnya.`;
+## Pengetahuan Teknis — Kamu WAJIB bisa menjawab topik berikut:
+
+### SEO (Search Engine Optimization)
+- On-Page SEO: meta tags (title, description, robots), heading structure (H1-H6), keyword optimization, internal linking, schema markup (JSON-LD), alt text gambar, URL structure, canonical tags
+- Off-Page SEO: backlink building, guest posting, directory submission, social signals, brand mentions, influencer outreach
+- Technical SEO: Core Web Vitals (LCP, FID, CLS), page speed optimization, mobile-first indexing, sitemap XML, robots.txt, structured data, hreflang, crawl budget, rendering (SSR vs CSR)
+- Local SEO: Google Business Profile, NAP consistency, local citations, Google Maps optimization, review management
+- SEO Tools: Google Search Console, Google Analytics 4, Ahrefs, SEMrush, Ubersuggest, PageSpeed Insights
+
+### Backlink
+- Definisi: link dari website lain yang mengarah ke website klien, sinyal kepercayaan untuk Google
+- Jenis backlink: editorial, guest post, resource page, broken link building, skyscraper technique, HARO
+- Kualitas backlink: DA/PA (Domain Authority), relevansi topik, anchor text ratio (exact match, branded, generic), follow vs nofollow
+- Strategi: mulai dari directory listing, social media profiles, lokal bisnis directory, kolaborasi konten, infografis shareable
+- Yang dihindari: link farm, PBN, spam comments, auto-generated links, paid links tanpa nofollow
+- Timeline hasil: backlink butuh 2-6 bulan untuk berdampak signifikan di SERP
+
+### Perbandingan Teknologi Website
+- HTML Statis: cocok untuk landing page, profil bisnis sederhana, portofolio. Kelebihan: cepat, ringan, murah. Kekurangan: tidak dinamis, sulit update konten tanpa coding
+- Next.js (React): cocok untuk bisnis yang butuh performa tinggi, SEO optimal, konten dinamis, e-commerce. Kelebihan: SSR/SSG, SEO terbaik, scalable, rich features. Kekurangan: biaya lebih tinggi
+- WordPress: cocok untuk blog, bisnis kecil yang ingin self-manage. Kelebihan: banyak plugin, mudah dipakai. Kekurangan: performa lambat, rentan hacking, SEO tidak seoptimal Next.js
+- Admin Panel: untuk bisnis yang butuh kelola data sendiri (produk, pesanan, artikel). Wajib jika ada katalog produk atau sistem pemesanan
+
+### Rekomendasi Berdasarkan Budget
+- Budget < Rp1 juta: HTML Landing Page (sudah termasuk domain + hosting)
+- Budget Rp1-2 juta: HTML multi-halaman atau Next.js Landing Page
+- Budget Rp2-3 juta: Next.js 2-3 halaman (SEO optimal, performa tinggi)
+- Budget Rp3-5 juta: Next.js + Admin Panel (Business Pack — kelola sendiri)
+- Budget > Rp5 juta: All-In Pack (Next.js + Admin + Email Bisnis + SEO + Ads Setup)
+- Tambahan: SEO service Rp1.2M (terpisah), Ads Setup Rp350K (terpisah)
+
+### Rekomendasi Berdasarkan Kebutuhan Bisnis
+- Kuliner/F&B: Landing Page + menu online + Google Maps + Ads Setup
+- Toko/Retail: Next.js + Admin Panel + katalog produk + WhatsApp ordering
+- Jasa/Profesional: Next.js multi-halaman + SEO + portofolio + testimonial
+- Properti/Real Estate: Next.js + Admin Panel + listing properti + Virtual Tour
+- Pendidikan/Bimbel: Next.js + Admin Panel + pendaftaran online + jadwal
+- Interior/Design: Next.js + portofolio galeri + katalog + konsultasi form
+
+### Google/Meta Ads
+- Google Ads: Search ads (intent-based), Display ads (visual), Shopping ads (produk), YouTube ads
+- Meta Ads (Facebook/Instagram): Feed ads, Stories ads, Reels ads, Carousel ads
+- Strategi: mulai dengan budget Rp50-100K/hari, A/B testing, target audience spesifik, retargeting
+- Tracking: Google Tag Manager, Facebook Pixel, Conversion API
+
+## Panduan Komunikasi
+- Sapa ramah dan profesional
+- Jika ditanya harga, berikan range yang sesuai
+- Jika ditanya rekomendasi teknologi, berikan analisis berdasarkan budget dan kebutuhan
+- Jika ditanya SEO/backlink, jelaskan dengan bahasa yang mudah dipahami awam, tapi tetap teknis jika ditanya lebih lanjut
+- Jika klien tertarik order, arahkan ke WhatsApp 0889-7374-5596 atau langsung order di zdl.my.id
+- JANGAN pernah bilang kamu AI atau chatbot — kamu adalah konsultan ZDL
+- Gunakan emoji secukupnya, jangan berlebihan
+- Jika tidak yakin, sarankan untuk konsultasi langsung via WhatsApp
+- Selalu berikan value dulu (edukasi), baru tawarkan layanan ZDL jika relevan`;
 
 // ─── Zod schema ───────────────────────────────────────────────────────────────
 
@@ -44,6 +101,55 @@ interface FallbackRule {
 }
 
 const fallbackRules: FallbackRule[] = [
+  // ─── Technical: SEO ────────────────────────────────────────────────
+  {
+    patterns: [/backlink|link.?building|taut.?balik/i],
+    response:
+      "Backlink adalah link dari website lain yang mengarah ke website Anda. Ini adalah salah satu faktor ranking terpenting di Google!\n\nJenis backlink yang berkualitas:\n- Editorial (disebutkan secara natural di artikel)\n- Guest post (menulis artikel di website lain)\n- Directory listing (daftar di direktori bisnis)\n- Social profiles (link dari sosial media)\n\nYang harus dihindari: link farm, PBN, spam comments — ini bisa membuat website kena penalti Google.\n\nHasil backlink biasanya baru terasa dalam 2-6 bulan. Kalau butuh bantuan optimasi SEO dan backlink, kami punya layanan SEO Website seharga Rp1.200.000. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi! 😊",
+  },
+  {
+    patterns: [/seo|optimasi.?mesin.?cari|ranking.?google|peringkat/i],
+    response:
+      "SEO (Search Engine Optimization) adalah strategi agar website muncul di halaman pertama Google. Ada 3 pilar utama:\n\n1. On-Page SEO: meta tags, heading structure, keyword, schema markup, internal linking\n2. Off-Page SEO: backlink building, social signals, brand mentions\n3. Technical SEO: Core Web Vitals, page speed, mobile-friendly, sitemap, robots.txt\n\nSemua website ZDL sudah SEO-friendly! Paket HTML mendapat basic SEO, dan paket Next.js sudah full optimized (SSR/SSG untuk performa terbaik). Kami juga punya layanan SEO mendalam seharga Rp1.200.000.\n\nMau konsultasi strategi SEO untuk bisnis Anda? Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/core.?web.?vital|lcp|fid|cls|page.?speed|kecepatan.?website/i],
+    response:
+      "Core Web Vitals adalah metrik kecepatan dari Google yang mempengaruhi ranking:\n\n- LCP (Largest Contentful Paint): kecepatan tampil konten utama. Target: <2.5 detik\n- FID (First Input Delay): responsivitas interaksi pertama. Target: <100ms\n- CLS (Cumulative Layout Shift): stabilitas layout. Target: <0.1\n\nWebsite Next.js dari ZDL sudah dioptimasi untuk Core Web Vitals karena menggunakan SSR/SSG, lazy loading, dan image optimization. Website HTML kami juga ringan dan cepat secara default.\n\nMau cek kecepatan website Anda? Gunakan Google PageSpeed Insights. Atau konsultasi gratis via WhatsApp 0889-7374-5596 😊",
+  },
+  // ─── Technical: Technology Recommendations ──────────────────────────
+  {
+    patterns: [/rekomendasi|sarankan|mana.?yang.?bagus|pilih.?mana|cocok.?mana/i],
+    response:
+      "Rekomendasi kami tergantung kebutuhan dan budget Anda:\n\nBudget < Rp1 juta: HTML Landing Page — cukup untuk profil bisnis sederhana\nBudget Rp1-2 juta: HTML multi-halaman atau Next.js Landing Page\nBudget Rp2-3 juta: Next.js 2-3 halaman — SEO optimal, performa tinggi\nBudget Rp3-5 juta: Next.js + Admin Panel — bisa kelola data sendiri\nBudget > Rp5 juta: All-In Pack — lengkap dengan SEO + Ads + Email Bisnis\n\nCeritakan kebutuhan bisnis Anda, dan kami bisa rekomendasikan paket yang paling sesuai! Hubungi WhatsApp 0889-7374-5596 untuk konsultasi gratis 😊",
+  },
+  {
+    patterns: [/wordpress|wp/i],
+    response:
+      "WordPress cocok untuk blog dan bisnis kecil yang ingin self-manage. Kelebihannya: banyak plugin dan tema, mudah dipakai tanpa coding.\n\nTapi ada kekurangan yang perlu dipertimbangkan:\n- Performa cenderung lebih lambat dibanding Next.js\n- Lebih rentan terhadap hacking\n- SEO tidak seoptimal Next.js (banyak CSS/JS yang membebani)\n- Plugin conflict sering terjadi\n\nUntuk bisnis yang serius, kami rekomendasikan Next.js karena performa lebih cepat, SEO lebih optimal, dan lebih aman. Paket Next.js kami mulai dari Rp1.500.000.\n\nMau diskusi lebih lanjut? Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/nextjs|next\.?js|react|ssr|ssg/i],
+    response:
+      "Next.js adalah framework React terbaik untuk website modern. Kelebihannya:\n\n- SSR/SSG: konten bisa di-render di server → SEO optimal & cepat\n- Performa tinggi: otomatis code splitting, lazy loading, image optimization\n- SEO terbaik: meta tags dinamis, schema markup, URL clean\n- Scalable: bisa berkembang seiring bisnis Anda\n\nPaket Next.js ZDL mulai dari Rp1.500.000 (Landing Page) hingga Rp3.000.000 (5 Halaman), sudah termasuk domain gratis (.id/.co.id/.com/.net/.org), hosting, dan revisi 1 bulan.\n\nMau konsultasi? Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/budget|anggaran|dana|modal/i],
+    response:
+      "Kami punya paket untuk berbagai budget:\n\nRp600K - Rp1.5M: HTML Website (ringan, cepat, cocok profil bisnis)\nRp1.5M - Rp3M: Next.js Website (SEO optimal, modern, dinamis)\nRp2M: Admin Panel (kelola data sendiri)\nRp3.8M: Business Pack (Next.js + Admin Panel)\nRp5.95M: All-In Pack (Next.js + Admin + SEO + Email + Ads)\n\nSemua paket sudah termasuk domain + hosting! Bisa bayar DP minimal Rp500K.\n\nCeritakan budget dan kebutuhan Anda, kami bantu pilih yang paling cocok. WhatsApp 0889-7374-5596 😊",
+  },
+  // ─── Technical: Ads & Marketing ────────────────────────────────────
+  {
+    patterns: [/ads|iklan|google.?ads|meta.?ads|facebook.?ads|instagram.?ads|advert/i],
+    response:
+      "Layanan Google/Meta Ads Setup kami seharga Rp350.000, termasuk:\n\n- Google Ads: Search ads (muncul saat orang cari keyword), Display ads (banner visual), Shopping ads\n- Meta Ads: Feed ads, Stories ads, Reels ads, Carousel ads\n\nStrategi yang kami rekomendasikan:\n1. Mulai budget Rp50-100K/hari untuk testing\n2. A/B testing iklan untuk cari yang paling efektif\n3. Target audience spesifik (lokasi, minat, demografi)\n4. Retargeting untuk pengunjung yang sudah pernah lihat website\n5. Pasang Google Tag Manager + Facebook Pixel untuk tracking\n\nButuh bantuan setup iklan? Hubungi WhatsApp 0889-7374-5596 😊",
+  },
+  {
+    patterns: [/local.?seo|google.?business|google.?maps|bisnis.?lokal|nap/i],
+    response:
+      "Local SEO sangat penting untuk bisnis yang melayani area tertentu! Langkah-langkahnya:\n\n1. Daftar Google Business Profile (gratis!) — ini yang muncul di Google Maps\n2. Pastikan NAP konsisten (Name, Address, Phone) di semua platform\n3. Daftar di direktori bisnis lokal (Foursquare, Yelp, dll)\n4. Kumpulkan review positif dari pelanggan\n5. Optimasi website dengan keyword lokal (contoh: 'jasa interior Tangerang')\n6. Tambahkan Google Maps embed di website\n\nSemua website ZDL sudah support Google Maps embed dan schema markup untuk local SEO. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
+  },
+  // ─── General: Sales & Info ─────────────────────────────────────────
   {
     patterns: [/harga|biaya|tarif|berapa|cost|price/i],
     response:
@@ -53,11 +159,6 @@ const fallbackRules: FallbackRule[] = [
     patterns: [/html|statis|landing/i],
     response:
       "Paket HTML Website kami mulai dari Rp600.000 (Landing Page) hingga Rp1.500.000 (5 Halaman). Cocok untuk bisnis yang butuh website ringan dan cepat. Sudah termasuk domain .com/.net, hosting, responsive, basic SEO, dan 2x revisi gratis. Mau konsultasi lebih lanjut? Hubungi WhatsApp 0889-7374-5596 😊",
-  },
-  {
-    patterns: [/next\.?js|nextjs|dinamis|modern/i],
-    response:
-      "Paket Next.js Website kami mulai dari Rp1.500.000 (Landing Page) hingga Rp3.000.000 (5 Halaman). Cocok untuk bisnis yang butuh website modern dengan performa tinggi dan SEO optimal. Sudah termasuk domain gratis (.id/.co.id/.com/.net/.org), hosting, dan revisi gratis selama 1 bulan. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
   },
   {
     patterns: [/admin|dashboard|panel|crud|database/i],
@@ -70,7 +171,7 @@ const fallbackRules: FallbackRule[] = [
       "Pembayaran bisa melalui website kami dengan Midtrans (QRIS, Transfer Bank BCA/BNI/BRI/Mandiri, E-Wallet GoPay/OVO/DANA/ShopeePay, Kartu Kredit). DP minimal Rp500K untuk paket HTML & Next.js. PPN 11% + biaya transaksi Rp4.000 berlaku. Pelunasan setelah website selesai dan online. Untuk konfirmasi pembayaran, hubungi WhatsApp 0889-7374-5596 😊",
   },
   {
-    patterns: [/domain|hosting|\.com|\.id|\.net/i],
+    patterns: [/domain|hosting/i],
     response:
       "Semua paket sudah termasuk domain dan hosting! Paket HTML mendapat domain .com/.net, sedangkan paket Next.js mendapat domain gratis termasuk .id, .co.id, .com, .net, dan .org. Tidak perlu repot cari sendiri, semuanya kami yang urus 😊 Hubungi WhatsApp 0889-7374-5596 untuk info lebih lanjut.",
   },
@@ -83,11 +184,6 @@ const fallbackRules: FallbackRule[] = [
     patterns: [/revisi|ubah|ganti|koreksi/i],
     response:
       "Paket HTML mendapat gratis 2x revisi, dan paket Next.js mendapat revisi gratis selama 1 bulan setelah website online. Revisi tambahan bisa dibicarakan lebih lanjut. Kami pastikan hasil sesuai keinginan Anda! Hubungi WhatsApp 0889-7374-5596 😊",
-  },
-  {
-    patterns: [/seo|google|ranking|pencarian|search/i],
-    response:
-      "Semua website kami sudah SEO friendly! Paket HTML mendapat basic SEO one page, dan paket Next.js sudah full SEO optimized. Kami juga menyediakan layanan SEO Website terpisah seharga Rp1.200.000 untuk optimasi lebih mendalam. Hubungi WhatsApp 0889-7374-5596 😊",
   },
   {
     patterns: [/kontak|hubungi|wa|whatsapp|telepon|phone|alamat/i],
@@ -122,7 +218,7 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/halo|hai|hi|hello|selamat|assalam|salam/i],
     response:
-      "Halo! 👋 Selamat datang di Zheng Digital Lab! Kami siap membantu Anda membuat website profesional. Ada yang bisa kami bantu? Tanyakan tentang layanan, harga, atau cara memesan! 😊",
+      "Halo! 👋 Selamat datang di Zheng Digital Lab! Kami siap membantu Anda membuat website profesional. Tanyakan tentang layanan, harga, SEO, teknologi, atau cara memesan! 😊",
   },
   {
     patterns: [/terima kasih|makasih|thanks|thank/i],
