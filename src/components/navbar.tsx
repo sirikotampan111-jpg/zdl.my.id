@@ -105,8 +105,8 @@ export function Navbar() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="font-bold text-lg text-foreground">
-              Zheng<span className="text-gold">DigitalLab</span>
+            <span className="heading-serif text-xl text-foreground">
+              Zheng<span className="text-gold">.</span>
             </span>
           </button>
 

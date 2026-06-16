@@ -41,52 +41,48 @@ function CountUp({ value, suffix }: { value: number; suffix: string }) {
   }, [started, value]);
 
   return (
-    <div ref={ref} className="text-4xl md:text-5xl font-bold text-gold">
-      {count}
-      {suffix}
+    <div ref={ref} className="heading-serif text-5xl md:text-6xl text-gold tabular-nums">
+      {count}{suffix}
     </div>
   );
 }
 
 export function HomeStatistik() {
   return (
-    <section className="py-20 bg-navy text-white relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 -z-0">
-        <div className="absolute top-0 left-1/4 w-64 h-64 bg-gold/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-gold/5 rounded-full blur-3xl" />
-      </div>
+    <section className="py-24 relative">
+      {/* Dot pattern */}
+      <div className="absolute inset-0 animated-grid -z-10" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.6 }}
+          className="mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Zheng Digital Lab dalam <span className="text-gold">Angka</span>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-[2px] bg-gold" />
+            <span className="text-sm font-medium text-gold tracking-widest uppercase">Statistik</span>
+          </div>
+          <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
+            Zheng dalam <span className="text-gold">Angka</span>
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto">
-            Kepercayaan klien adalah motivasi kami untuk terus memberikan yang terbaik.
-          </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat) => (
+        {/* Stats in editorial grid — not 4 equal cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-center"
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="space-y-2"
             >
               <CountUp value={stat.value} suffix={stat.suffix} />
-              <p className="text-gray-300 mt-2 text-sm md:text-base">
-                {stat.label}
-              </p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
             </motion.div>
           ))}
         </div>
