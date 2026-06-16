@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useStore } from "@/store/use-store";
+import { useRouter } from "next/navigation";
 import { portfolios, PortfolioItem } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { LivePreviewCard } from "@/components/live-preview-card";
 import { PortfolioModal } from "@/components/portfolio-modal";
+import { navigateTo } from "@/lib/navigation";
 
 const container = {
   hidden: { opacity: 0 },
@@ -24,6 +26,7 @@ const item = {
 
 export function HomePortofolioPreview() {
   const { setCurrentPage } = useStore();
+  const router = useRouter();
   const [selectedPortfolio, setSelectedPortfolio] =
     useState<PortfolioItem | null>(null);
   const featured = portfolios.slice(0, 6);
@@ -74,8 +77,7 @@ export function HomePortofolioPreview() {
             size="lg"
             variant="outline"
             onClick={() => {
-              setCurrentPage("portofolio");
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              navigateTo("portofolio", setCurrentPage, router);
             }}
             className="border-navy dark:border-white/20 text-foreground hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy"
           >

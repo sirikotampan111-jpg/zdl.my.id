@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useStore } from "@/store/use-store";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, ExternalLink, Zap, Search, Globe, Smartphone } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/config";
+import { navigateTo } from "@/lib/navigation";
 
 const badges = [
   { icon: Search, label: "SEO Friendly" },
@@ -29,6 +31,7 @@ const item = {
 
 export function HomeHero() {
   const { setCurrentPage } = useStore();
+  const router = useRouter();
 
   return (
     <section className="relative min-h-[90vh] flex items-center pt-16 overflow-hidden animated-grid">
@@ -77,8 +80,7 @@ export function HomeHero() {
               variant="outline"
               size="lg"
               onClick={() => {
-                setCurrentPage("portofolio");
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                navigateTo("portofolio", setCurrentPage, router);
               }}
               className="w-full sm:w-auto border-navy dark:border-white/20 text-foreground hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy"
             >

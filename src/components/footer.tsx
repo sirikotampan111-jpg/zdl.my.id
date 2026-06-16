@@ -1,8 +1,10 @@
 "use client";
 
 import { useStore } from "@/store/use-store";
+import { useRouter } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, WHATSAPP_LINK, BUSINESS_ADDRESS, SITE_DOMAIN, COMPANY_NAME } from "@/lib/config";
+import { navigateTo } from "@/lib/navigation";
 
 const footerLinks = [
   { id: "home", label: "Home" },
@@ -13,10 +15,10 @@ const footerLinks = [
 
 export function Footer() {
   const { setCurrentPage } = useStore();
+  const router = useRouter();
 
   const handleNav = (page: string) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigateTo(page, setCurrentPage, router);
   };
 
   return (

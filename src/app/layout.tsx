@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, Chatbot } from "@/components/client-providers";
 import { CartSync } from "@/components/cart-sync";
+import { LocalBusinessJsonLd, WebSiteJsonLd } from "@/components/json-ld";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zdl.my.id";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id";
 const SITE_NAME = "Zheng Digital Lab";
 const SITE_DESCRIPTION =
   "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.";
@@ -98,6 +99,8 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
+        <LocalBusinessJsonLd />
+        <WebSiteJsonLd />
         <script
           src={
             process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true"

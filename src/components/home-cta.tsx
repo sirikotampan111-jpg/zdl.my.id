@@ -2,12 +2,15 @@
 
 import { motion } from "framer-motion";
 import { useStore } from "@/store/use-store";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/config";
+import { navigateTo } from "@/lib/navigation";
 
 export function HomeCta() {
   const { setCurrentPage } = useStore();
+  const router = useRouter();
 
   return (
     <section className="py-20 relative overflow-hidden">
@@ -35,8 +38,7 @@ export function HomeCta() {
             <Button
               size="lg"
               onClick={() => {
-                setCurrentPage("layanan");
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                navigateTo("layanan", setCurrentPage, router);
               }}
               className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-navy font-semibold"
             >

@@ -70,7 +70,16 @@ export function Navbar() {
   const handleNav = (page: string) => {
     setCurrentPage(page);
     setMobileOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Use real URL navigation for SEO-indexable pages
+    const routes: Record<string, string> = {
+      home: "/",
+      portofolio: "/portofolio",
+      layanan: "/layanan",
+      kontak: "/kontak",
+      keranjang: "/",
+    };
+    const targetPath = routes[page] || "/";
+    router.push(targetPath);
   };
 
   return (
