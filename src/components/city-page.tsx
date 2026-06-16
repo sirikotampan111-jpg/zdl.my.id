@@ -198,8 +198,9 @@ export function CityPageClient({ city, region, description, longDescription, por
         )}
 
         {/* Guarantees */}
-        <section className="py-20 md:py-24 bg-navy text-white relative overflow-hidden">
-          <div className="absolute inset-0 zheng-stripe" />
+        <section className="py-20 md:py-24 bg-cream relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-gold/[0.06] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold/[0.04] rounded-full blur-3xl" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
@@ -209,14 +210,14 @@ export function CityPageClient({ city, region, description, longDescription, por
               transition={{ duration: 0.5 }}
               className="text-center mb-14"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-gold/20 bg-gold/10 text-gold text-xs font-semibold uppercase tracking-wide rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-gold/20 bg-gold/5 text-gold text-xs font-semibold uppercase tracking-wide rounded-full mb-6">
                 <Shield className="w-3.5 h-3.5" />
                 Zheng Guarantee
               </div>
-              <h2 className="heading-serif text-3xl md:text-4xl mb-4">
-                Jaminan <span className="text-gold">Zheng Digital Lab</span>
+              <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
+                Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span>
               </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Jasa website di {city} yang terjamin, anti-scam, dan berani kasih garansi uang kembali.
               </p>
             </motion.div>
@@ -230,13 +231,13 @@ export function CityPageClient({ city, region, description, longDescription, por
             >
               {guarantees.map((g) => (
                 <motion.div key={g.title} variants={item}>
-                  <Card className="h-full bg-navy-lighter/40 border-gold/10 hover:border-gold/25 transition-colors text-center rounded-xl">
+                  <Card className="h-full bg-white border-border/60 hover:border-gold/25 hover:shadow-warm transition-all text-center rounded-xl">
                     <CardContent className="pt-6">
                       <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                         <g.icon className="w-5 h-5 text-gold" />
                       </div>
-                      <h3 className="font-semibold text-white mb-1 text-sm">{g.title}</h3>
-                      <p className="text-gray-400 text-xs leading-relaxed">{g.description}</p>
+                      <h3 className="font-semibold text-foreground mb-1 text-sm">{g.title}</h3>
+                      <p className="text-muted-foreground text-xs leading-relaxed">{g.description}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -246,7 +247,10 @@ export function CityPageClient({ city, region, description, longDescription, por
         </section>
 
         {/* CTA */}
-        <section className="zheng-cta-section py-20 md:py-24">
+        <section className="py-20 md:py-24 bg-foreground text-background relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gold/[0.06] rounded-full blur-3xl" />
+          <div className="absolute inset-0 zheng-stripe" />
+
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -256,16 +260,16 @@ export function CityPageClient({ city, region, description, longDescription, por
               className="text-center space-y-6"
             >
               <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-background leading-tight">
-                Siap Bikin Website di <span className="gold-gradient-text">{city}</span>?
+                Siap Bikin Website di <span className="text-gold">{city}</span>?
               </h2>
-              <p className="text-background/50 max-w-2xl mx-auto text-lg">
+              <p className="text-background/60 max-w-2xl mx-auto text-lg">
                 Konsultasi gratis, tanpa komitmen. Ceritakan kebutuhan bisnis kamu dan kami buatkan
                 penawaran terbaik. Garansi uang kembali jika tidak sesuai.
               </p>
               <Button
                 size="lg"
                 asChild
-                className="bg-gold hover:bg-gold-hover text-navy font-semibold rounded-lg"
+                className="bg-gold hover:bg-gold-hover text-foreground font-semibold rounded-lg"
               >
                 <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                   Chat WhatsApp Sekarang

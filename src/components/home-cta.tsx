@@ -13,7 +13,11 @@ export function HomeCta() {
   const router = useRouter();
 
   return (
-    <section className="zheng-cta-section py-20 md:py-24">
+    <section className="py-20 md:py-24 bg-foreground text-background relative overflow-hidden">
+      {/* Decorative accent */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gold/[0.06] rounded-full blur-3xl" />
+      <div className="absolute inset-0 zheng-stripe" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           {/* Left — copy */}
@@ -28,7 +32,7 @@ export function HomeCta() {
               Jangan sampai bisnis kamu{" "}
               <span className="text-gold">ditipu</span> web developer
             </h2>
-            <p className="text-background/50 text-lg max-w-xl leading-relaxed">
+            <p className="text-background/60 text-lg max-w-xl leading-relaxed">
               Zheng Digital Lab lahir supaya hal itu tidak terulang.
               Garansi uang kembali, proses transparan, DP ringan — semua buat kamu tenang.
             </p>
@@ -57,7 +61,7 @@ export function HomeCta() {
               size="lg"
               variant="outline"
               onClick={() => navigateTo("layanan", setCurrentPage, router)}
-              className="border-background/15 text-background hover:bg-background hover:text-foreground rounded-lg px-8 h-13"
+              className="border-background/20 text-background hover:bg-background hover:text-foreground rounded-lg px-8 h-13"
             >
               Pilih Paket
               <ArrowRight className="w-4 h-4 ml-2" />

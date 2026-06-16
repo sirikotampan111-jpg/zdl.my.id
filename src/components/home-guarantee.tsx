@@ -17,10 +17,10 @@ const guarantees = [
 
 export function HomeGuarantee() {
   return (
-    <section className="py-20 md:py-24 bg-foreground text-background relative overflow-hidden">
+    <section className="py-20 md:py-24 bg-cream relative overflow-hidden">
       {/* Decorative accent */}
-      <div className="absolute inset-0 zheng-stripe" />
-      <div className="absolute top-0 left-1/4 w-80 h-80 bg-gold/[0.04] rounded-full blur-3xl" />
+      <div className="absolute top-0 right-0 w-72 h-72 bg-gold/[0.06] rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold/[0.04] rounded-full blur-3xl" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
@@ -30,20 +30,20 @@ export function HomeGuarantee() {
           transition={{ duration: 0.6 }}
           className="mb-14"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="w-4 h-4 text-gold" />
-            <span className="text-xs font-semibold text-gold tracking-widest uppercase">Zheng Guarantee</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-gold/20 bg-gold/5 text-gold text-xs font-semibold uppercase tracking-wide rounded-full mb-6">
+            <Shield className="w-3.5 h-3.5" />
+            Zheng Guarantee
           </div>
-          <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl">
-            Jaminan <span className="text-gold">Anti-Scam</span>
+          <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
+            Jaminan <span className="gold-gradient-text">Anti-Scam</span>
           </h2>
-          <p className="mt-4 text-background/50 max-w-lg leading-relaxed">
+          <p className="mt-4 text-muted-foreground max-w-lg leading-relaxed">
             Zheng Digital Lab lahir karena teman kami ditipu web developer. Anti-scam bukan fitur marketing — ini alasan kami ada.
           </p>
         </motion.div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {guarantees.map((g, i) => (
             <motion.div
               key={g.title}
@@ -51,15 +51,15 @@ export function HomeGuarantee() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.06 }}
-              className="guarantee-item"
+              className="bg-white rounded-xl border border-border/60 p-6 hover:border-gold/30 hover:shadow-warm transition-all"
             >
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <g.icon className="w-4 h-4 text-gold" />
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                  <g.icon className="w-5 h-5 text-gold" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm mb-1">{g.title}</h3>
-                  <p className="text-sm text-background/50">{g.desc}</p>
+                  <h3 className="font-semibold text-foreground mb-1.5">{g.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{g.desc}</p>
                 </div>
               </div>
             </motion.div>
@@ -72,16 +72,16 @@ export function HomeGuarantee() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-12 pt-8 border-t border-background/10"
+          className="mt-12 pt-8 border-t border-border"
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <p className="text-background/60 text-sm">
+            <p className="text-muted-foreground text-sm">
               Masih ragu? Konsultasi dulu gratis. Kami buktikan, bukan cuma janji.
             </p>
             <Button
               size="sm"
               asChild
-              className="bg-gold hover:bg-gold-hover text-foreground font-semibold rounded-lg shrink-0"
+              className="bg-foreground hover:bg-foreground/90 text-background font-semibold rounded-lg shrink-0"
             >
               <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                 Chat WhatsApp

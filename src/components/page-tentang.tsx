@@ -73,7 +73,12 @@ const guarantees = [
 ];
 
 const serviceAreas = [
+  { city: "Jakarta", desc: "Ibu kota negara & pusat bisnis terbesar Indonesia" },
+  { city: "Depok", desc: "Kota pendidikan dan bisnis di kawasan Jabodetabek" },
+  { city: "Bogor", desc: "Kota hujan dengan potensi kuliner dan agrowisata" },
+  { city: "Bekasi", desc: "Kota dengan pertumbuhan bisnis tertinggi di Jabodetabek" },
   { city: "Tangerang & Jabodetabek", desc: "Kantor pusat di Tangerang — melayani seluruh Jabodetabek" },
+  { city: "Bandung", desc: "Kota kreatif dengan ekosistem startup dan fashion" },
   { city: "Surabaya", desc: "Kota terbesar kedua Indonesia — pusat bisnis Jawa Timur" },
   { city: "Sidoarjo", desc: "Kawasan industri dan bisnis yang berkembang pesat" },
   { city: "Gresik", desc: "Kota industri dengan potensi UMKM yang besar" },
@@ -90,7 +95,7 @@ const milestones = [
   { year: "2022", event: "Meningkatkan standar dengan teknologi Next.js — performa website klien naik 3x lipat" },
   { year: "2023", event: "100+ project selesai dengan 0 kasus penipuan — membuktikan komitmen Zheng Digital Lab" },
   { year: "2024", event: "Menambah layanan SEO & Backlink — website klien mulai mendominasi halaman 1 Google" },
-  { year: "2025", event: "150+ project selesai, melayani 7 kota besar: Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali, Kupang" },
+  { year: "2025", event: "150+ project selesai, melayani 12 kota besar: Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali, Kupang" },
 ];
 
 export function TentangPageClient() {
@@ -178,9 +183,9 @@ export function TentangPageClient() {
         </section>
 
         {/* Zheng Guarantee */}
-        <section className="py-20 md:py-24 bg-navy text-white relative overflow-hidden">
-          <div className="absolute inset-0 zheng-stripe" />
-          <div className="absolute top-0 left-1/4 w-72 h-72 bg-gold/[0.04] rounded-full blur-3xl" />
+        <section className="py-20 md:py-24 bg-cream relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-gold/[0.06] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold/[0.04] rounded-full blur-3xl" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
@@ -190,14 +195,14 @@ export function TentangPageClient() {
               transition={{ duration: 0.5 }}
               className="text-center mb-14"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-gold/20 bg-gold/10 text-gold text-xs font-semibold uppercase tracking-wide rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-gold/20 bg-gold/5 text-gold text-xs font-semibold uppercase tracking-wide rounded-full mb-6">
                 <Shield className="w-3.5 h-3.5" />
                 Zheng Guarantee
               </div>
-              <h2 className="heading-serif text-3xl md:text-4xl mb-4">
-                Jaminan <span className="text-gold">Zheng Digital Lab</span> — Anti-Scam
+              <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
+                Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span> — Anti-Scam
               </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Kami tidak cuma berjanji — kami memberikan jaminan nyata. Karena Zheng Digital Lab
                 lahir dari kejadian teman ditipu, anti-scam bukan sekadar fitur — ini DNA kami.
               </p>
@@ -212,15 +217,15 @@ export function TentangPageClient() {
             >
               {guarantees.map((g) => (
                 <motion.div key={g.title} variants={item}>
-                  <Card className="h-full bg-navy-lighter/40 border-gold/10 hover:border-gold/25 transition-colors rounded-xl">
+                  <Card className="h-full bg-white border-border/60 hover:border-gold/25 hover:shadow-warm transition-all rounded-xl">
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
                         <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center flex-shrink-0">
                           <g.icon className="w-5 h-5 text-gold" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-white mb-1.5">{g.title}</h3>
-                          <p className="text-gray-400 text-sm leading-relaxed">{g.description}</p>
+                          <h3 className="font-semibold text-foreground mb-1.5">{g.title}</h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed">{g.description}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -242,7 +247,7 @@ export function TentangPageClient() {
               className="text-center mb-14"
             >
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
-                Melayani <span className="gold-gradient-text">7 Kota Besar</span> Indonesia
+                Melayani <span className="gold-gradient-text">12 Kota Besar</span> Indonesia
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Dimanapun bisnis Anda berada, Zheng Digital Lab siap melayani dengan standar kualitas

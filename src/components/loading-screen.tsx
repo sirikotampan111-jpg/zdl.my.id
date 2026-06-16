@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export function LoadingScreen() {
   return (
     <motion.div
-      className="fixed inset-0 z-[100] bg-navy flex flex-col items-center justify-center"
+      className="fixed inset-0 z-[100] bg-cream flex flex-col items-center justify-center"
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -24,14 +24,14 @@ export function LoadingScreen() {
           />
         </div>
         <div className="flex items-baseline">
-          <span className="font-bold text-2xl text-white">
+          <span className="font-bold text-2xl text-foreground">
             Zheng Digital Lab
           </span>
         </div>
       </motion.div>
 
       {/* Loading bar */}
-      <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+      <div className="w-48 h-1 bg-foreground/10 rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-gold rounded-full"
           initial={{ width: "0%" }}
@@ -45,7 +45,7 @@ export function LoadingScreen() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-white/40 text-sm mt-4"
+        className="text-muted-foreground text-sm mt-4"
       >
         Loading...
       </motion.p>
