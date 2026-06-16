@@ -24,13 +24,19 @@ export function HomeHero() {
 
   return (
     <section className="relative min-h-[95vh] flex items-center pt-20 pb-16 overflow-hidden">
+      {/* Background image with overlay */}
+      <div
+        className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+      />
+      {/* Light overlay so text stays readable */}
+      <div className="absolute inset-0 -z-10 bg-cream/85" />
+
       {/* Subtle warm gradient overlay */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-gold/[0.04] via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-gradient-to-tr from-gold/[0.03] via-transparent to-transparent" />
+        <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-gold/[0.06] via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-gradient-to-tr from-gold/[0.04] via-transparent to-transparent" />
       </div>
-      {/* Dot pattern */}
-      <div className="absolute inset-0 -z-20 animated-grid" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
@@ -118,7 +124,7 @@ export function HomeHero() {
             transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-5"
           >
-            <div className="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-warm space-y-7">
+            <div className="bg-card/90 backdrop-blur-sm border border-border rounded-2xl p-8 md:p-10 shadow-warm space-y-7">
               {/* Guarantee header */}
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-gold/10 rounded-xl flex items-center justify-center">
