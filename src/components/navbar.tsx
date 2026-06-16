@@ -23,7 +23,7 @@ function CartBadge() {
   const count = useStore((s) => s.getCartCount());
   if (count === 0) return null;
   return (
-    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-navy text-[10px] font-bold rounded-full flex items-center justify-center">
+    <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold text-[9px] font-bold rounded-full flex items-center justify-center text-navy">
       {count > 9 ? "9+" : count}
     </span>
   );
@@ -40,7 +40,7 @@ function CartBadgeInline() {
 }
 
 const navLinks = [
-  { id: "home", label: "Home" },
+  { id: "home", label: "Beranda" },
   { id: "portofolio", label: "Portofolio" },
   { id: "layanan", label: "Layanan" },
   { id: "tentang", label: "Tentang" },
@@ -62,7 +62,7 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -71,7 +71,6 @@ export function Navbar() {
   const handleNav = (page: string) => {
     setCurrentPage(page);
     setMobileOpen(false);
-    // Use real URL navigation for SEO-indexable pages
     const routes: Record<string, string> = {
       home: "/",
       portofolio: "/portofolio",
@@ -87,37 +86,41 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass border-b",
-        scrolled ? "shadow-lg" : "shadow-none"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled
+          ? "glass border-b border-border/50 shadow-warm"
+          : "bg-transparent border-b border-transparent"
       )}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 md:h-18">
           {/* Logo */}
           <button
             onClick={() => handleNav("home")}
-            className="flex items-center gap-2 group cursor-pointer"
+            className="flex items-center gap-2.5 group cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
               <img
                 src="/favicon.png"
                 alt="ZDL"
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="heading-serif text-xl text-foreground">
-              Zheng<span className="text-gold">.</span>
-            </span>
+            <div className="flex items-baseline gap-0.5">
+              <span className="heading-serif text-lg text-foreground">
+                Zheng Digital Lab
+              </span>
+            </div>
           </button>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-0.5">
             {navLinks.map((link) => (
               <button
                 key={link.id}
                 onClick={() => handleNav(link.id)}
                 className={cn(
-                  "relative px-3 py-2 text-sm font-medium transition-colors rounded-md cursor-pointer",
+                  "relative px-3.5 py-2 text-sm font-medium transition-colors rounded-md cursor-pointer",
                   currentPage === link.id
                     ? "text-gold"
                     : "text-muted-foreground hover:text-foreground"
@@ -125,22 +128,22 @@ export function Navbar() {
               >
                 {link.label}
                 {currentPage === link.id && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-gold rounded-full" />
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-[2px] bg-gold rounded-full" />
                 )}
               </button>
             ))}
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {/* Cart Button */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => handleNav("keranjang")}
-              className="relative text-foreground hover:text-gold"
+              className="relative text-muted-foreground hover:text-foreground"
             >
-              <ShoppingCart className="size-5" />
+              <ShoppingCart className="size-[18px]" />
               <CartBadge />
               <span className="sr-only">Keranjang</span>
             </Button>
@@ -150,12 +153,12 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="text-foreground hover:text-gold"
+              className="text-muted-foreground hover:text-foreground"
             >
               {mounted && theme === "dark" ? (
-                <Sun className="size-5" />
+                <Sun className="size-[18px]" />
               ) : (
-                <Moon className="size-5" />
+                <Moon className="size-[18px]" />
               )}
               <span className="sr-only">Toggle theme</span>
             </Button>
@@ -164,8 +167,8 @@ export function Navbar() {
             {status === "authenticated" && session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 border-gold/30 hover:bg-gold/10">
-                    <div className="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center">
+                  <Button variant="outline" size="sm" className="gap-2 border-gold/20 hover:bg-gold/5">
+                    <div className="w-5 h-5 rounded-full bg-gold/15 flex items-center justify-center">
                       <User className="w-3 h-3 text-gold" />
                     </div>
                     <span className="hidden sm:inline max-w-[100px] truncate text-sm">
@@ -192,9 +195,9 @@ export function Navbar() {
               <Button
                 size="sm"
                 onClick={() => router.push("/login")}
-                className="bg-gold hover:bg-gold-hover text-navy font-semibold gap-1.5"
+                className="bg-gold hover:bg-gold-hover text-navy font-semibold gap-1.5 text-xs"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Masuk</span>
               </Button>
             )}
@@ -209,15 +212,22 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent side="right" className="w-72">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <div className="flex flex-col gap-2 mt-8">
+                <div className="flex flex-col gap-1 mt-8">
+                  {/* Mobile brand */}
+                  <div className="flex items-center gap-2 px-4 pb-4 mb-2 border-b border-border">
+                    <div className="w-7 h-7 rounded flex items-center justify-center overflow-hidden">
+                      <img src="/favicon.png" alt="ZDL" className="w-full h-full object-contain" />
+                    </div>
+                    <span className="heading-serif text-base text-foreground">Zheng Digital Lab</span>
+                  </div>
                   {navLinks.map((link) => (
                     <button
                       key={link.id}
                       onClick={() => handleNav(link.id)}
                       className={cn(
-                        "flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-colors cursor-pointer",
+                        "flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                         currentPage === link.id
-                          ? "bg-gold/10 text-gold"
+                          ? "bg-gold/8 text-gold"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
@@ -228,9 +238,9 @@ export function Navbar() {
                     <button
                       onClick={() => handleNav("keranjang")}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left cursor-pointer",
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left cursor-pointer",
                         currentPage === "keranjang"
-                          ? "bg-gold/10 text-gold"
+                          ? "bg-gold/8 text-gold"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
@@ -241,13 +251,13 @@ export function Navbar() {
                       <>
                         <button
                           onClick={() => { setMobileOpen(false); router.push("/dashboard"); }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
                         >
                           <LayoutDashboard className="w-4 h-4" /> Dashboard
                         </button>
                         <button
                           onClick={() => { setMobileOpen(false); signOut({ callbackUrl: "/" }); }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
                         >
                           <LogOut className="w-4 h-4" /> Keluar
                         </button>
@@ -255,7 +265,7 @@ export function Navbar() {
                     ) : (
                       <button
                         onClick={() => { setMobileOpen(false); router.push("/login"); }}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium w-full text-left text-gold hover:bg-gold/10 cursor-pointer"
+                        className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left text-gold hover:bg-gold/8 cursor-pointer"
                       >
                         <LogIn className="w-4 h-4" /> Masuk
                       </button>

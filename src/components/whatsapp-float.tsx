@@ -28,12 +28,12 @@ export function WhatsAppFloat() {
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transition-colors pulse-gold"
+          className="fixed bottom-6 right-6 z-50 w-13 h-13 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transition-colors pulse-gold"
           aria-label="Chat WhatsApp"
         >
-          <MessageCircle className="w-6 h-6 text-white" />
+          <MessageCircle className="w-5 h-5 text-white" />
         </motion.a>
       )}
     </AnimatePresence>

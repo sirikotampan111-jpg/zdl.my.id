@@ -15,12 +15,12 @@ const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.08 },
   },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0 },
 };
 
@@ -32,21 +32,37 @@ export function HomePortofolioPreview() {
   const featured = portfolios.slice(0, 6);
 
   return (
-    <section className="py-20">
+    <section className="py-20 md:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="mb-14"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Portofolio <span className="gold-gradient-text">Terbaru Kami</span>
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Beberapa project terbaru yang telah kami selesaikan — ditampilkan langsung dari website aslinya.
-          </p>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-[2px] bg-gold" />
+            <span className="text-xs font-semibold text-gold tracking-widest uppercase">Portofolio</span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
+                Karya <span className="zheng-mark">Terbaru</span> Kami
+              </h2>
+              <p className="mt-3 text-muted-foreground max-w-lg leading-relaxed">
+                Beberapa project terbaru yang sudah kami selesaikan. Klik untuk lihat langsung website aslinya.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigateTo("portofolio", setCurrentPage, router)}
+              className="border-border text-foreground hover:bg-foreground hover:text-background rounded-lg self-start sm:self-auto"
+            >
+              Lihat Semua
+              <ArrowRight className="w-4 h-4 ml-1.5" />
+            </Button>
+          </div>
         </motion.div>
 
         <motion.div
@@ -54,10 +70,10 @@ export function HomePortofolioPreview() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
         >
           {featured.map((p) => (
-            <motion.div key={p.id} variants={item}>
+            <motion.div key={p.id} variants={item} className="portfolio-card rounded-xl overflow-hidden border border-border bg-card">
               <LivePreviewCard
                 portfolio={p}
                 onClick={() => setSelectedPortfolio(p)}
@@ -65,25 +81,6 @@ export function HomePortofolioPreview() {
               />
             </motion.div>
           ))}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mt-10"
-        >
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => {
-              navigateTo("portofolio", setCurrentPage, router);
-            }}
-            className="border-navy dark:border-white/20 text-foreground hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy"
-          >
-            Lihat Semua Portofolio
-            <ArrowRight className="w-4 h-4" />
-          </Button>
         </motion.div>
       </div>
 
