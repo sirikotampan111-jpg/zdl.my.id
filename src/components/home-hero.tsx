@@ -24,19 +24,19 @@ export function HomeHero() {
 
   return (
     <section className="relative min-h-[95vh] flex items-center pt-20 pb-16 overflow-hidden">
-      {/* Background image with overlay */}
+      {/* Background photo (hero only) */}
       <div
         className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/background.png')" }}
+        style={{ backgroundImage: "url('/background.jpg')" }}
       />
-      {/* Light overlay so text stays readable */}
-      <div className="absolute inset-0 -z-10 bg-cream/80" />
-
-      {/* Subtle warm gradient overlay */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-gold/[0.06] via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-gradient-to-tr from-gold/[0.04] via-transparent to-transparent" />
-      </div>
+      {/* Cream gradient overlay — keeps text readable while letting photo show */}
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(105deg, rgba(253,248,240,0.96) 0%, rgba(253,248,240,0.88) 45%, rgba(253,248,240,0.55) 100%)",
+        }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">

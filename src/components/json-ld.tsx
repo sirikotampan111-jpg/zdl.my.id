@@ -14,7 +14,7 @@ export function LocalBusinessJsonLd() {
     name: "Zheng Digital Lab",
     alternateName: ["ZDL", "Zheng Digital Lab Jakarta", "Zheng Digital Lab Tangerang", "Zheng Digital Lab Bandung", "Zheng Digital Lab Surabaya"],
     url: SITE_URL,
-    logo: `${SITE_URL}/favicon.png`,
+    logo: `${SITE_URL}/logo.png`,
     description:
       "Jasa pembuatan website profesional terjamin & anti-scam. Melayani Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Garansi uang kembali.",
     telephone: `+62${WHATSAPP_NUMBER}`,

@@ -92,10 +92,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "any" },
-      { url: "/logo.png", sizes: "1536x1024" },
+      { url: "/favicon.png", sizes: "64x64", type: "image/png" },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
-    apple: "/icons/apple-touch-icon.png",
+    apple: "/apple-touch-icon.png",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",

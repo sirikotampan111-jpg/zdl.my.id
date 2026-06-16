@@ -14,7 +14,6 @@ import {
   Users,
   CheckCircle2,
   ExternalLink,
-  Shield,
   Eye,
   MapPin,
 } from "lucide-react";
@@ -38,37 +37,37 @@ const guarantees = [
     icon: Shield,
     title: "Garansi 100% Uang Kembali",
     description:
-      "Website tidak sesuai yang dijanjikan? Uang Anda kembali sepenuhnya. Tanpa syarat rumit. Ini bukan janji — ini jaminan dari Zheng Digital Lab.",
+      "Website tidak sesuai yang dijanjikan? Uang Anda kembali sepenuhnya tanpa syarat rumit. Jaminan ini tertulis hitam di atas putih dalam setiap kontrak kerja sama.",
   },
   {
     icon: Clock,
     title: "Tepat Waktu atau Kompensasi",
     description:
-      "Kami menepati deadline. Jika terlambat tanpa persetujuan Anda, kami berikan kompensasi. Waktu Anda berharga dan kami hormati itu.",
+      "Setiap proyek memiliki timeline yang disepakati di awal. Jika terlambat tanpa persetujuan Anda, kami berikan kompensasi yang diatur secara tertulis dalam kontrak.",
   },
   {
     icon: Award,
     title: "Harga Transparan, Tanpa Biaya Tersembunyi",
     description:
-      "Harga yang tertera adalah harga final. Tidak ada markup misterius, tidak ada tagihan kejutan. Transparansi penuh dari awal sampai website online.",
+      "Harga yang tertera adalah harga final. Tidak ada markup misterius, tidak ada tagihan kejutan. Semua biaya dijelaskan secara detail sebelum kontrak ditandatangani.",
   },
   {
     icon: Users,
     title: "Support Setelah Online",
     description:
-      "Banyak web developer hilang setelah dibayar. Kami tidak. Support teknis dan bantuan tetap tersedia setelah website Anda online.",
+      "Website yang sudah online tetap menjadi tanggung jawab kami. Paket support teknis dan maintenance tersedia untuk memastikan website Anda terus berjalan optimal.",
   },
   {
     icon: Eye,
     title: "Proses Transparan, Bisa Dipantau",
     description:
-      "Anda bisa memantau progress website kapan saja. Kami tidak sembunyi — setiap tahap dikerjakan secara terbuka dan bisa Anda review langsung.",
+      "Setiap tahapan pekerjaan dapat Anda pantau melalui dashboard khusus. Tidak ada proses yang disembunyikan — semua progres tercatat dan dapat diakses kapan saja.",
   },
   {
     icon: CheckCircle2,
-    title: "DP Ringan, Bayar Setelah Puas",
+    title: "DP Ringan, Pembayaran Bertahap",
     description:
-      "Cukup DP Rp500.000 untuk mulai. Sisanya dibayar setelah website selesai dan Anda puas melihat hasilnya. Risiko di tangan kami.",
+      "Cukup DP Rp500.000 untuk memulai. Pembayaran sisanya dilakukan secara bertahap sesuai milestone yang disepakati, dengan pelunasan setelah website selesai dan Anda puas.",
   },
 ];
 
@@ -88,14 +87,13 @@ const serviceAreas = [
 ];
 
 const milestones = [
-  { year: "Awal", event: "Pendiri melihat teman ditipu web developer — uang dibawa lari, website tidak jadi. Frustasi itu jadi cikal bakal Zheng Digital Lab" },
-  { year: "2019", event: "Zheng Digital Lab resmi didirikan dengan misi: agar tidak ada lagi orang ditipu jasa pembuatan website" },
-  { year: "2020", event: "Klien pertama dari sektor properti — Livia Real Estate, membuktikan bahwa web developer terjamin itu ada" },
-  { year: "2021", event: "Ekspansi ke 4 sektor utama: Properti, Interior, Kuliner, dan Pendidikan — 50+ website online tanpa komplain" },
-  { year: "2022", event: "Meningkatkan standar dengan teknologi Next.js — performa website klien naik 3x lipat" },
-  { year: "2023", event: "100+ project selesai dengan 0 kasus penipuan — membuktikan komitmen Zheng Digital Lab" },
-  { year: "2024", event: "Menambah layanan SEO & Backlink — website klien mulai mendominasi halaman 1 Google" },
-  { year: "2025", event: "150+ project selesai, melayani 12 kota besar: Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali, Kupang" },
+  { year: "2019", event: "Zheng Digital Lab resmi didirikan dengan fokus menyediakan layanan web development yang transparan dan dapat dipertanggungjawabkan" },
+  { year: "2020", event: "Melayani klien pertama dari sektor properti — Livia Real Estate, menjadi titik awal ekspansi ke sektor industri lainnya" },
+  { year: "2021", event: "Ekspansi ke 4 sektor utama: Properti, Interior, Kuliner, dan Pendidikan. Lebih dari 50 website berhasil diluncurkan tanpa komplain" },
+  { year: "2022", event: "Meningkatkan standar teknologi dengan adopsi Next.js — performa website klien meningkat hingga 3x lipat" },
+  { year: "2023", event: "Lebih dari 100 project selesai dengan zero kasus penipuan, membuktikan komitmen terhadap integritas layanan" },
+  { year: "2024", event: "Menambah layanan SEO & Backlink — membantu website klien mendominasi halaman pertama Google untuk kata kunci target" },
+  { year: "2025", event: "Lebih dari 150 project selesai, melayani 12 kota besar Indonesia: Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali, Kupang" },
 ];
 
 export function TentangPageClient() {
@@ -119,22 +117,24 @@ export function TentangPageClient() {
             >
               <div className="zheng-badge mx-auto w-fit">
                 <Shield className="w-3.5 h-3.5" />
-                Standar Industri Baru
+                Web Development dengan Standar Industri
               </div>
 
               <h1 className="heading-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground leading-tight">
-                Temanku Ditipu Web Developer.{" "}
-                <span className="gold-gradient-text">Zheng Digital Lab Dibangun di Atasnya.</span>
+                Membangun Kepercayaan Lewat{" "}
+                <span className="gold-gradient-text">Transparansi & Garansi Nyata</span>
               </h1>
 
               <p className="text-lg text-foreground/70 max-w-2xl mx-auto leading-relaxed">
-                Industri web development membutuhkan standar yang lebih tinggi. Zheng Digital Lab hadir untuk memberikan jaminan transparansi, akuntabilitas, dan hasil yang terukur bagi setiap klien.
+                Zheng Digital Lab adalah perusahaan web development yang berkomitmen
+                memberikan kepastian bagi setiap klien melalui sistem garansi terukur,
+                proses transparan, dan akuntabilitas penuh di setiap tahapan pekerjaan.
               </p>
             </motion.div>
           </div>
         </section>
 
-        {/* Origin Story */}
+        {/* Origin Story — professional tone */}
         <section className="py-20 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -146,33 +146,44 @@ export function TentangPageClient() {
                 className="space-y-6"
               >
                 <h2 className="heading-serif text-3xl md:text-4xl text-foreground">
-                  Mengapa <span className="gold-gradient-text">Zheng Digital Lab</span> Berbeda
+                  Mengapa <span className="gold-gradient-text">Zheng Digital Lab</span> Ada
                 </h2>
 
                 <div className="space-y-5 text-foreground/80 leading-relaxed">
                   <p>
-                    Industri jasa pembuatan website di Indonesia memiliki tantangan serius: minimnya standar akuntabilitas. 
-                    Banyak pelaku usaha yang telah mengalami kerugian finansial akibat web developer yang tidak menepati komitmen. 
-                    Proyek terlambat tanpa kompensasi, harga yang berubah di tengah jalan, hingga komunikasi yang terputus 
-                    setelah pembayaran dilakukan — pola ini terjadi berulang dan merugikan seluruh ekosistem bisnis digital.
+                    Industri jasa pembuatan website di Indonesia tumbuh pesat, namun
+                    tidak semua penyedia layanan menerapkan standar profesional yang sama.
+                    Sering kali klien menghadapi kendala seperti proyek yang terlambat
+                    tanpa kompensasi, biaya yang berubah di tengah jalan, hingga komunikasi
+                    yang terputus setelah pembayaran dilakukan. Kondisi ini merugikan
+                    seluruh ekosistem bisnis digital dan menurunkan kepercayaan pelaku usaha
+                    terhadap jasa web development secara umum.
                   </p>
                   <p>
-                    Zheng Digital Lab hadir sebagai respons terhadap kondisi ini. Pendiri kami menyaksikan langsung 
-                    dampak dari ketiadaan standar industri yang jelas — sebuah pengalaman yang mendorong untuk membangun 
-                    perusahaan web development dengan pendekatan yang berbeda: berbasis jaminan, transparansi penuh, 
-                    dan akuntabilitas di setiap tahapan proses.
+                    Zheng Digital Lab lahir untuk menjawab kebutuhan tersebut. Didirikan
+                    pada tahun 2019, perusahaan kami dibangun dengan prinsip yang sederhana
+                    namun konsisten: setiap pekerjaan harus didukung oleh kontrak yang
+                    jelas, garansi yang terukur, dan transparansi penuh dari awal hingga
+                    peluncuran website. Kami percaya bahwa kepercayaan klien tidak dibangun
+                    melalui janji, melainkan melalui sistem akuntabilitas yang dapat
+                    diverifikasi.
                   </p>
                   <p>
-                    <strong className="text-foreground">Zheng Digital Lab</strong> bukan sekadar penyedia jasa web development. 
-                    Kami adalah perusahaan yang menerapkan sistem garansi terukur — mulai dari garansi uang kembali 100%, 
-                    kompensasi keterlambatan, hingga DP ringan yang meminimalkan risiko bagi klien. Setiap proses dapat 
-                    dipantau secara real-time, dan setiap harga yang tertera adalah harga final tanpa biaya tersembunyi.
+                    <strong className="text-foreground">Zheng Digital Lab</strong> menerapkan
+                    beberapa mekanisme jaminan inti yang membedakan kami dari penyedia jasa
+                    web development pada umumnya. Pertama, garansi uang kembali 100% apabila
+                    hasil tidak sesuai dengan yang disepakati. Kedua, sistem kompensasi
+                    keterlambatan yang tertulis dalam kontrak. Ketiga, DP ringan Rp500.000
+                    dengan pembayaran bertahap berdasarkan milestone, sehingga risiko finansial
+                    klien dapat diminimalkan sejak awal kerja sama.
                   </p>
                   <p>
-                    Dengan lebih dari 150 project yang telah diselesaikan dan zero kasus penipuan, kami membuktikan bahwa 
-                    industri web development dapat dijalankan dengan integritas. Setiap website yang kami bangun adalah 
-                    representasi komitmen kami terhadap kualitas, dan setiap garansi yang kami berikan adalah mekanisme 
-                    akuntabilitas yang menjamin kepuasan klien.
+                    Hingga saat ini, lebih dari 150 project telah kami selesaikan dengan
+                    nol kasus penipuan tercatat. Angka tersebut bukan sekadar statistik
+                    pemasaran, melainkan hasil dari penerapan sistem yang konsisten dan
+                    komitmen tim terhadap setiap proyek yang kami tangani. Setiap website
+                    yang kami bangun merupakan representasi langsung dari standar kualitas
+                    dan integritas yang kami pegang.
                   </p>
                 </div>
               </motion.div>
@@ -198,11 +209,12 @@ export function TentangPageClient() {
                 Zheng Guarantee
               </div>
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
-                Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span> — Anti-Scam
+                Sistem Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Kami tidak cuma berjanji — kami memberikan jaminan nyata. Karena Zheng Digital Lab
-                lahir dari kejadian teman ditipu, anti-scam bukan sekadar fitur — ini DNA kami.
+                Setiap jaminan yang kami berikan tertulis dalam kontrak kerja sama.
+                Bukan sekadar janji di atas kertas, melainkan mekanisme akuntabilitas
+                yang dapat dijalankan dan dipertanggungjawabkan.
               </p>
             </motion.div>
 
@@ -248,8 +260,8 @@ export function TentangPageClient() {
                 Melayani <span className="gold-gradient-text">12 Kota Besar</span> Indonesia
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Dimanapun bisnis Anda berada, Zheng Digital Lab siap melayani dengan standar kualitas
-                yang sama — terjamin, anti-scam, dan profesional.
+                Dimanapun bisnis Anda berada, Zheng Digital Lab siap melayani dengan
+                standar kualitas yang sama — terjamin, transparan, dan profesional.
               </p>
             </motion.div>
 
@@ -295,8 +307,8 @@ export function TentangPageClient() {
                 Perjalanan <span className="gold-gradient-text">Zheng Digital Lab</span>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Dari kejadian pahit menjadi kepercayaan ratusan klien — setiap milestone adalah bukti
-                bahwa web developer terjamin itu bukan mitos.
+                Enam tahun pengalaman, lebih dari 150 project selesai, nol kasus penipuan.
+                Setiap milestone adalah bukti komitmen kami terhadap kualitas dan integritas.
               </p>
             </motion.div>
 
@@ -337,12 +349,12 @@ export function TentangPageClient() {
               className="text-center space-y-6"
             >
               <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-background leading-tight">
-                Jangan Biarkan Bisnis Kamu{" "}
-                <span className="gold-gradient-text">Ditipu Lagi</span>
+                Mulai Kerja Sama dengan{" "}
+                <span className="gold-gradient-text">Zheng Digital Lab</span>
               </h2>
               <p className="text-background/70 max-w-2xl mx-auto text-lg">
-                Zheng Digital Lab hadir supaya kamu tidak perlu lagi khawatir ditipu web developer.
-                Garansi uang kembali, proses transparan, hasil terjamin.
+                Konsultasikan kebutuhan website bisnis Anda tanpa biaya. Tim kami siap
+                memberikan rekomendasi solusi yang sesuai dengan tujuan dan anggaran Anda.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button
