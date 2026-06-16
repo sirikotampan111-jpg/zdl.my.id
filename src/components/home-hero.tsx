@@ -14,6 +14,12 @@ const trustBadges = [
   "DP Ringan",
 ];
 
+const stats = [
+  { value: "150+", label: "project selesai" },
+  { value: "0", label: "kasus penipuan" },
+  { value: "99%", label: "klien puas" },
+];
+
 const cities = [
   "Jakarta", "Depok", "Bogor", "Bekasi", "Tangerang", "Bandung", "Surabaya", "Sidoarjo", "Gresik", "Solo", "Bali", "Kupang",
 ];
@@ -23,25 +29,17 @@ export function HomeHero() {
   const router = useRouter();
 
   return (
-    <section className="relative min-h-[95vh] flex items-center pt-20 pb-16 overflow-hidden">
-      {/* Background photo (hero only) */}
-      <div
-        className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/background.jpg')" }}
-      />
-      {/* Cream gradient overlay — keeps text readable while letting photo show */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background:
-            "linear-gradient(105deg, rgba(253,248,240,0.96) 0%, rgba(253,248,240,0.88) 45%, rgba(253,248,240,0.55) 100%)",
-        }}
-      />
+    <section className="relative min-h-[95vh] flex items-center pt-24 pb-16 overflow-hidden">
+      {/* Subtle warm radial accent only — no full-bg photo overlay */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-gold/[0.06] via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-gradient-to-tr from-gold/[0.04] via-transparent to-transparent" />
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-          {/* Left content — 7 cols */}
-          <div className="lg:col-span-7 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Left content — 6 cols */}
+          <div className="lg:col-span-6 space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -55,18 +53,19 @@ export function HomeHero() {
               </div>
 
               {/* H1 */}
-              <h1 className="heading-serif text-4xl sm:text-5xl md:text-[3.5rem] lg:text-6xl leading-[1.08] text-foreground">
+              <h1 className="heading-serif text-4xl sm:text-5xl md:text-[3.25rem] lg:text-6xl leading-[1.08] text-foreground">
                 Jasa Pembuatan Website{" "}
                 <span className="zheng-mark">Terjamin</span>
                 <br />
                 <span className="text-gold">&amp;</span> Anti-Scam
               </h1>
 
-              {/* Subheading — more conversational */}
+              {/* Subheading */}
               <p className="text-lg md:text-xl text-foreground/80 max-w-xl leading-relaxed">
-                Kami memahami risiko mempercayakan website bisnis Anda kepada orang lain. 
-                <strong className="text-foreground">Zheng Digital Lab</strong> hadir sebagai solusi — 
-                jasa pembuatan website dengan <span className="hand-underline">garansi uang kembali</span> dan proses yang transparan.
+                Kami memahami risiko mempercayakan website bisnis Anda kepada orang lain.{" "}
+                <strong className="text-foreground">Zheng Digital Lab</strong> hadir sebagai solusi —{" "}
+                jasa pembuatan website dengan{" "}
+                <span className="hand-underline">garansi uang kembali</span> dan proses yang transparan.
               </p>
             </motion.div>
 
@@ -115,19 +114,51 @@ export function HomeHero() {
                 </div>
               ))}
             </motion.div>
+
+            {/* Inline stats strip */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex items-center gap-6 pt-4 border-t border-border/60"
+            >
+              {stats.map((s, i) => (
+                <div key={s.label} className="flex items-center gap-6">
+                  {i > 0 && <div className="w-px h-8 bg-border/60" />}
+                  <div>
+                    <div className="heading-serif text-2xl md:text-3xl text-gold leading-none">
+                      {s.value}
+                    </div>
+                    <div className="text-xs text-foreground/60 mt-1">{s.label}</div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           </div>
 
-          {/* Right side — trust proof card */}
+          {/* Right side — clean hero photo */}
           <motion.div
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-5"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:col-span-6"
           >
-            <div className="bg-card/90 backdrop-blur-sm border border-border rounded-2xl p-8 md:p-10 shadow-warm space-y-7">
-              {/* Guarantee header */}
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-gold/10 rounded-xl flex items-center justify-center">
+            <div className="relative">
+              {/* Hero image — clean, no overlay */}
+              <div className="relative rounded-2xl overflow-hidden shadow-warm border border-border/60">
+                <img
+                  src="/hero.png"
+                  alt="Zheng Digital Lab — jasa pembuatan website profesional"
+                  className="w-full h-auto object-cover aspect-[4/3]"
+                  loading="eager"
+                  width={1000}
+                  height={665}
+                />
+              </div>
+
+              {/* Floating guarantee badge over image */}
+              <div className="absolute -bottom-5 -left-5 hidden md:flex items-center gap-3 bg-card border border-border rounded-xl p-4 shadow-warm max-w-xs">
+                <div className="w-10 h-10 bg-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Shield className="w-5 h-5 text-gold" />
                 </div>
                 <div>
@@ -136,51 +167,28 @@ export function HomeHero() {
                 </div>
               </div>
 
-              {/* Stats — bold, editorial feel */}
-              <div className="space-y-5">
-                <div className="flex items-baseline gap-3">
-                  <span className="heading-serif text-5xl md:text-6xl text-gold">150+</span>
-                  <div>
-                    <span className="text-sm text-foreground/70 block">project selesai</span>
-                    <span className="text-xs text-foreground/50">tanpa satu pun komplain</span>
-                  </div>
-                </div>
-                <div className="section-divider" />
-                <div className="flex items-baseline gap-3">
-                  <span className="heading-serif text-5xl md:text-6xl text-gold">0</span>
-                  <div>
-                    <span className="text-sm text-foreground/70 block">kasus penipuan</span>
-                    <span className="text-xs text-foreground/50">bukan janji — ini fakta</span>
-                  </div>
-                </div>
-                <div className="section-divider" />
-                <div className="flex items-baseline gap-3">
-                  <span className="heading-serif text-5xl md:text-6xl text-gold">99%</span>
-                  <div>
-                    <span className="text-sm text-foreground/70 block">klien puas</span>
-                    <span className="text-xs text-foreground/50">rating dari feedback langsung</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Area served */}
-              <div className="pt-1">
-                <div className="flex items-center gap-1.5 mb-2">
+              {/* Area served chip — top right */}
+              <div className="absolute -top-3 -right-3 hidden md:block bg-card border border-border rounded-full px-4 py-2 shadow-warm">
+                <div className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-gold" />
-                  <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Area Layanan</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {cities.map((city) => (
-                    <a
-                      key={city}
-                      href={`/jasa-website-${city.toLowerCase()}`}
-                      className="text-xs text-foreground/60 hover:text-gold transition-colors px-2 py-0.5 rounded bg-muted/60"
-                    >
-                      {city}
-                    </a>
-                  ))}
+                  <span className="text-xs font-semibold text-foreground">
+                    12 Kota · Jabodetabek · Jawa &amp; Bali
+                  </span>
                 </div>
               </div>
+            </div>
+
+            {/* City list under image — mobile-friendly */}
+            <div className="mt-5 flex flex-wrap gap-1.5 md:hidden">
+              {cities.map((city) => (
+                <a
+                  key={city}
+                  href={`/jasa-website-${city.toLowerCase()}`}
+                  className="text-xs text-foreground/60 hover:text-gold transition-colors px-2 py-0.5 rounded bg-muted/60"
+                >
+                  {city}
+                </a>
+              ))}
             </div>
           </motion.div>
         </div>
