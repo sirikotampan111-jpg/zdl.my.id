@@ -16,10 +16,10 @@ export function LoadingScreen() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="flex items-center gap-3 mb-8"
       >
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden">
           <img
-            src="/favicon.png"
-            alt="ZDL"
+            src="/logo-zdl.png"
+            alt="Zheng Digital Lab"
             className="w-full h-full object-contain"
           />
         </div>

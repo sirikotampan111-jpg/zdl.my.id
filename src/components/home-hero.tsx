@@ -27,10 +27,10 @@ export function HomeHero() {
       {/* Background image with overlay */}
       <div
         className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+        style={{ backgroundImage: "url('/bg-zdl.png')" }}
       />
       {/* Light overlay so text stays readable */}
-      <div className="absolute inset-0 -z-10 bg-cream/85" />
+      <div className="absolute inset-0 -z-10 bg-cream/80" />
 
       {/* Subtle warm gradient overlay */}
       <div className="absolute inset-0 -z-10">

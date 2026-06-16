@@ -91,7 +91,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", sizes: "32x32" },
+      { url: "/logo-zdl.png", sizes: "1024x1024" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",

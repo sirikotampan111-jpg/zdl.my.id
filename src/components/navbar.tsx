@@ -99,10 +99,10 @@ export function Navbar() {
             onClick={() => handleNav("home")}
             className="flex items-center gap-2.5 group cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
               <img
-                src="/favicon.png"
-                alt="ZDL"
+                src="/logo-zdl.png"
+                alt="Zheng Digital Lab"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -215,8 +215,8 @@ export function Navbar() {
                 <div className="flex flex-col gap-1 mt-8">
                   {/* Mobile brand */}
                   <div className="flex items-center gap-2 px-4 pb-4 mb-2 border-b border-border">
-                    <div className="w-7 h-7 rounded flex items-center justify-center overflow-hidden">
-                      <img src="/favicon.png" alt="ZDL" className="w-full h-full object-contain" />
+                    <div className="w-8 h-8 rounded flex items-center justify-center overflow-hidden">
+                      <img src="/logo-zdl.png" alt="Zheng Digital Lab" className="w-full h-full object-contain" />
                     </div>
                     <span className="heading-serif text-base text-foreground">Zheng Digital Lab</span>
                   </div>
