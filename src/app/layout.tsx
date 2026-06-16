@@ -26,7 +26,7 @@ const playfair = Playfair_Display({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id";
 const SITE_NAME = "Zheng Digital Lab";
 const SITE_DESCRIPTION =
-  "Jasa pembuatan website profesional Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Zheng Digital Lab — terjamin, anti-scam, garansi uang kembali. Website UMKM, Properti, Kuliner & Pendidikan.";
+  "Jasa pembuatan website profesional Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Zheng Digital Lab — terjamin, anti-scam, garansi uang kembali. Website UMKM, Properti, Kuliner & Pendidikan.";
 
 // Guard: ensure SITE_URL is a valid URL for metadataBase
 function safeMetadataBase(url: string): URL | undefined {
@@ -45,7 +45,12 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   keywords: [
+    "jasa pembuatan website Jakarta",
+    "jasa pembuatan website Depok",
+    "jasa pembuatan website Bogor",
+    "jasa pembuatan website Bekasi",
     "jasa pembuatan website Tangerang",
+    "jasa pembuatan website Bandung",
     "jasa pembuatan website Surabaya",
     "jasa pembuatan website Sidoarjo",
     "jasa pembuatan website Gresik",
@@ -66,7 +71,9 @@ export const metadata: Metadata = {
     "website modern",
     "website siap SEO",
     "paket website Indonesia",
+    "web developer Jakarta",
     "web developer Tangerang",
+    "web developer Bandung",
     "web developer Surabaya",
   ],
   authors: [{ name: SITE_NAME }],

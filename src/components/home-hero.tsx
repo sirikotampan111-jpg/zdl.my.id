@@ -15,7 +15,7 @@ const trustBadges = [
 ];
 
 const cities = [
-  "Tangerang", "Surabaya", "Sidoarjo", "Gresik", "Solo", "Bali", "Kupang",
+  "Jakarta", "Depok", "Bogor", "Bekasi", "Tangerang", "Bandung", "Surabaya", "Sidoarjo", "Gresik", "Solo", "Bali", "Kupang",
 ];
 
 export function HomeHero() {

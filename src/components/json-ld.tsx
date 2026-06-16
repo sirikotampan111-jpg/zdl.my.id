@@ -12,11 +12,11 @@ export function LocalBusinessJsonLd() {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     name: "Zheng Digital Lab",
-    alternateName: ["ZDL", "Zheng Digital Lab Tangerang", "Zheng Digital Lab Surabaya"],
+    alternateName: ["ZDL", "Zheng Digital Lab Jakarta", "Zheng Digital Lab Tangerang", "Zheng Digital Lab Bandung", "Zheng Digital Lab Surabaya"],
     url: SITE_URL,
     logo: `${SITE_URL}/favicon.png`,
     description:
-      "Jasa pembuatan website profesional terjamin & anti-scam. Melayani Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Garansi uang kembali.",
+      "Jasa pembuatan website profesional terjamin & anti-scam. Melayani Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Garansi uang kembali.",
     telephone: `+62${WHATSAPP_NUMBER}`,
     address: {
       "@type": "PostalAddress",
@@ -32,8 +32,13 @@ export function LocalBusinessJsonLd() {
       longitude: 106.5153282,
     },
     areaServed: [
-      { "@type": "City", name: "Tangerang" },
+      { "@type": "City", name: "Jakarta" },
       { "@type": "AdministrativeArea", name: "Jabodetabek" },
+      { "@type": "City", name: "Depok" },
+      { "@type": "City", name: "Bogor" },
+      { "@type": "City", name: "Bekasi" },
+      { "@type": "City", name: "Tangerang" },
+      { "@type": "City", name: "Bandung" },
       { "@type": "City", name: "Surabaya" },
       { "@type": "City", name: "Sidoarjo" },
       { "@type": "City", name: "Gresik" },
@@ -132,7 +137,7 @@ export function WebSiteJsonLd() {
     name: "Zheng Digital Lab",
     alternateName: "ZDL",
     url: SITE_URL,
-    description: "Jasa pembuatan website profesional terjamin & anti-scam di Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang.",
+    description: "Jasa pembuatan website profesional terjamin & anti-scam. Melayani Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang.",
     potentialAction: {
       "@type": "SearchAction",
       target: {

@@ -16,7 +16,12 @@ const footerLinks = [
 ];
 
 const cityLinks = [
+  { href: "/jasa-website-jakarta", label: "Jakarta" },
+  { href: "/jasa-website-depok", label: "Depok" },
+  { href: "/jasa-website-bogor", label: "Bogor" },
+  { href: "/jasa-website-bekasi", label: "Bekasi" },
   { href: "/jasa-website-tangerang", label: "Tangerang" },
+  { href: "/jasa-website-bandung", label: "Bandung" },
   { href: "/jasa-website-surabaya", label: "Surabaya" },
   { href: "/jasa-website-sidoarjo", label: "Sidoarjo" },
   { href: "/jasa-website-gresik", label: "Gresik" },
