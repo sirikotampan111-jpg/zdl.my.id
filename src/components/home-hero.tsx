@@ -5,15 +5,15 @@ import { useStore } from "@/store/use-store";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ExternalLink, Zap, Search, Globe, Smartphone } from "lucide-react";
+import { ArrowRight, ExternalLink, Zap, Search, Shield, MapPin } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/config";
 import { navigateTo } from "@/lib/navigation";
 
 const badges = [
+  { icon: Shield, label: "Anti-Scam" },
   { icon: Search, label: "SEO Friendly" },
-  { icon: Globe, label: "Domain Gratis" },
   { icon: Zap, label: "Next.js Performance" },
-  { icon: Smartphone, label: "Support Revisi" },
+  { icon: MapPin, label: "Tangerang · Surabaya · Bali" },
 ];
 
 const container = {
@@ -51,7 +51,8 @@ export function HomeHero() {
           {/* Badge */}
           <motion.div variants={item}>
             <Badge className="bg-gold/10 text-gold border-gold/20 px-4 py-1.5 text-sm">
-              🚀 Zheng Digital Lab - Website Profesional
+              <Shield className="w-4 h-4 mr-1" />
+              Zheng Digital Lab — Terjamin & Anti-Scam
             </Badge>
           </motion.div>
 
@@ -60,8 +61,8 @@ export function HomeHero() {
             variants={item}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight"
           >
-            Website Profesional yang{" "}
-            <span className="gold-gradient-text">Membantu Bisnis Anda Tumbuh</span>
+            Jasa Pembuatan Website{" "}
+            <span className="gold-gradient-text">Terjamin & Anti-Scam</span>
           </motion.h1>
 
           {/* Subheading */}
@@ -69,24 +70,13 @@ export function HomeHero() {
             variants={item}
             className="text-lg text-muted-foreground max-w-2xl mx-auto"
           >
-            Kami membantu UMKM, Properti, Kuliner, Pendidikan, dan berbagai bisnis
-            lainnya memiliki website modern yang cepat, profesional, dan siap bersaing
-            di Google.
+            Website profesional untuk bisnis Anda — dengan <strong>garansi uang kembali</strong> jika
+            tidak sesuai. Melayani Tangerang, Jabodetabek, Surabaya, Sidoarjo, Gresik, Solo,
+            Bali & Kupang. Zheng Digital Lab lahir agar Anda tidak pernah lagi ditipu web developer.
           </motion.p>
 
           {/* CTAs */}
           <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                navigateTo("portofolio", setCurrentPage, router);
-              }}
-              className="w-full sm:w-auto border-navy dark:border-white/20 text-foreground hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy"
-            >
-              Lihat Portofolio
-              <ArrowRight className="w-4 h-4" />
-            </Button>
             <Button
               size="lg"
               asChild
@@ -100,6 +90,17 @@ export function HomeHero() {
                 Konsultasi Gratis
                 <ExternalLink className="w-4 h-4" />
               </a>
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                navigateTo("portofolio", setCurrentPage, router);
+              }}
+              className="w-full sm:w-auto border-navy dark:border-white/20 text-foreground hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy"
+            >
+              Lihat Portofolio
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </motion.div>
 

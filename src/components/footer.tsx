@@ -10,7 +10,18 @@ const footerLinks = [
   { id: "home", label: "Home" },
   { id: "portofolio", label: "Portofolio" },
   { id: "layanan", label: "Layanan" },
+  { id: "tentang", label: "Tentang" },
   { id: "kontak", label: "Kontak" },
+];
+
+const cityLinks = [
+  { href: "/jasa-website-tangerang", label: "Tangerang" },
+  { href: "/jasa-website-surabaya", label: "Surabaya" },
+  { href: "/jasa-website-sidoarjo", label: "Sidoarjo" },
+  { href: "/jasa-website-gresik", label: "Gresik" },
+  { href: "/jasa-website-solo", label: "Solo" },
+  { href: "/jasa-website-bali", label: "Bali" },
+  { href: "/jasa-website-kupang", label: "Kupang" },
 ];
 
 export function Footer() {
@@ -24,7 +35,7 @@ export function Footer() {
   return (
     <footer className="bg-navy text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -40,9 +51,8 @@ export function Footer() {
               </span>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              Kami membantu UMKM, Properti, Kuliner, Pendidikan, dan berbagai
-              bisnis lainnya memiliki website modern yang cepat, profesional, dan
-              siap bersaing di Google.
+              Jasa pembuatan website profesional — terjamin, anti-scam, garansi uang kembali.
+              Lahir agar Anda tidak perlu lagi ditipu web developer.
             </p>
           </div>
 
@@ -58,6 +68,23 @@ export function Footer() {
                   >
                     {link.label}
                   </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* City Links */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-gold">Area Layanan</h3>
+            <ul className="space-y-2">
+              {cityLinks.map((city) => (
+                <li key={city.href}>
+                  <a
+                    href={city.href}
+                    className="text-gray-300 hover:text-gold transition-colors text-sm"
+                  >
+                    Jasa Website {city.label}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -98,7 +125,7 @@ export function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <p>&copy; {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
-          <p>Crafted with precision & passion</p>
+          <p>Terjamin · Anti-Scam · Garansi Uang Kembali</p>
         </div>
       </div>
     </footer>

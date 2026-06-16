@@ -43,6 +43,7 @@ const navLinks = [
   { id: "home", label: "Home" },
   { id: "portofolio", label: "Portofolio" },
   { id: "layanan", label: "Layanan" },
+  { id: "tentang", label: "Tentang" },
   { id: "kontak", label: "Kontak" },
 ];
 
@@ -75,6 +76,7 @@ export function Navbar() {
       home: "/",
       portofolio: "/portofolio",
       layanan: "/layanan",
+      tentang: "/tentang",
       kontak: "/kontak",
       keranjang: "/",
     };

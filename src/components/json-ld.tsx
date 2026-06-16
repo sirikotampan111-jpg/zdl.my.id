@@ -12,11 +12,11 @@ export function LocalBusinessJsonLd() {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     name: "Zheng Digital Lab",
-    alternateName: "ZDL",
+    alternateName: ["ZDL", "Zheng Digital Lab Tangerang", "Zheng Digital Lab Surabaya"],
     url: SITE_URL,
     logo: `${SITE_URL}/favicon.png`,
     description:
-      "Jasa pembuatan website profesional untuk UMKM, Properti, Kuliner, dan Pendidikan. Website modern, cepat, SEO-friendly, dengan domain & hosting included.",
+      "Jasa pembuatan website profesional terjamin & anti-scam. Melayani Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Garansi uang kembali.",
     telephone: `+62${WHATSAPP_NUMBER}`,
     address: {
       "@type": "PostalAddress",
@@ -31,10 +31,16 @@ export function LocalBusinessJsonLd() {
       latitude: -6.2582536,
       longitude: 106.5153282,
     },
-    areaServed: {
-      "@type": "Country",
-      name: "Indonesia",
-    },
+    areaServed: [
+      { "@type": "City", name: "Tangerang" },
+      { "@type": "AdministrativeArea", name: "Jabodetabek" },
+      { "@type": "City", name: "Surabaya" },
+      { "@type": "City", name: "Sidoarjo" },
+      { "@type": "City", name: "Gresik" },
+      { "@type": "City", name: "Solo" },
+      { "@type": "State", name: "Bali" },
+      { "@type": "City", name: "Kupang" },
+    ],
     priceRange: "Rp600K - Rp3M",
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
@@ -124,7 +130,9 @@ export function WebSiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Zheng Digital Lab",
+    alternateName: "ZDL",
     url: SITE_URL,
+    description: "Jasa pembuatan website profesional terjamin & anti-scam di Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang.",
     potentialAction: {
       "@type": "SearchAction",
       target: {

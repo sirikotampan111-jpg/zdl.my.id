@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useStore } from "@/store/use-store";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink, Shield } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/config";
 import { navigateTo } from "@/lib/navigation";
 
@@ -14,7 +14,6 @@ export function HomeCta() {
 
   return (
     <section className="py-20 relative overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-navy via-navy-light to-navy -z-10" />
       <div className="absolute inset-0 animated-grid z-[-5]" />
 
@@ -27,38 +26,39 @@ export function HomeCta() {
           className="text-center space-y-6"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
-            Siap Membuat Bisnis Anda{" "}
-            <span className="gold-gradient-text">Lebih Profesional</span>?
+            Jangan Sampai Bisnis Anda{" "}
+            <span className="gold-gradient-text">Ditipu Web Developer</span>
           </h2>
           <p className="text-gray-300 max-w-2xl mx-auto text-lg">
-            Mulai dari paket hemat hingga premium, semua kebutuhan website bisnis Anda
-            bisa kami wujudkan. Konsultasikan sekarang!
+            Zheng Digital Lab lahir agar Anda tidak perlu lagi khawatir ditipu. Garansi uang kembali,
+            proses transparan, DP ringan — semua risiko ada di kami, bukan di Anda.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               size="lg"
-              onClick={() => {
-                navigateTo("layanan", setCurrentPage, router);
-              }}
-              className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-navy font-semibold"
-            >
-              Pilih Paket Layanan
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
               asChild
-              className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
+              className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-navy font-semibold"
             >
               <a
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Hubungi Kami via WhatsApp
+                <Shield className="w-4 h-4" />
+                Konsultasi Gratis — Terjamin
                 <ExternalLink className="w-4 h-4" />
               </a>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                navigateTo("layanan", setCurrentPage, router);
+              }}
+              className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
+            >
+              Pilih Paket Layanan
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </motion.div>

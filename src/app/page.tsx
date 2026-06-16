@@ -12,6 +12,7 @@ import { HomeKeunggulan } from "@/components/home-keunggulan";
 import { HomeStatistik } from "@/components/home-statistik";
 import { HomePortofolioPreview } from "@/components/home-portofolio-preview";
 import { HomeTestimoni } from "@/components/home-testimoni";
+import { HomeGuarantee } from "@/components/home-guarantee";
 import { HomeCta } from "@/components/home-cta";
 import { PagePortofolio } from "@/components/page-portofolio";
 import { PageLayanan } from "@/components/page-layanan";
@@ -26,6 +27,7 @@ function HomePage() {
       <HomeStatistik />
       <HomePortofolioPreview />
       <HomeTestimoni />
+      <HomeGuarantee />
       <HomeCta />
     </>
   );

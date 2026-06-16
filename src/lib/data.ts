@@ -349,39 +349,39 @@ export const stats: StatItem[] = [
 export const keunggulanItems = [
   {
     icon: "Zap" as const,
-    title: "Website Cepat",
+    title: "Website Cepat & Modern",
     description:
-      "Website dibangun dengan teknologi terbaru untuk performa optimal dan loading super cepat.",
+      "Dibangun dengan teknologi terbaru (Next.js) untuk performa optimal. Loading super cepat agar pengunjung tidak kabur.",
   },
   {
     icon: "Search" as const,
-    title: "SEO Friendly",
+    title: "SEO Friendly — Halaman 1 Google",
     description:
-      "Optimasi mesin pencari agar website Anda mudah ditemukan di Google dan meningkatkan visibilitas.",
+      "Optimasi mesin pencari dari struktur, meta tag, hingga kecepatan. Website Anda mudah ditemukan calon pelanggan di Google.",
   },
   {
     icon: "Smartphone" as const,
     title: "Responsive Semua Device",
     description:
-      "Tampilan sempurna di desktop, tablet, dan smartphone. Pengalaman pengguna yang konsisten.",
+      "Tampilan sempurna di desktop, tablet, dan smartphone. 70%+ pengunjung dari HP — kami pastikan mereka nyaman.",
   },
   {
     icon: "Globe" as const,
     title: "Domain & Hosting Included",
     description:
-      "Tidak perlu repot cari domain dan hosting sendiri. Semua sudah termasuk dalam paket.",
+      "Tidak perlu repot cari domain dan hosting sendiri. Semua sudah termasuk dalam paket, siap online tanpa ribet.",
   },
   {
     icon: "Mail" as const,
     title: "Email Profesional",
     description:
-      "Dapatkan email bisnis dengan domain sendiri untuk meningkatkan kredibilitas perusahaan.",
+      "Dapatkan email bisnis dengan domain sendiri. Tingkatkan kredibilitas di mata pelanggan dan mitra bisnis Anda.",
   },
   {
     icon: "Headphones" as const,
-    title: "Support Setelah Website Jadi",
+    title: "Support Berkelanjutan",
     description:
-      "Kami tetap mendampingi Anda setelah website online. Support teknis dan revisi tersedia.",
+      "Kami tidak hilang setelah dibayar. Support teknis, konsultasi, dan bantuan tetap tersedia setelah website online.",
   },
 ];
 

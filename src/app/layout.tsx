@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id";
 const SITE_NAME = "Zheng Digital Lab";
 const SITE_DESCRIPTION =
-  "Kami membantu UMKM, Properti, Kuliner, Pendidikan memiliki website modern yang cepat, profesional, dan siap bersaing di Google.";
+  "Jasa pembuatan website profesional Tangerang, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Zheng Digital Lab — terjamin, anti-scam, garansi uang kembali. Website UMKM, Properti, Kuliner & Pendidikan.";
 
 // Guard: ensure SITE_URL is a valid URL for metadataBase
 function safeMetadataBase(url: string): URL | undefined {
@@ -34,24 +34,34 @@ function safeMetadataBase(url: string): URL | undefined {
 export const metadata: Metadata = {
   ...(safeMetadataBase(SITE_URL) ? { metadataBase: safeMetadataBase(SITE_URL) } : {}),
   title: {
-    default: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
+    default: "Jasa Pembuatan Website Profesional — Zheng Digital Lab | Terjamin & Anti-Scam",
     template: "%s | Zheng Digital Lab",
   },
   description: SITE_DESCRIPTION,
   keywords: [
-    "website profesional",
-    "jasa pembuatan website",
-    "Zheng Digital Lab",
+    "jasa pembuatan website Tangerang",
+    "jasa pembuatan website Surabaya",
+    "jasa pembuatan website Sidoarjo",
+    "jasa pembuatan website Gresik",
+    "jasa pembuatan website Solo",
+    "jasa pembuatan website Bali",
+    "jasa pembuatan website Kupang",
+    "jasa pembuatan website Jabodetabek",
+    "jasa website profesional",
+    "jasa website terpercaya",
     "website UMKM",
     "website properti",
     "website kuliner",
-    "Next.js website",
+    "website anti scam",
+    "website garansi uang kembali",
+    "Zheng Digital Lab",
     "ZDL",
-    "website bisnis",
     "jasa website murah",
     "website modern",
     "website siap SEO",
     "paket website Indonesia",
+    "web developer Tangerang",
+    "web developer Surabaya",
   ],
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,
@@ -74,7 +84,7 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
   },
   openGraph: {
-    title: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
+    title: "Jasa Pembuatan Website Profesional — Zheng Digital Lab | Terjamin & Anti-Scam",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
@@ -83,7 +93,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zheng Digital Lab - Website Profesional untuk Bisnis Anda",
+    title: "Jasa Pembuatan Website Profesional — Zheng Digital Lab | Terjamin & Anti-Scam",
     description: SITE_DESCRIPTION,
   },
   alternates: {
