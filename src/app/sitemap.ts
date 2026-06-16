@@ -13,13 +13,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/portofolio`,
+      url: `${baseUrl}/layanan`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/layanan`,
+      url: `${baseUrl}/portofolio`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
@@ -30,19 +30,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/dashboard`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.2,
-    },
   ];
+
+  // Note: /dashboard and /login are excluded because they are private pages
+  // that should not be indexed by search engines (noindex metadata is set).
 
   return staticPages;
 }

@@ -1,8 +1,14 @@
+# Robots.txt for Zheng Digital Lab (zdl.my.id)
+
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /api/
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +18,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://www.zdl.my.id/sitemap.xml
