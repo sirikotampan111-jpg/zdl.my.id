@@ -101,7 +101,7 @@ export function Navbar() {
           >
             <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
               <img
-                src="/logo-zdl.png"
+                src="/logo.png"
                 alt="Zheng Digital Lab"
                 className="w-full h-full object-contain"
               />
@@ -123,7 +123,7 @@ export function Navbar() {
                   "relative px-3.5 py-2 text-sm font-medium transition-colors rounded-md cursor-pointer",
                   currentPage === link.id
                     ? "text-gold"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-foreground/70 hover:text-foreground"
                 )}
               >
                 {link.label}
@@ -141,7 +141,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => handleNav("keranjang")}
-              className="relative text-muted-foreground hover:text-foreground"
+              className="relative text-foreground/70 hover:text-foreground"
             >
               <ShoppingCart className="size-[18px]" />
               <CartBadge />
@@ -153,7 +153,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-foreground/70 hover:text-foreground"
             >
               {mounted && theme === "dark" ? (
                 <Sun className="size-[18px]" />
@@ -216,7 +216,7 @@ export function Navbar() {
                   {/* Mobile brand */}
                   <div className="flex items-center gap-2 px-4 pb-4 mb-2 border-b border-border">
                     <div className="w-8 h-8 rounded flex items-center justify-center overflow-hidden">
-                      <img src="/logo-zdl.png" alt="Zheng Digital Lab" className="w-full h-full object-contain" />
+                      <img src="/logo.png" alt="Zheng Digital Lab" className="w-full h-full object-contain" />
                     </div>
                     <span className="heading-serif text-base text-foreground">Zheng Digital Lab</span>
                   </div>
@@ -228,7 +228,7 @@ export function Navbar() {
                         "flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                         currentPage === link.id
                           ? "bg-gold/8 text-gold"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-foreground/70 hover:bg-muted hover:text-foreground"
                       )}
                     >
                       {link.label}
@@ -241,7 +241,7 @@ export function Navbar() {
                         "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left cursor-pointer",
                         currentPage === "keranjang"
                           ? "bg-gold/8 text-gold"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-foreground/70 hover:bg-muted hover:text-foreground"
                       )}
                     >
                       <ShoppingCart className="w-4 h-4" /> Keranjang
@@ -251,7 +251,7 @@ export function Navbar() {
                       <>
                         <button
                           onClick={() => { setMobileOpen(false); router.push("/dashboard"); }}
-                          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium w-full text-left text-foreground/70 hover:bg-muted hover:text-foreground cursor-pointer"
                         >
                           <LayoutDashboard className="w-4 h-4" /> Dashboard
                         </button>

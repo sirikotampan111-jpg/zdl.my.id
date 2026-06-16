@@ -47,7 +47,7 @@ export function Footer() {
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
                 <img
-                  src="/logo-zdl.png"
+                  src="/logo.png"
                   alt="Zheng Digital Lab"
                   className="w-full h-full object-contain"
                 />
@@ -56,7 +56,7 @@ export function Footer() {
                 Zheng Digital Lab
               </span>
             </div>
-            <p className="text-background/50 text-sm leading-relaxed">
+            <p className="text-background/70 text-sm leading-relaxed">
               Jasa pembuatan website profesional — terjamin, anti-scam, garansi uang kembali.
               Lahir agar kamu tidak perlu lagi ditipu web developer.
             </p>
@@ -82,7 +82,7 @@ export function Footer() {
                 <li key={link.id}>
                   <button
                     onClick={() => handleNav(link.id)}
-                    className="text-background/50 hover:text-gold transition-colors text-sm cursor-pointer"
+                    className="text-background/70 hover:text-gold transition-colors text-sm cursor-pointer"
                   >
                     {link.label}
                   </button>
@@ -99,7 +99,7 @@ export function Footer() {
                 <li key={city.href}>
                   <a
                     href={city.href}
-                    className="text-background/50 hover:text-gold transition-colors text-sm"
+                    className="text-background/70 hover:text-gold transition-colors text-sm"
                   >
                     Jasa Website {city.label}
                   </a>
@@ -142,7 +142,7 @@ export function Footer() {
 
         <Separator className="my-10 bg-background/8" />
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-background/30">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-background/50">
           <p>&copy; {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
           <p>Terjamin &middot; Anti-Scam &middot; Garansi Uang Kembali</p>
         </div>

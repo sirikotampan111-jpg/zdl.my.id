@@ -14,7 +14,7 @@ import {
   Users,
   CheckCircle2,
   ExternalLink,
-  AlertTriangle,
+  Shield,
   Eye,
   MapPin,
 } from "lucide-react";
@@ -118,18 +118,17 @@ export function TentangPageClient() {
               className="max-w-3xl mx-auto text-center space-y-6"
             >
               <div className="zheng-badge mx-auto w-fit">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Lahir dari Kejadian Nyata
+                <Shield className="w-3.5 h-3.5" />
+                Standar Industri Baru
               </div>
 
               <h1 className="heading-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground leading-tight">
                 Temanku Ditipu Web Developer.{" "}
-                <span className="gold-gradient-text">Maka Zheng Digital Lab Lahir.</span>
+                <span className="gold-gradient-text">Zheng Digital Lab Dibangun di Atasnya.</span>
               </h1>
 
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Uang dibawa lari, website tidak jadi. Itu yang dialami teman pendiri kami.
-                Frustasi itu jadi alasan Zheng Digital Lab ada — supaya kamu tidak perlu alami hal yang sama.
+              <p className="text-lg text-foreground/70 max-w-2xl mx-auto leading-relaxed">
+                Industri web development membutuhkan standar yang lebih tinggi. Zheng Digital Lab hadir untuk memberikan jaminan transparansi, akuntabilitas, dan hasil yang terukur bagi setiap klien.
               </p>
             </motion.div>
           </div>
@@ -147,34 +146,33 @@ export function TentangPageClient() {
                 className="space-y-6"
               >
                 <h2 className="heading-serif text-3xl md:text-4xl text-foreground">
-                  Cerita di Balik <span className="gold-gradient-text">Zheng Digital Lab</span>
+                  Mengapa <span className="gold-gradient-text">Zheng Digital Lab</span> Berbeda
                 </h2>
 
-                <div className="space-y-5 text-muted-foreground leading-relaxed">
+                <div className="space-y-5 text-foreground/80 leading-relaxed">
                   <p>
-                    Semuanya bermula dari satu kejadian yang seharusnya tidak perlu terjadi. Seorang teman
-                    pendiri kami — seorang pemilik UMKM yang antusias ingin go digital — mempercayakan
-                    pembuatan website bisnisnya kepada seorang web developer. Uang sudah dibayar penuh di
-                    muka. Janji-janji manis diucapkan. Tapi minggu berganti minggu, website tidak kunjung
-                    jadi. Pesan tidak dibalas. Nomor tidak aktif. Uang hilang. Website pun tidak ada.
+                    Industri jasa pembuatan website di Indonesia memiliki tantangan serius: minimnya standar akuntabilitas. 
+                    Banyak pelaku usaha yang telah mengalami kerugian finansial akibat web developer yang tidak menepati komitmen. 
+                    Proyek terlambat tanpa kompensasi, harga yang berubah di tengah jalan, hingga komunikasi yang terputus 
+                    setelah pembayaran dilakukan — pola ini terjadi berulang dan merugikan seluruh ekosistem bisnis digital.
                   </p>
                   <p>
-                    Kami melihat sendiri betapa frustrasinya. Bukan soal uangnya — tapi soal kepercayaan
-                    yang dihianati. Bisnis yang sudah siap berkembang jadi terhambat. Semangat yang
-                    seharusnya dipakai untuk maju, jadi terpakai untuk kecewa. Dan yang paling menyakitkan:
-                    kejadian ini bukan kasus pertama, dan pasti bukan yang terakhir — kecuali ada yang berubah.
+                    Zheng Digital Lab hadir sebagai respons terhadap kondisi ini. Pendiri kami menyaksikan langsung 
+                    dampak dari ketiadaan standar industri yang jelas — sebuah pengalaman yang mendorong untuk membangun 
+                    perusahaan web development dengan pendekatan yang berbeda: berbasis jaminan, transparansi penuh, 
+                    dan akuntabilitas di setiap tahapan proses.
                   </p>
                   <p>
-                    Dari situlah <strong className="text-foreground">Zheng Digital Lab</strong> lahir.
-                    Bukan sekadar perusahaan web development, tapi sebuah gerakan untuk membuktikan bahwa
-                    masih ada web developer yang bisa dipercaya. Yang menepati janji. Yang transparan
-                    dalam proses. Yang memberikan garansi nyata — bukan sekadar kata-kata.
+                    <strong className="text-foreground">Zheng Digital Lab</strong> bukan sekadar penyedia jasa web development. 
+                    Kami adalah perusahaan yang menerapkan sistem garansi terukur — mulai dari garansi uang kembali 100%, 
+                    kompensasi keterlambatan, hingga DP ringan yang meminimalkan risiko bagi klien. Setiap proses dapat 
+                    dipantau secara real-time, dan setiap harga yang tertera adalah harga final tanpa biaya tersembunyi.
                   </p>
                   <p>
-                    Setiap website yang kami bangun adalah bukti bahwa kepercayaan tidak perlu dikhianati.
-                    Setiap klien yang puas adalah pembuktian bahwa industri ini bisa dilakukan dengan
-                    jujur. Dan setiap garansi yang kami berikan adalah peringatan bagi diri kami sendiri:
-                    tidak boleh gagal, karena ada orang-orang yang mempercayakan bisnisnya kepada kami.
+                    Dengan lebih dari 150 project yang telah diselesaikan dan zero kasus penipuan, kami membuktikan bahwa 
+                    industri web development dapat dijalankan dengan integritas. Setiap website yang kami bangun adalah 
+                    representasi komitmen kami terhadap kualitas, dan setiap garansi yang kami berikan adalah mekanisme 
+                    akuntabilitas yang menjamin kepuasan klien.
                   </p>
                 </div>
               </motion.div>
@@ -202,7 +200,7 @@ export function TentangPageClient() {
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
                 Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span> — Anti-Scam
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-foreground/70 max-w-2xl mx-auto">
                 Kami tidak cuma berjanji — kami memberikan jaminan nyata. Karena Zheng Digital Lab
                 lahir dari kejadian teman ditipu, anti-scam bukan sekadar fitur — ini DNA kami.
               </p>
@@ -225,7 +223,7 @@ export function TentangPageClient() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground mb-1.5">{g.title}</h3>
-                          <p className="text-muted-foreground text-sm leading-relaxed">{g.description}</p>
+                          <p className="text-foreground/70 text-sm leading-relaxed">{g.description}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -249,7 +247,7 @@ export function TentangPageClient() {
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
                 Melayani <span className="gold-gradient-text">12 Kota Besar</span> Indonesia
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-foreground/70 max-w-2xl mx-auto">
                 Dimanapun bisnis Anda berada, Zheng Digital Lab siap melayani dengan standar kualitas
                 yang sama — terjamin, anti-scam, dan profesional.
               </p>
@@ -272,7 +270,7 @@ export function TentangPageClient() {
                           <h3 className="font-semibold text-foreground group-hover:text-gold transition-colors text-sm">
                             {area.city}
                           </h3>
-                          <p className="text-muted-foreground text-xs mt-0.5">{area.desc}</p>
+                          <p className="text-foreground/60 text-xs mt-0.5">{area.desc}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -296,7 +294,7 @@ export function TentangPageClient() {
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
                 Perjalanan <span className="gold-gradient-text">Zheng Digital Lab</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-foreground/70 max-w-2xl mx-auto">
                 Dari kejadian pahit menjadi kepercayaan ratusan klien — setiap milestone adalah bukti
                 bahwa web developer terjamin itu bukan mitos.
               </p>
@@ -320,7 +318,7 @@ export function TentangPageClient() {
                   </div>
                   <div className="pb-6">
                     <span className="text-xs font-semibold text-gold uppercase tracking-wide">{m.year}</span>
-                    <p className="text-muted-foreground leading-relaxed mt-1">{m.event}</p>
+                    <p className="text-foreground/70 leading-relaxed mt-1">{m.event}</p>
                   </div>
                 </motion.div>
               ))}
@@ -342,7 +340,7 @@ export function TentangPageClient() {
                 Jangan Biarkan Bisnis Kamu{" "}
                 <span className="gold-gradient-text">Ditipu Lagi</span>
               </h2>
-              <p className="text-background/50 max-w-2xl mx-auto text-lg">
+              <p className="text-background/70 max-w-2xl mx-auto text-lg">
                 Zheng Digital Lab hadir supaya kamu tidak perlu lagi khawatir ditipu web developer.
                 Garansi uang kembali, proses transparan, hasil terjamin.
               </p>

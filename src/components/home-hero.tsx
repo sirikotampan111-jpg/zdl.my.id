@@ -27,7 +27,7 @@ export function HomeHero() {
       {/* Background image with overlay */}
       <div
         className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/bg-zdl.png')" }}
+        style={{ backgroundImage: "url('/background.png')" }}
       />
       {/* Light overlay so text stays readable */}
       <div className="absolute inset-0 -z-10 bg-cream/80" />
@@ -63,10 +63,10 @@ export function HomeHero() {
               </h1>
 
               {/* Subheading — more conversational */}
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Teman kami pernah ditipu web developer — uang dibawa lari, website tidak jadi.
-                Itu yang bikin <strong className="text-foreground">Zheng Digital Lab</strong> lahir.
-                Supaya kamu <span className="hand-underline">tidak perlu alami hal sama</span>.
+              <p className="text-lg md:text-xl text-foreground/80 max-w-xl leading-relaxed">
+                Kami memahami risiko mempercayakan website bisnis Anda kepada orang lain. 
+                <strong className="text-foreground">Zheng Digital Lab</strong> hadir sebagai solusi — 
+                jasa pembuatan website dengan <span className="hand-underline">garansi uang kembali</span> dan proses yang transparan.
               </p>
             </motion.div>
 
@@ -108,7 +108,7 @@ export function HomeHero() {
               {trustBadges.map((badge) => (
                 <div
                   key={badge}
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground"
+                  className="flex items-center gap-1.5 text-sm text-foreground/70"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-gold" />
                   {badge}
@@ -132,7 +132,7 @@ export function HomeHero() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground text-sm">Zheng Guarantee</p>
-                  <p className="text-xs text-muted-foreground">Garansi anti-scam sejak hari pertama</p>
+                  <p className="text-xs text-foreground/60">Garansi anti-scam sejak hari pertama</p>
                 </div>
               </div>
 
@@ -141,24 +141,24 @@ export function HomeHero() {
                 <div className="flex items-baseline gap-3">
                   <span className="heading-serif text-5xl md:text-6xl text-gold">150+</span>
                   <div>
-                    <span className="text-sm text-muted-foreground block">project selesai</span>
-                    <span className="text-xs text-muted-foreground/60">tanpa satu pun komplain</span>
+                    <span className="text-sm text-foreground/70 block">project selesai</span>
+                    <span className="text-xs text-foreground/50">tanpa satu pun komplain</span>
                   </div>
                 </div>
                 <div className="section-divider" />
                 <div className="flex items-baseline gap-3">
                   <span className="heading-serif text-5xl md:text-6xl text-gold">0</span>
                   <div>
-                    <span className="text-sm text-muted-foreground block">kasus penipuan</span>
-                    <span className="text-xs text-muted-foreground/60">bukan janji — ini fakta</span>
+                    <span className="text-sm text-foreground/70 block">kasus penipuan</span>
+                    <span className="text-xs text-foreground/50">bukan janji — ini fakta</span>
                   </div>
                 </div>
                 <div className="section-divider" />
                 <div className="flex items-baseline gap-3">
                   <span className="heading-serif text-5xl md:text-6xl text-gold">99%</span>
                   <div>
-                    <span className="text-sm text-muted-foreground block">klien puas</span>
-                    <span className="text-xs text-muted-foreground/60">rating dari feedback langsung</span>
+                    <span className="text-sm text-foreground/70 block">klien puas</span>
+                    <span className="text-xs text-foreground/50">rating dari feedback langsung</span>
                   </div>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export function HomeHero() {
                     <a
                       key={city}
                       href={`/jasa-website-${city.toLowerCase()}`}
-                      className="text-xs text-muted-foreground hover:text-gold transition-colors px-2 py-0.5 rounded bg-muted/60"
+                      className="text-xs text-foreground/60 hover:text-gold transition-colors px-2 py-0.5 rounded bg-muted/60"
                     >
                       {city}
                     </a>

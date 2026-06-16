@@ -18,7 +18,7 @@ export function LoadingScreen() {
       >
         <div className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden">
           <img
-            src="/logo-zdl.png"
+            src="/logo.png"
             alt="Zheng Digital Lab"
             className="w-full h-full object-contain"
           />

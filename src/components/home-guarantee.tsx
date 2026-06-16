@@ -37,8 +37,8 @@ export function HomeGuarantee() {
           <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
             Jaminan <span className="gold-gradient-text">Anti-Scam</span>
           </h2>
-          <p className="mt-4 text-muted-foreground max-w-lg leading-relaxed">
-            Zheng Digital Lab lahir karena teman kami ditipu web developer. Anti-scam bukan fitur marketing — ini alasan kami ada.
+          <p className="mt-4 text-foreground/70 max-w-lg leading-relaxed">
+            Zheng Digital Lab hadir untuk mengubah standar industri web development. Anti-scam bukan sekadar fitur — ini komitmen kami untuk transparansi dan akuntabilitas.
           </p>
         </motion.div>
 
@@ -59,7 +59,7 @@ export function HomeGuarantee() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-1.5">{g.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{g.desc}</p>
+                  <p className="text-sm text-foreground/70 leading-relaxed">{g.desc}</p>
                 </div>
               </div>
             </motion.div>
@@ -75,8 +75,8 @@ export function HomeGuarantee() {
           className="mt-12 pt-8 border-t border-border"
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <p className="text-muted-foreground text-sm">
-              Masih ragu? Konsultasi dulu gratis. Kami buktikan, bukan cuma janji.
+            <p className="text-foreground/70 text-sm">
+              Masih ragu? Konsultasi dulu gratis. Kami buktikan dengan hasil nyata, bukan sekadar janji.
             </p>
             <Button
               size="sm"
