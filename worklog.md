@@ -128,3 +128,31 @@ Stage Summary:
 - 8 new fallback patterns added (total 24 patterns now)
 - System prompt expanded from 6 lines to 75+ lines with structured technical knowledge
 - Pushed to production via GitHub → Vercel auto-deploy
+
+---
+Task ID: 2
+Agent: Super Z (main)
+Task: Edit Zheng Guarantee section — replace card 1 with "Garansi Website Terindex", add images to cards, improve typography readability
+
+Work Log:
+- Cloned repo https://github.com/sirikotampan111-jpg/zdl.my.id
+- Located the guarantee component: src/components/home-guarantee.tsx
+- Generated 6 themed illustration PNGs (1024x1024) via z-ai image CLI, saved to public/images/guarantees/
+  - terindex.png, transparan.png, tepat-waktu.png, dp-ringan.png, tanpa-biaya.png, anti-scam.png
+  - All use consistent gold/cream palette to match brand identity
+- Rewrote home-guarantee.tsx:
+  - Card 1 content changed from "Garansi Uang Kembali" → "Garansi Website Terindex" with desc about Google Search Console integration
+  - Added next/image at top of each card with 4/3 aspect ratio, gold-tinted gradient background fallback
+  - Card layout: image on top, then icon + title (sans-serif bold), then description
+  - Typography fixes for readability:
+    * Card titles now use font-sans (Geist Sans) bold, tighter tracking, larger size (1.05rem)
+    * Description text bumped from text-sm to md:text-[0.95rem] with /75 opacity (was /70)
+    * Section intro paragraph bumped to text-base/md:text-[1.05rem] with /80 opacity (was /70)
+    * Card border radius increased to rounded-2xl for softer feel
+    * Hover effect: scale image 1.03 + border-gold/40 + shadow-warm
+
+Stage Summary:
+- 6 guarantee cards now have visual illustrations on top (image + icon + text)
+- Card 1 content reflects user's request: Garansi Website Terindex (Google Search Console integration)
+- Typography readability improved across heading, body, and card content
+- Ready to commit & push to main branch
