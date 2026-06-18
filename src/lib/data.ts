@@ -101,6 +101,37 @@ export const portfolios: PortfolioItem[] = [
     description: "Restoran bebek bumbu hitam premium di Sidoarjo, Jawa Timur. Dine in, delivery, catering, dan franchise tersedia.",
     livePreview: true,
   },
+  {
+    id: "pawonbhoga-id",
+    domain: "pawonbhoga.id",
+    category: "Kuliner",
+    gradient: "from-orange-500 to-red-500",
+    image: "/portfolio/pawonbhoga-id.png",
+    url: "https://pawonbhoga.id",
+    description: "Website usaha kuliner Pawon Bhoga — brand masakan tradisional dengan menu online, galeri, dan pemesanan mudah.",
+    livePreview: true,
+  },
+  {
+    id: "pawonbhoga-com",
+    domain: "pawonbhoga.com",
+    category: "Kuliner",
+    gradient: "from-amber-500 to-rose-500",
+    image: "/portfolio/pawonbhoga-com.png",
+    url: "https://pawonbhoga.com",
+    description: "Pawon Bhoga — portal kuliner dengan katalog menu, info catering, dan kontak pemesanan yang modern dan ringkas.",
+    livePreview: true,
+  },
+  // Properti tambahan
+  {
+    id: "genesisxproperty",
+    domain: "genesisxproperty.com",
+    category: "Properti",
+    gradient: "from-slate-700 to-emerald-600",
+    image: "/portfolio/genesisxproperty.png",
+    url: "https://genesisxproperty.com",
+    description: "Website agen properti Genesis X Property — listing rumah, tanah, dan investasi properti dengan filter pencarian & detail listing lengkap.",
+    livePreview: true,
+  },
   // Bisnis & Edukasi
   {
     id: "bimbelstarlish",

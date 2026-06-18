@@ -156,3 +156,26 @@ Stage Summary:
 - Card 1 content reflects user's request: Garansi Website Terindex (Google Search Console integration)
 - Typography readability improved across heading, body, and card content
 - Ready to commit & push to main branch
+
+---
+Task ID: 3
+Agent: Super Z (main)
+Task: Tambah 3 portfolio baru — pawonbhoga.id, pawonbhoga.com, genesisxproperty.com
+
+Work Log:
+- Baca struktur portfolio di src/lib/data.ts (PortfolioItem interface + portfolios array)
+- Tambah 3 entry portfolio baru:
+  - pawonbhoga-id (Kuliner) — url https://pawonbhoga.id
+  - pawonbhoga-com (Kuliner) — url https://pawonbhoga.com
+  - genesisxproperty (Properti) — url https://genesisxproperty.com
+- Set livePreview: true untuk semua 3 entry (modal akan tampilkan iframe live)
+- Update CSP frame-src di next.config.ts: tambahkan 6 hostname baru (3 domain + masing-masing www variant)
+  untuk mengizinkan iframe live preview di PortfolioModal
+- Verifikasi: home-portofolio-preview.tsx pakai portfolios.slice(0,6) — tidak terpengaruh karena entry baru
+  disisipkan di tengah array (index 6-8), sehingga 6 featured di home tetap sama
+- Verifikasi: city pages pakai inline portfolio list (terpisah) — tidak tersentuh
+
+Stage Summary:
+- Halaman /portofolio sekarang menampilkan 11 portfolio (sebelumnya 8)
+- 3 portfolio baru dapat live preview via image.thum.io + iframe di modal
+- CSP sudah diupdate, tidak akan ada error "Refused to frame" untuk domain baru
