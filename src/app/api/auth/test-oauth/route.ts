@@ -10,7 +10,7 @@ export async function GET() {
   // 1. Check NEXTAUTH_URL consistency
   const nextauthUrl = process.env.NEXTAUTH_URL;
   results.nextauthUrl = nextauthUrl || "(not set)";
-  results.nextauthUrlCorrect = nextauthUrl === "https://www.zdl.my.id";
+  results.nextauthUrlCorrect = nextauthUrl === "https://www.zds.asia";
 
   // 2. Check Google OAuth credentials
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -33,7 +33,7 @@ export async function GET() {
     : "OK";
 
   // 4. Check redirect URI that would be sent to Google
-  const baseUrl = (nextauthUrl || "https://www.zdl.my.id").replace(/\/+$/, "");
+  const baseUrl = (nextauthUrl || "https://www.zds.asia").replace(/\/+$/, "");
   const redirectUri = `${baseUrl}/api/auth/callback/google`;
   results.redirectUri = redirectUri;
   results.redirectUriNote = "This MUST match the Authorized redirect URIs in Google Cloud Console";

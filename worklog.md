@@ -118,7 +118,7 @@ Work Log:
   - Ads/marketing → Google/Meta ads strategy
   - Local SEO → Google Business Profile + NAP
 - Changed chatbot identity from sales assistant to technical consultant
-- New communication guidelines: educate first, offer ZDL services if relevant
+- New communication guidelines: educate first, offer ZDS services if relevant
 - Instructed to never reveal it's an AI/chatbot
 - Build passes, committed and pushed to production
 
@@ -135,7 +135,7 @@ Agent: Super Z (main)
 Task: Edit Zheng Guarantee section — replace card 1 with "Garansi Website Terindex", add images to cards, improve typography readability
 
 Work Log:
-- Cloned repo https://github.com/sirikotampan111-jpg/zdl.my.id
+- Cloned repo https://github.com/sirikotampan111-jpg/zds.asia
 - Located the guarantee component: src/components/home-guarantee.tsx
 - Generated 6 themed illustration PNGs (1024x1024) via z-ai image CLI, saved to public/images/guarantees/
   - terindex.png, transparan.png, tepat-waktu.png, dp-ringan.png, tanpa-biaya.png, anti-scam.png
@@ -179,3 +179,47 @@ Stage Summary:
 - Halaman /portofolio sekarang menampilkan 11 portfolio (sebelumnya 8)
 - 3 portfolio baru dapat live preview via image.thum.io + iframe di modal
 - CSP sudah diupdate, tidak akan ada error "Refused to frame" untuk domain baru
+
+---
+Task ID: 4
+Agent: Super Z (main)
+Task: Rebranding menyeluruh — ZDL → ZDS, zdl.my.id → zds.asia, Zheng Digital Lab → Zheng Digital Studio
+
+Work Log:
+- Clone repo pakai GitHub PAT
+- Tulis Python script (/home/z/my-project/scripts/rebrand_zdl_to_zds.py) untuk global find-and-replace:
+  * www.zdl.my.id  → www.zds.asia
+  * zdl.my.id      → zds.asia
+  * Zheng Digital Lab / zheng digital lab / ZHENG DIGITAL LAB → Zheng Digital Studio (semua case variant)
+  * Word-boundary ZDL → ZDS, zdl → zds
+  * zdl-v1 → zds-v1 (PWA cache name di sw.js)
+  * zdl123 → zds123 (default admin password di api/admin/setup/route.ts)
+- Skip: .git/, node_modules/, skills/ (false positives di base64 image data), bun.lock, package-lock.json, binary files
+- Rename file & folder yang namanya pakai "zdl":
+  * public/images/portfolio/zdl-home.png → zds-home.png
+  * upload/zdl.my.id-main.zip → upload/zds.asia-main.zip
+  * upload/zdl-repo/ → upload/zds-repo/
+  * upload/zds-repo/zdl.my.id-main/ → upload/zds-repo/zds.asia-main/
+  * upload/zds-repo/zds.asia-main/download/zdl-security-hardened.zip → zds-security-hardened.zip
+  * upload/zds-repo/zds.asia-main/public/images/portfolio/zdl-home.png → zds-home.png
+- Verify: 0 referensi "zdl", "ZDL", "Zheng Digital Lab" tersisa di source code (case-insensitive word-boundary)
+- Total: 73 file diubah (258 insertions, 258 deletions), 153 file direname
+
+Stage Summary:
+- Semua branding "ZDL / zdl.my.id / Zheng Digital Lab" berhasil diganti menjadi "ZDS / zds.asia / Zheng Digital Studio" di seluruh repo
+- File konfigurasi dasar (CNAME, robots.txt, sitemap.xml, index.html, README.md, manifest.json, layout.tsx, config.ts) sudah pakai zds.asia
+- Code changes mencakup: API routes (auth, chat, midtrans, orders, admin setup), NextAuth URL normalization logic, 12 city landing pages, page components (footer, navbar, kontak, layanan, tentang, portofolio, dashboard, checkout, chatbot, cart-sync), chatbot SYSTEM_PROMPT, fallback rules, JSON-LD
+- PWA service worker cache name di-update (zdl-v1 → zds-v1) — next deploy akan otomatis invalidate cache lama
+- Default admin password di-update (zdl123 → zds123) — perlu re-setup demo data via /api/admin/setup
+
+Tindakan manual yang HARUS dilakukan user setelah push:
+1. Rename GitHub repo: Settings → Repository name dari "zdl.my.id" → "zds.asia" (opsional tapi recommended)
+2. Update Vercel env vars:
+   - NEXTAUTH_URL = https://www.zds.asia
+   - NEXT_PUBLIC_SITE_URL = https://www.zds.asia
+3. Update Google Cloud Console OAuth 2.0 redirect URIs:
+   - https://www.zds.asia/api/auth/callback/google
+   - https://zds.asia/api/auth/callback/google
+4. Setup DNS zds.asia → Vercel (A record / CNAME)
+5. Update Google Business Profile name jika ada
+6. Revoke GitHub PAT yang dipakai untuk task ini (sudah terekspos di chat)

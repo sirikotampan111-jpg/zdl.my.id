@@ -65,7 +65,7 @@ export function HomeStatistik() {
             <span className="text-xs font-semibold text-gold tracking-widest uppercase">Statistik</span>
           </div>
           <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
-            Zheng Digital Lab dalam <span className="text-gold">Angka</span>
+            Zheng Digital Studio dalam <span className="text-gold">Angka</span>
           </h2>
         </motion.div>
 

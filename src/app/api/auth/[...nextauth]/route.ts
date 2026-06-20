@@ -1,24 +1,24 @@
 // ─── NEXTAUTH_URL FIX ─────────────────────────────────────────────────────────
 // MUST be set BEFORE importing NextAuth.
-// Vercel redirects zdl.my.id → www.zdl.my.id (307), so the NEXTAUTH_URL
+// Vercel redirects zds.asia → www.zds.asia (307), so the NEXTAUTH_URL
 // must match the actual domain users end up on.
 const rawUrl = process.env.NEXTAUTH_URL || "";
 if (
   !rawUrl ||
   rawUrl.includes("vercel.app") ||
   rawUrl.endsWith("/") ||
-  rawUrl === "https://zdl.my.id" ||
-  rawUrl === "http://zdl.my.id"
+  rawUrl === "https://zds.asia" ||
+  rawUrl === "http://zds.asia"
 ) {
-  process.env.NEXTAUTH_URL = "https://www.zdl.my.id";
+  process.env.NEXTAUTH_URL = "https://www.zds.asia";
 }
 
 if (
   !process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL === "https://zdl.my.id" ||
-  process.env.NEXT_PUBLIC_SITE_URL === "http://zdl.my.id"
+  process.env.NEXT_PUBLIC_SITE_URL === "https://zds.asia" ||
+  process.env.NEXT_PUBLIC_SITE_URL === "http://zds.asia"
 ) {
-  process.env.NEXT_PUBLIC_SITE_URL = "https://www.zdl.my.id";
+  process.env.NEXT_PUBLIC_SITE_URL = "https://www.zds.asia";
 }
 
 import NextAuth from "next-auth";

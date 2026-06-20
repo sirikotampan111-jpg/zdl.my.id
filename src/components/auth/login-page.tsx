@@ -176,7 +176,7 @@ export function LoginPage() {
         <Card className="border-gold/20">
           <CardHeader className="text-center">
             <div className="mx-auto w-14 h-14 bg-gold/10 rounded-2xl flex items-center justify-center mb-3">
-              <img src="/favicon.png" alt="ZDL" className="w-8 h-8 object-contain" />
+              <img src="/favicon.png" alt="ZDS" className="w-8 h-8 object-contain" />
             </div>
             <CardTitle className="text-2xl">
               {isLogin ? "Masuk ke Akun" : "Daftar Akun Baru"}

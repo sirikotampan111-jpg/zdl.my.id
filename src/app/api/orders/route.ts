@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
     const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    const orderId = `ZDL-${year}${month}${day}-${random}`;
+    const orderId = `ZDS-${year}${month}${day}-${random}`;
 
     const order = await db.order.create({
       data: {

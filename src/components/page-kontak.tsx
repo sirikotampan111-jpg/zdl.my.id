@@ -81,7 +81,7 @@ export function PageKontak() {
     const safeSubjek = sanitizeForWhatsApp(subjek);
     const safePesan = sanitizeForWhatsApp(pesan);
 
-    const message = `Halo Zheng Digital Lab,
+    const message = `Halo Zheng Digital Studio,
 
 Nama: ${safeNama}
 Email: ${safeEmail}
@@ -238,7 +238,7 @@ Mohon informasi lebih lanjut. Terima kasih.`;
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Lokasi Zheng Digital Lab"
+                title="Lokasi Zheng Digital Studio"
                 className="w-full"
               />
             </Card>

@@ -48,12 +48,12 @@ export function Footer() {
               <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
                 <img
                   src="/logo.png"
-                  alt="Zheng Digital Lab"
+                  alt="Zheng Digital Studio"
                   className="w-full h-full object-contain"
                 />
               </div>
               <span className="heading-serif text-lg">
-                Zheng Digital Lab
+                Zheng Digital Studio
               </span>
             </div>
             <p className="text-background/70 text-sm leading-relaxed">

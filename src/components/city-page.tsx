@@ -139,7 +139,7 @@ export function CityPageClient({ city, region, description, longDescription, por
                 className="space-y-5"
               >
                 <h2 className="heading-serif text-3xl md:text-4xl text-foreground">
-                  Mengapa Pilih Zheng Digital Lab di{" "}
+                  Mengapa Pilih Zheng Digital Studio di{" "}
                   <span className="gold-gradient-text">{city}</span>?
                 </h2>
                 <div className="text-muted-foreground leading-relaxed space-y-4">
@@ -168,7 +168,7 @@ export function CityPageClient({ city, region, description, longDescription, por
                   <span className="text-xs font-semibold text-gold tracking-widest uppercase">Portofolio</span>
                 </div>
                 <h2 className="heading-serif text-3xl md:text-4xl text-foreground">
-                  Klien Zheng Digital Lab di <span className="gold-gradient-text">{city}</span>
+                  Klien Zheng Digital Studio di <span className="gold-gradient-text">{city}</span>
                 </h2>
                 <p className="mt-3 text-muted-foreground max-w-lg">
                   Beberapa website yang telah kami bangun untuk bisnis di {city} dan sekitarnya.
@@ -215,7 +215,7 @@ export function CityPageClient({ city, region, description, longDescription, por
                 Zheng Guarantee
               </div>
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
-                Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span>
+                Jaminan <span className="gold-gradient-text">Zheng Digital Studio</span>
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Jasa website di {city} yang terjamin, anti-scam, dan berani kasih garansi uang kembali.

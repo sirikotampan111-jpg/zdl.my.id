@@ -54,7 +54,7 @@ export function CartSync() {
               useStore.setState({ cart: data.items });
               // Also update localStorage
               try {
-                localStorage.setItem("zdl-cart", JSON.stringify(data.items));
+                localStorage.setItem("zds-cart", JSON.stringify(data.items));
               } catch {
                 // ignore
               }
@@ -71,7 +71,7 @@ export function CartSync() {
             if (data.items && data.items.length > 0) {
               useStore.setState({ cart: data.items });
               try {
-                localStorage.setItem("zdl-cart", JSON.stringify(data.items));
+                localStorage.setItem("zds-cart", JSON.stringify(data.items));
               } catch {
                 // ignore
               }

@@ -52,7 +52,7 @@ function generateWhatsAppLink(packageName: string, price: number, category: stri
     ? `\nDP Minimal: ${formatPrice(DP_MINIMAL)}`
     : "";
 
-  const message = `Halo Zheng Digital Lab,
+  const message = `Halo Zheng Digital Studio,
 
 Saya tertarik dengan layanan website.
 

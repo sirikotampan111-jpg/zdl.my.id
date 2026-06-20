@@ -87,7 +87,7 @@ const serviceAreas = [
 ];
 
 const milestones = [
-  { year: "2019", event: "Zheng Digital Lab resmi didirikan dengan fokus menyediakan layanan web development yang transparan dan dapat dipertanggungjawabkan" },
+  { year: "2019", event: "Zheng Digital Studio resmi didirikan dengan fokus menyediakan layanan web development yang transparan dan dapat dipertanggungjawabkan" },
   { year: "2020", event: "Melayani klien pertama dari sektor properti — Livia Real Estate, menjadi titik awal ekspansi ke sektor industri lainnya" },
   { year: "2021", event: "Ekspansi ke 4 sektor utama: Properti, Interior, Kuliner, dan Pendidikan. Lebih dari 50 website berhasil diluncurkan tanpa komplain" },
   { year: "2022", event: "Meningkatkan standar teknologi dengan adopsi Next.js — performa website klien meningkat hingga 3x lipat" },
@@ -126,7 +126,7 @@ export function TentangPageClient() {
               </h1>
 
               <p className="text-lg text-foreground/70 max-w-2xl mx-auto leading-relaxed">
-                Zheng Digital Lab adalah perusahaan web development yang berkomitmen
+                Zheng Digital Studio adalah perusahaan web development yang berkomitmen
                 memberikan kepastian bagi setiap klien melalui sistem garansi terukur,
                 proses transparan, dan akuntabilitas penuh di setiap tahapan pekerjaan.
               </p>
@@ -146,7 +146,7 @@ export function TentangPageClient() {
                 className="space-y-6"
               >
                 <h2 className="heading-serif text-3xl md:text-4xl text-foreground">
-                  Mengapa <span className="gold-gradient-text">Zheng Digital Lab</span> Ada
+                  Mengapa <span className="gold-gradient-text">Zheng Digital Studio</span> Ada
                 </h2>
 
                 <div className="space-y-5 text-foreground/80 leading-relaxed">
@@ -160,7 +160,7 @@ export function TentangPageClient() {
                     terhadap jasa web development secara umum.
                   </p>
                   <p>
-                    Zheng Digital Lab lahir untuk menjawab kebutuhan tersebut. Didirikan
+                    Zheng Digital Studio lahir untuk menjawab kebutuhan tersebut. Didirikan
                     pada tahun 2019, perusahaan kami dibangun dengan prinsip yang sederhana
                     namun konsisten: setiap pekerjaan harus didukung oleh kontrak yang
                     jelas, garansi yang terukur, dan transparansi penuh dari awal hingga
@@ -169,7 +169,7 @@ export function TentangPageClient() {
                     diverifikasi.
                   </p>
                   <p>
-                    <strong className="text-foreground">Zheng Digital Lab</strong> menerapkan
+                    <strong className="text-foreground">Zheng Digital Studio</strong> menerapkan
                     beberapa mekanisme jaminan inti yang membedakan kami dari penyedia jasa
                     web development pada umumnya. Pertama, garansi uang kembali 100% apabila
                     hasil tidak sesuai dengan yang disepakati. Kedua, sistem kompensasi
@@ -209,7 +209,7 @@ export function TentangPageClient() {
                 Zheng Guarantee
               </div>
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
-                Sistem Jaminan <span className="gold-gradient-text">Zheng Digital Lab</span>
+                Sistem Jaminan <span className="gold-gradient-text">Zheng Digital Studio</span>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
                 Setiap jaminan yang kami berikan tertulis dalam kontrak kerja sama.
@@ -260,7 +260,7 @@ export function TentangPageClient() {
                 Melayani <span className="gold-gradient-text">12 Kota Besar</span> Indonesia
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Dimanapun bisnis Anda berada, Zheng Digital Lab siap melayani dengan
+                Dimanapun bisnis Anda berada, Zheng Digital Studio siap melayani dengan
                 standar kualitas yang sama — terjamin, transparan, dan profesional.
               </p>
             </motion.div>
@@ -304,7 +304,7 @@ export function TentangPageClient() {
               className="text-center mb-14"
             >
               <h2 className="heading-serif text-3xl md:text-4xl text-foreground mb-4">
-                Perjalanan <span className="gold-gradient-text">Zheng Digital Lab</span>
+                Perjalanan <span className="gold-gradient-text">Zheng Digital Studio</span>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
                 Enam tahun pengalaman, lebih dari 150 project selesai, nol kasus penipuan.
@@ -350,7 +350,7 @@ export function TentangPageClient() {
             >
               <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-background leading-tight">
                 Mulai Kerja Sama dengan{" "}
-                <span className="gold-gradient-text">Zheng Digital Lab</span>
+                <span className="gold-gradient-text">Zheng Digital Studio</span>
               </h2>
               <p className="text-background/70 max-w-2xl mx-auto text-lg">
                 Konsultasikan kebutuhan website bisnis Anda tanpa biaya. Tim kami siap

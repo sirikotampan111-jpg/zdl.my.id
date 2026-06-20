@@ -82,7 +82,7 @@ export async function GET() {
     }
 
     const superAdminEmail = process.env.SUPER_ADMIN_EMAILS?.split(",")[0]?.trim() || "sirikotampan111@gmail.com";
-    const hashedPassword = await bcrypt.hash("zdl123", 12);
+    const hashedPassword = await bcrypt.hash("zds123", 12);
 
     // Create super admin
     const admin = await db.user.create({
@@ -112,7 +112,7 @@ export async function GET() {
     // Create demo orders
     const order1 = await db.order.create({
       data: {
-        orderId: "ZDL-20240101-0001",
+        orderId: "ZDS-20240101-0001",
         userId: customer.id,
         packageName: "Landing Page Next.js",
         packageCategory: "nextjs",
@@ -133,7 +133,7 @@ export async function GET() {
 
     const order2 = await db.order.create({
       data: {
-        orderId: "ZDL-20240102-0002",
+        orderId: "ZDS-20240102-0002",
         userId: customer.id,
         packageName: "Website HTML 3 Halaman",
         packageCategory: "html",
@@ -181,7 +181,7 @@ export async function GET() {
     return NextResponse.json({
       message: "Demo data berhasil dibuat!",
       credentials: {
-        superAdmin: { email: superAdminEmail, password: "zdl123" },
+        superAdmin: { email: superAdminEmail, password: "zds123" },
         customer: { email: "customer@demo.com", password: "customer123" },
       },
     });

@@ -18,7 +18,7 @@ export function Chatbot() {
     {
       role: "assistant",
       content:
-        "Halo! 👋 Saya asisten virtual ZDL. Ada yang bisa saya bantu? Tanyakan tentang layanan website, harga, atau cara memesan!",
+        "Halo! 👋 Saya asisten virtual ZDS. Ada yang bisa saya bantu? Tanyakan tentang layanan website, harga, atau cara memesan!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -111,7 +111,7 @@ export function Chatbot() {
                   <Bot className="w-4 h-4 text-gold" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">ZDL Assistant</p>
+                  <p className="font-semibold text-sm">ZDS Assistant</p>
                   <p className="text-[10px] text-white/60">Online</p>
                 </div>
               </div>

@@ -25,7 +25,7 @@ interface StoreState {
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const saved = localStorage.getItem("zdl-cart");
+    const saved = localStorage.getItem("zds-cart");
     return saved ? JSON.parse(saved) : [];
   } catch {
     return [];
@@ -35,7 +35,7 @@ function loadCart(): CartItem[] {
 function saveCart(cart: CartItem[]) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("zdl-cart", JSON.stringify(cart));
+    localStorage.setItem("zds-cart", JSON.stringify(cart));
   } catch {
     // ignore
   }

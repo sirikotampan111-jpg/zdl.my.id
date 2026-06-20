@@ -6,9 +6,9 @@ import { db } from "@/lib/db";
 
 // ─── NEXTAUTH_URL normalization ────────────────────────────────────────────────
 // Ensure NEXTAUTH_URL is always correct, even if env var is misconfigured
-// IMPORTANT: Vercel redirects zdl.my.id → www.zdl.my.id (307)
+// IMPORTANT: Vercel redirects zds.asia → www.zds.asia (307)
 // The OAuth redirect URI must match the ACTUAL domain users end up on
-const CORRECT_URL = "https://www.zdl.my.id";
+const CORRECT_URL = "https://www.zds.asia";
 
 function getNormalizedNextAuthUrl(): string {
   let url = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || CORRECT_URL;
@@ -21,8 +21,8 @@ function getNormalizedNextAuthUrl(): string {
     url = url.replace("http://", "https://");
   }
 
-  // Force www for zdl.my.id (Vercel redirects to www)
-  if (url === "https://zdl.my.id" || url === "http://zdl.my.id") {
+  // Force www for zds.asia (Vercel redirects to www)
+  if (url === "https://zds.asia" || url === "http://zds.asia") {
     url = CORRECT_URL;
   }
 
@@ -35,8 +35,8 @@ const needsOverride =
   !currentUrl ||
   currentUrl.includes("vercel.app") ||
   currentUrl.endsWith("/") ||
-  currentUrl === "https://zdl.my.id" ||
-  currentUrl === "http://zdl.my.id";
+  currentUrl === "https://zds.asia" ||
+  currentUrl === "http://zds.asia";
 
 if (needsOverride) {
   process.env.NEXTAUTH_URL = getNormalizedNextAuthUrl();
@@ -45,8 +45,8 @@ if (needsOverride) {
 // Also fix NEXT_PUBLIC_SITE_URL for consistency
 if (
   !process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL === "https://zdl.my.id" ||
-  process.env.NEXT_PUBLIC_SITE_URL === "http://zdl.my.id"
+  process.env.NEXT_PUBLIC_SITE_URL === "https://zds.asia" ||
+  process.env.NEXT_PUBLIC_SITE_URL === "http://zds.asia"
 ) {
   process.env.NEXT_PUBLIC_SITE_URL = CORRECT_URL;
 }

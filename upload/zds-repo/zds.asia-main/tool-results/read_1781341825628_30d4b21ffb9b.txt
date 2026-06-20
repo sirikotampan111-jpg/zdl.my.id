@@ -1,0 +1,1814 @@
+     1→"use client";
+     2→
+     3→import { useState, useEffect, useCallback } from "react";
+     4→import { useSession } from "next-auth/react";
+     5→import { useRouter } from "next/navigation";
+     6→import { motion } from "framer-motion";
+     7→import { formatPrice, projectStages } from "@/lib/data";
+     8→import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     9→import { Badge } from "@/components/ui/badge";
+    10→import { Button } from "@/components/ui/button";
+    11→import {
+    12→  Tabs,
+    13→  TabsContent,
+    14→  TabsList,
+    15→  TabsTrigger,
+    16→} from "@/components/ui/tabs";
+    17→import { Input } from "@/components/ui/input";
+    18→import { Label } from "@/components/ui/label";
+    19→import {
+    20→  Dialog,
+    21→  DialogContent,
+    22→  DialogDescription,
+    23→  DialogFooter,
+    24→  DialogHeader,
+    25→  DialogTitle,
+    26→} from "@/components/ui/dialog";
+    27→import {
+    28→  Select,
+    29→  SelectContent,
+    30→  SelectItem,
+    31→  SelectTrigger,
+    32→  SelectValue,
+    33→} from "@/components/ui/select";
+    34→import {
+    35→  ArrowLeft,
+    36→  Package,
+    37→  Clock,
+    38→  CheckCircle2,
+    39→  XCircle,
+    40→  AlertCircle,
+    41→  CreditCard,
+    42→  Loader2,
+    43→  Eye,
+    44→  User,
+    45→  Calendar,
+    46→  MessageCircle,
+    47→  FolderKanban,
+    48→  Shield,
+    49→  Users,
+    50→  Crown,
+    51→  Trash2,
+    52→  Edit3,
+    53→  Plus,
+    54→  Search,
+    55→  BarChart3,
+    56→  ChevronDown,
+    57→  ChevronUp,
+    58→} from "lucide-react";
+    59→import { toast } from "sonner";
+    60→
+    61→// ============================================================
+    62→// Interfaces
+    63→// ============================================================
+    64→
+    65→interface Transaction {
+    66→  id: string;
+    67→  transactionId: string | null;
+    68→  transactionStatus: string | null;
+    69→  paymentType: string | null;
+    70→  grossAmount: number | null;
+    71→  createdAt: string;
+    72→}
+    73→
+    74→interface Milestone {
+    75→  id: string;
+    76→  title: string;
+    77→  status: string;
+    78→  notes: string | null;
+    79→  completedAt: string | null;
+    80→}
+    81→
+    82→interface Project {
+    83→  id: string;
+    84→  orderId: string;
+    85→  projectName: string;
+    86→  packageCategory: string;
+    87→  status: string;
+    88→  progress: number;
+    89→  notes: string | null;
+    90→  liveUrl: string | null;
+    91→  startedAt: string;
+    92→  estimatedDone: string | null;
+    93→  completedAt: string | null;
+    94→  milestones: Milestone[];
+    95→  user?: { name: string; email: string; phone?: string };
+    96→  order?: { orderId: string; packageName: string; packagePrice: number; status: string };
+    97→}
+    98→
+    99→interface Order {
+   100→  id: string;
+   101→  orderId: string;
+   102→  packageName: string;
+   103→  packageCategory: string;
+   104→  packagePrice: number;
+   105→  ppnAmount: number;
+   106→  transactionFee: number;
+   107→  payAmount: number;
+   108→  dpMinimal: number;
+   109→  isDP: boolean;
+   110→  customerName: string;
+   111→  customerEmail: string;
+   112→  customerPhone: string;
+   113→  businessName: string | null;
+   114→  notes: string | null;
+   115→  status: string;
+   116→  paymentMethod: string | null;
+   117→  paymentType: string | null;
+   118→  paidAt: string | null;
+   119→  expiredAt: string | null;
+   120→  createdAt: string;
+   121→  updatedAt: string;
+   122→  transactions: Transaction[];
+   123→  user?: { name: string; email: string; phone?: string };
+   124→  project?: { id: string; status: string; progress: number } | null;
+   125→}
+   126→
+   127→interface ManagedUser {
+   128→  id: string;
+   129→  name: string | null;
+   130→  email: string;
+   131→  role: string;
+   132→  phone: string | null;
+   133→  businessName: string | null;
+   134→  image: string | null;
+   135→  createdAt: string;
+   136→  _count: { orders: number; projects: number };
+   137→}
+   138→
+   139→// ============================================================
+   140→// Config Objects
+   141→// ============================================================
+   142→
+   143→const orderStatusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+   144→  pending: { label: "Menunggu", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Clock },
+   145→  paid: { label: "Dibayar", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle2 },
+   146→  confirmed: { label: "Dikonfirmasi", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: CheckCircle2 },
+   147→  processing: { label: "Diproses", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: Loader2 },
+   148→  completed: { label: "Selesai", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+   149→  cancelled: { label: "Dibatalkan", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: XCircle },
+   150→  expired: { label: "Kedaluwarsa", color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400", icon: AlertCircle },
+   151→};
+   152→
+   153→const projectStatusConfig: Record<string, { label: string; color: string }> = {
+   154→  planning: { label: "Planning", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
+   155→  design: { label: "Design", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
+   156→  development: { label: "Development", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
+   157→  testing: { label: "Testing", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" },
+   158→  online: { label: "Online", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" },
+   159→  paused: { label: "Paused", color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400" },
+   160→  cancelled: { label: "Dibatalkan", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
+   161→};
+   162→
+   163→const roleConfig: Record<string, { label: string; color: string; icon: typeof Crown }> = {
+   164→  "super-admin": { label: "Super Admin", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400", icon: Crown },
+   165→  admin: { label: "Admin", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: Shield },
+   166→  customer: { label: "Customer", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: User },
+   167→};
+   168→
+   169→// ============================================================
+   170→// Helpers
+   171→// ============================================================
+   172→
+   173→function formatDate(dateStr: string | null | undefined): string {
+   174→  if (!dateStr) return "-";
+   175→  return new Date(dateStr).toLocaleDateString("id-ID", {
+   176→    day: "numeric",
+   177→    month: "short",
+   178→    year: "numeric",
+   179→  });
+   180→}
+   181→
+   182→function formatDateTime(dateStr: string | null | undefined): string {
+   183→  if (!dateStr) return "-";
+   184→  return new Date(dateStr).toLocaleDateString("id-ID", {
+   185→    day: "numeric",
+   186→    month: "short",
+   187→    year: "numeric",
+   188→    hour: "2-digit",
+   189→    minute: "2-digit",
+   190→  });
+   191→}
+   192→
+   193→// ============================================================
+   194→// Sub Components
+   195→// ============================================================
+   196→
+   197→function StatusBadge({ status }: { status: string }) {
+   198→  const config = orderStatusConfig[status] || {
+   199→    label: status,
+   200→    color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+   201→    icon: AlertCircle,
+   202→  };
+   203→  const Icon = config.icon;
+   204→  return (
+   205→    <Badge variant="secondary" className={`${config.color} gap-1`}>
+   206→      <Icon className="w-3 h-3" />
+   207→      {config.label}
+   208→    </Badge>
+   209→  );
+   210→}
+   211→
+   212→function ProjectStatusBadge({ status }: { status: string }) {
+   213→  const config = projectStatusConfig[status] || {
+   214→    label: status,
+   215→    color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+   216→  };
+   217→  return (
+   218→    <Badge variant="secondary" className={`${config.color}`}>
+   219→      {config.label}
+   220→    </Badge>
+   221→  );
+   222→}
+   223→
+   224→function RoleBadge({ role }: { role: string }) {
+   225→  const config = roleConfig[role] || roleConfig.customer;
+   226→  const Icon = config.icon;
+   227→  return (
+   228→    <Badge variant="secondary" className={`${config.color} gap-1`}>
+   229→      <Icon className="w-3 h-3" />
+   230→      {config.label}
+   231→    </Badge>
+   232→  );
+   233→}
+   234→
+   235→function ProjectStageVisualization({ status }: { status: string }) {
+   236→  const currentIndex = projectStages.findIndex((s) => s.key === status);
+   237→  return (
+   238→    <div className="flex items-center gap-1 overflow-x-auto pb-1">
+   239→      {projectStages.map((stage, idx) => {
+   240→        const isActive = idx === currentIndex;
+   241→        const isCompleted = idx < currentIndex;
+   242→        return (
+   243→          <div key={stage.key} className="flex items-center">
+   244→            <div
+   245→              className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+   246→                isCompleted
+   247→                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+   248→                  : isActive
+   249→                  ? "bg-gold/20 text-gold dark:bg-gold/30 dark:text-gold-light"
+   250→                  : "bg-muted text-muted-foreground"
+   251→              }`}
+   252→            >
+   253→              {isCompleted ? (
+   254→                <CheckCircle2 className="w-3 h-3" />
+   255→              ) : isActive ? (
+   256→                <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+   257→              ) : (
+   258→                <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+   259→              )}
+   260→              {stage.label}
+   261→            </div>
+   262→            {idx < projectStages.length - 1 && (
+   263→              <div
+   264→                className={`w-4 h-0.5 mx-0.5 ${
+   265→                  isCompleted || isActive ? "bg-gold" : "bg-muted-foreground/20"
+   266→                }`}
+   267→              />
+   268→            )}
+   269→          </div>
+   270→        );
+   271→      })}
+   272→    </div>
+   273→  );
+   274→}
+   275→
+   276→function MilestoneTimeline({ milestones }: { milestones: Milestone[] }) {
+   277→  const [expanded, setExpanded] = useState(false);
+   278→  if (!milestones || milestones.length === 0) return <p className="text-sm text-muted-foreground">Belum ada milestone</p>;
+   279→
+   280→  const visible = expanded ? milestones : milestones.slice(0, 3);
+   281→  return (
+   282→    <div className="space-y-2">
+   283→      {visible.map((m, idx) => (
+   284→        <div key={m.id} className="flex items-start gap-2">
+   285→          <div className="mt-1">
+   286→            {m.status === "completed" ? (
+   287→              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+   288→            ) : m.status === "in_progress" ? (
+   289→              <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+   290→            ) : (
+   291→              <Clock className="w-4 h-4 text-muted-foreground" />
+   292→            )}
+   293→          </div>
+   294→          <div className="flex-1 min-w-0">
+   295→            <p className={`text-sm font-medium ${m.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+   296→              {m.title}
+   297→            </p>
+   298→            {m.notes && <p className="text-xs text-muted-foreground truncate">{m.notes}</p>}
+   299→            {m.completedAt && (
+   300→              <p className="text-xs text-muted-foreground">{formatDate(m.completedAt)}</p>
+   301→            )}
+   302→          </div>
+   303→        </div>
+   304→      ))}
+   305→      {milestones.length > 3 && (
+   306→        <button
+   307→          onClick={() => setExpanded(!expanded)}
+   308→          className="text-xs text-gold hover:underline flex items-center gap-1"
+   309→        >
+   310→          {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+   311→          {expanded ? "Tutup" : `Lihat ${milestones.length - 3} lagi`}
+   312→        </button>
+   313→      )}
+   314→    </div>
+   315→  );
+   316→}
+   317→
+   318→// ============================================================
+   319→// Main Dashboard Component
+   320→// ============================================================
+   321→
+   322→export function DashboardPage() {
+   323→  const { data: session, status } = useSession();
+   324→  const router = useRouter();
+   325→  const [loading, setLoading] = useState(true);
+   326→
+   327→  // Data states
+   328→  const [orders, setOrders] = useState<Order[]>([]);
+   329→  const [projects, setProjects] = useState<Project[]>([]);
+   330→  const [adminOrders, setAdminOrders] = useState<Order[]>([]);
+   331→  const [adminProjects, setAdminProjects] = useState<Project[]>([]);
+   332→  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([]);
+   333→
+   334→  // Filter states
+   335→  const [customerTab, setCustomerTab] = useState("semua");
+   336→  const [adminTab, setAdminTab] = useState("overview");
+   337→  const [orderFilter, setOrderFilter] = useState("all");
+   338→  const [projectFilter, setProjectFilter] = useState("all");
+   339→  const [userSearch, setUserSearch] = useState("");
+   340→
+   341→  // Dialog states
+   342→  const [editOrderDialog, setEditOrderDialog] = useState(false);
+   343→  const [editOrderData, setEditOrderData] = useState<Order | null>(null);
+   344→  const [editOrderStatus, setEditOrderStatus] = useState("");
+   345→
+   346→  const [editProjectDialog, setEditProjectDialog] = useState(false);
+   347→  const [editProjectData, setEditProjectData] = useState<Project | null>(null);
+   348→  const [editProjectForm, setEditProjectForm] = useState({
+   349→    projectName: "",
+   350→    status: "",
+   351→    progress: 0,
+   352→    notes: "",
+   353→    liveUrl: "",
+   354→    estimatedDone: "",
+   355→  });
+   356→
+   357→  const [addMilestoneDialog, setAddMilestoneDialog] = useState(false);
+   358→  const [addMilestoneProjectId, setAddMilestoneProjectId] = useState("");
+   359→  const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
+   360→
+   361→  const [editRoleDialog, setEditRoleDialog] = useState(false);
+   362→  const [editRoleUser, setEditRoleUser] = useState<ManagedUser | null>(null);
+   363→  const [editRoleValue, setEditRoleValue] = useState("");
+   364→
+   365→  const [deleteDialog, setDeleteDialog] = useState(false);
+   366→  const [deleteType, setDeleteType] = useState<"order" | "user" | "project">("order");
+   367→  const [deleteId, setDeleteId] = useState("");
+   368→  const [deleteName, setDeleteName] = useState("");
+   369→
+   370→  const [orderDetailDialog, setOrderDetailDialog] = useState(false);
+   371→  const [orderDetailData, setOrderDetailData] = useState<Order | null>(null);
+   372→
+   373→  const [projectDetailDialog, setProjectDetailDialog] = useState(false);
+   374→  const [projectDetailData, setProjectDetailData] = useState<Project | null>(null);
+   375→
+   376→  const [actionLoading, setActionLoading] = useState(false);
+   377→
+   378→  const role = (session?.user as { role?: string })?.role || "customer";
+   379→  const isAdmin = role === "admin" || role === "super-admin";
+   380→  const isSuperAdmin = role === "super-admin";
+   381→
+   382→  // ============================================================
+   383→  // Data Fetching
+   384→  // ============================================================
+   385→
+   386→  const fetchCustomerData = useCallback(async () => {
+   387→    try {
+   388→      const [ordersRes, projectsRes] = await Promise.all([
+   389→        fetch("/api/orders"),
+   390→        fetch("/api/projects"),
+   391→      ]);
+   392→      if (ordersRes.ok) {
+   393→        const data = await ordersRes.json();
+   394→        setOrders(data.orders || []);
+   395→      }
+   396→      if (projectsRes.ok) {
+   397→        const data = await projectsRes.json();
+   398→        setProjects(data.projects || []);
+   399→      }
+   400→    } catch {
+   401→      toast.error("Gagal memuat data");
+   402→    }
+   403→  }, []);
+   404→
+   405→  const fetchAdminData = useCallback(async () => {
+   406→    try {
+   407→      const [ordersRes, projectsRes] = await Promise.all([
+   408→        fetch("/api/admin/super/orders"),
+   409→        fetch("/api/admin/super/projects"),
+   410→      ]);
+   411→      if (ordersRes.ok) {
+   412→        const data = await ordersRes.json();
+   413→        setAdminOrders(data.orders || []);
+   414→      }
+   415→      if (projectsRes.ok) {
+   416→        const data = await projectsRes.json();
+   417→        setAdminProjects(data.projects || []);
+   418→      }
+   419→      if (isSuperAdmin) {
+   420→        const usersRes = await fetch("/api/admin/super/users");
+   421→        if (usersRes.ok) {
+   422→          const data = await usersRes.json();
+   423→          setManagedUsers(data.users || []);
+   424→        }
+   425→      }
+   426→    } catch {
+   427→      toast.error("Gagal memuat data admin");
+   428→    }
+   429→  }, [isSuperAdmin]);
+   430→
+   431→  useEffect(() => {
+   432→    if (status === "unauthenticated") {
+   433→      router.push("/login");
+   434→      return;
+   435→    }
+   436→    if (status === "authenticated") {
+   437→      setLoading(false);
+   438→      fetchCustomerData();
+   439→      if (isAdmin) {
+   440→        fetchAdminData();
+   441→      }
+   442→    }
+   443→  }, [status, router, fetchCustomerData, fetchAdminData, isAdmin]);
+   444→
+   445→  // ============================================================
+   446→  // CRUD Operations
+   447→  // ============================================================
+   448→
+   449→  const handleUpdateOrderStatus = async () => {
+   450→    if (!editOrderData) return;
+   451→    setActionLoading(true);
+   452→    try {
+   453→      const res = await fetch(`/api/admin/super/orders`, {
+   454→        method: "PATCH",
+   455→        headers: { "Content-Type": "application/json" },
+   456→        body: JSON.stringify({ id: editOrderData.id, status: editOrderStatus }),
+   457→      });
+   458→      if (res.ok) {
+   459→        toast.success("Status pesanan diperbarui");
+   460→        setEditOrderDialog(false);
+   461→        fetchAdminData();
+   462→        fetchCustomerData();
+   463→      } else {
+   464→        const data = await res.json();
+   465→        toast.error(data.error || "Gagal memperbarui status");
+   466→      }
+   467→    } catch {
+   468→      toast.error("Terjadi kesalahan");
+   469→    } finally {
+   470→      setActionLoading(false);
+   471→    }
+   472→  };
+   473→
+   474→  const handleUpdateProject = async () => {
+   475→    if (!editProjectData) return;
+   476→    setActionLoading(true);
+   477→    try {
+   478→      const res = await fetch(`/api/admin/super/projects`, {
+   479→        method: "PATCH",
+   480→        headers: { "Content-Type": "application/json" },
+   481→        body: JSON.stringify({
+   482→          id: editProjectData.id,
+   483→          projectName: editProjectForm.projectName,
+   484→          status: editProjectForm.status,
+   485→          progress: Number(editProjectForm.progress),
+   486→          notes: editProjectForm.notes,
+   487→          liveUrl: editProjectForm.liveUrl,
+   488→          estimatedDone: editProjectForm.estimatedDone || null,
+   489→        }),
+   490→      });
+   491→      if (res.ok) {
+   492→        toast.success("Project diperbarui");
+   493→        setEditProjectDialog(false);
+   494→        fetchAdminData();
+   495→        fetchCustomerData();
+   496→      } else {
+   497→        const data = await res.json();
+   498→        toast.error(data.error || "Gagal memperbarui project");
+   499→      }
+   500→    } catch {
+   501→      toast.error("Terjadi kesalahan");
+   502→    } finally {
+   503→      setActionLoading(false);
+   504→    }
+   505→  };
+   506→
+   507→  const handleAddMilestone = async () => {
+   508→    if (!addMilestoneProjectId || !newMilestoneTitle.trim()) return;
+   509→    setActionLoading(true);
+   510→    try {
+   511→      const res = await fetch(`/api/admin/super/projects`, {
+   512→        method: "PATCH",
+   513→        headers: { "Content-Type": "application/json" },
+   514→        body: JSON.stringify({
+   515→          id: addMilestoneProjectId,
+   516→          addMilestone: true,
+   517→          milestoneTitle: newMilestoneTitle.trim(),
+   518→        }),
+   519→      });
+   520→      if (res.ok) {
+   521→        toast.success("Milestone ditambahkan");
+   522→        setAddMilestoneDialog(false);
+   523→        setNewMilestoneTitle("");
+   524→        fetchAdminData();
+   525→        fetchCustomerData();
+   526→      } else {
+   527→        const data = await res.json();
+   528→        toast.error(data.error || "Gagal menambahkan milestone");
+   529→      }
+   530→    } catch {
+   531→      toast.error("Terjadi kesalahan");
+   532→    } finally {
+   533→      setActionLoading(false);
+   534→    }
+   535→  };
+   536→
+   537→  const handleUpdateRole = async () => {
+   538→    if (!editRoleUser) return;
+   539→    setActionLoading(true);
+   540→    try {
+   541→      const res = await fetch(`/api/admin/super/users`, {
+   542→        method: "PATCH",
+   543→        headers: { "Content-Type": "application/json" },
+   544→        body: JSON.stringify({ id: editRoleUser.id, role: editRoleValue }),
+   545→      });
+   546→      if (res.ok) {
+   547→        toast.success("Role pengguna diperbarui");
+   548→        setEditRoleDialog(false);
+   549→        fetchAdminData();
+   550→      } else {
+   551→        const data = await res.json();
+   552→        toast.error(data.error || "Gagal memperbarui role");
+   553→      }
+   554→    } catch {
+   555→      toast.error("Terjadi kesalahan");
+   556→    } finally {
+   557→      setActionLoading(false);
+   558→    }
+   559→  };
+   560→
+   561→  const handleDelete = async () => {
+   562→    setActionLoading(true);
+   563→    try {
+   564→      let endpoint = "";
+   565→      if (deleteType === "order") endpoint = `/api/admin/super/orders?id=${deleteId}`;
+   566→      else if (deleteType === "project") endpoint = `/api/admin/super/projects?id=${deleteId}`;
+   567→      else endpoint = `/api/admin/super/users?id=${deleteId}`;
+   568→
+   569→      const res = await fetch(endpoint, { method: "DELETE" });
+   570→      if (res.ok) {
+   571→        toast.success("Berhasil dihapus");
+   572→        setDeleteDialog(false);
+   573→        fetchAdminData();
+   574→        fetchCustomerData();
+   575→      } else {
+   576→        const data = await res.json();
+   577→        toast.error(data.error || "Gagal menghapus");
+   578→      }
+   579→    } catch {
+   580→      toast.error("Terjadi kesalahan");
+   581→    } finally {
+   582→      setActionLoading(false);
+   583→    }
+   584→  };
+   585→
+   586→  const openEditOrder = (order: Order) => {
+   587→    setEditOrderData(order);
+   588→    setEditOrderStatus(order.status);
+   589→    setEditOrderDialog(true);
+   590→  };
+   591→
+   592→  const openEditProject = (project: Project) => {
+   593→    setEditProjectData(project);
+   594→    setEditProjectForm({
+   595→      projectName: project.projectName,
+   596→      status: project.status,
+   597→      progress: project.progress,
+   598→      notes: project.notes || "",
+   599→      liveUrl: project.liveUrl || "",
+   600→      estimatedDone: project.estimatedDone ? new Date(project.estimatedDone).toISOString().split("T")[0] : "",
+   601→    });
+   602→    setEditProjectDialog(true);
+   603→  };
+   604→
+   605→  const openDeleteDialog = (type: "order" | "user" | "project", id: string, name: string) => {
+   606→    setDeleteType(type);
+   607→    setDeleteId(id);
+   608→    setDeleteName(name);
+   609→    setDeleteDialog(true);
+   610→  };
+   611→
+   612→  const openEditRole = (user: ManagedUser) => {
+   613→    setEditRoleUser(user);
+   614→    setEditRoleValue(user.role);
+   615→    setEditRoleDialog(true);
+   616→  };
+   617→
+   618→  const sendWhatsApp = (phone: string, orderId: string, pkgName: string) => {
+   619→    const cleanPhone = phone.replace(/^0/, "62").replace(/\D/g, "");
+   620→    const msg = encodeURIComponent(
+   621→      `Halo, terkait pesanan *${orderId}* untuk paket *${pkgName}*. Kami ingin mengonfirmasi pesanan Anda. Terima kasih! - Zheng Digital Studio`
+   622→    );
+   623→    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
+   624→  };
+   625→
+   626→  // ============================================================
+   627→  // Filtered Data
+   628→  // ============================================================
+   629→
+   630→  const filteredCustomerOrders = orders.filter((o) => {
+   631→    if (customerTab === "semua") return true;
+   632→    if (customerTab === "menunggu") return o.status === "pending";
+   633→    if (customerTab === "dibayar") return o.status === "paid" || o.status === "confirmed";
+   634→    if (customerTab === "project") return o.project !== null && o.project !== undefined;
+   635→    return true;
+   636→  });
+   637→
+   638→  const filteredAdminOrders = adminOrders.filter((o) => {
+   639→    if (orderFilter === "all") return true;
+   640→    return o.status === orderFilter;
+   641→  });
+   642→
+   643→  const filteredAdminProjects = adminProjects.filter((p) => {
+   644→    if (projectFilter === "all") return true;
+   645→    return p.status === projectFilter;
+   646→  });
+   647→
+   648→  const filteredUsers = managedUsers.filter((u) => {
+   649→    if (!userSearch) return true;
+   650→    const q = userSearch.toLowerCase();
+   651→    return (
+   652→      (u.name && u.name.toLowerCase().includes(q)) ||
+   653→      u.email.toLowerCase().includes(q) ||
+   654→      (u.businessName && u.businessName.toLowerCase().includes(q))
+   655→    );
+   656→  });
+   657→
+   658→  // ============================================================
+   659→  // Admin Stats
+   660→  // ============================================================
+   661→
+   662→  const adminStats = {
+   663→    totalRevenue: adminOrders
+   664→      .filter((o) => o.status === "paid" || o.status === "confirmed" || o.status === "completed")
+   665→      .reduce((sum, o) => sum + o.payAmount, 0),
+   666→    pendingOrders: adminOrders.filter((o) => o.status === "pending").length,
+   667→    paidOrders: adminOrders.filter((o) => o.status === "paid" || o.status === "confirmed").length,
+   668→    completedOrders: adminOrders.filter((o) => o.status === "completed").length,
+   669→    activeProjects: adminProjects.filter(
+   670→      (p) => p.status !== "cancelled" && p.status !== "online"
+   671→    ).length,
+   672→    onlineProjects: adminProjects.filter((p) => p.status === "online").length,
+   673→    totalUsers: managedUsers.length,
+   674→    recentOrders: [...adminOrders]
+   675→      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+   676→      .slice(0, 5),
+   677→  };
+   678→
+   679→  // ============================================================
+   680→  // Loading & Auth Guard
+   681→  // ============================================================
+   682→
+   683→  if (status === "loading" || loading) {
+   684→    return (
+   685→      <div className="min-h-screen flex items-center justify-center bg-background">
+   686→        <div className="text-center">
+   687→          <Loader2 className="w-8 h-8 animate-spin text-gold mx-auto mb-4" />
+   688→          <p className="text-muted-foreground">Memuat dashboard...</p>
+   689→        </div>
+   690→      </div>
+   691→    );
+   692→  }
+   693→
+   694→  if (!session) {
+   695→    return null;
+   696→  }
+   697→
+   698→  // ============================================================
+   699→  // RENDER
+   700→  // ============================================================
+   701→
+   702→  return (
+   703→    <div className="min-h-screen bg-background">
+   704→      {/* Header */}
+   705→      <header className="sticky top-0 z-40 glass border-b">
+   706→        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+   707→          <div className="flex items-center gap-3">
+   708→            <Button variant="ghost" size="icon" onClick={() => router.push("/")} className="text-foreground">
+   709→              <ArrowLeft className="w-5 h-5" />
+   710→            </Button>
+   711→            <div className="flex items-center gap-2">
+   712→              <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+   713→                <img src="/favicon.png" alt="ZDS" className="w-full h-full object-contain" />
+   714→              </div>
+   715→              <span className="font-bold text-lg hidden sm:block">
+   716→                ZDS <span className="text-gold">Dashboard</span>
+   717→              </span>
+   718→            </div>
+   719→          </div>
+   720→          <div className="flex items-center gap-3">
+   721→            <RoleBadge role={role} />
+   722→            <div className="hidden sm:flex items-center gap-2">
+   723→              <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center border border-gold/20">
+   724→                <User className="w-4 h-4 text-gold" />
+   725→              </div>
+   726→              <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+   727→            </div>
+   728→          </div>
+   729→        </div>
+   730→      </header>
+   731→
+   732→      {/* Main Content */}
+   733→      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+   734→        <motion.div
+   735→          initial={{ opacity: 0, y: 10 }}
+   736→          animate={{ opacity: 1, y: 0 }}
+   737→          transition={{ duration: 0.3 }}
+   738→        >
+   739→          {isAdmin ? (
+   740→            // ============================================================
+   741→            // ADMIN DASHBOARD
+   742→            // ============================================================
+   743→            <Tabs value={adminTab} onValueChange={setAdminTab}>
+   744→              <TabsList className="mb-6 flex-wrap h-auto gap-1 bg-muted/50 p-1">
+   745→                <TabsTrigger value="overview" className="gap-1.5">
+   746→                  <BarChart3 className="w-4 h-4" /> Overview
+   747→                </TabsTrigger>
+   748→                <TabsTrigger value="pesanan" className="gap-1.5">
+   749→                  <Package className="w-4 h-4" /> Pesanan
+   750→                </TabsTrigger>
+   751→                <TabsTrigger value="project" className="gap-1.5">
+   752→                  <FolderKanban className="w-4 h-4" /> Project
+   753→                </TabsTrigger>
+   754→                {isSuperAdmin && (
+   755→                  <TabsTrigger value="users" className="gap-1.5">
+   756→                    <Users className="w-4 h-4" /> Users
+   757→                  </TabsTrigger>
+   758→                )}
+   759→                <TabsTrigger value="pesanan-saya" className="gap-1.5">
+   760→                  <CreditCard className="w-4 h-4" /> Pesanan Saya
+   761→                </TabsTrigger>
+   762→              </TabsList>
+   763→
+   764→              {/* ---- OVERVIEW TAB ---- */}
+   765→              <TabsContent value="overview" className="space-y-6">
+   766→                {/* Revenue Stats */}
+   767→                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   768→                  <Card>
+   769→                    <CardContent className="p-4">
+   770→                      <div className="flex items-center justify-between">
+   771→                        <div>
+   772→                          <p className="text-sm text-muted-foreground">Total Revenue</p>
+   773→                          <p className="text-xl font-bold text-gold">{formatPrice(adminStats.totalRevenue)}</p>
+   774→                        </div>
+   775→                        <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
+   776→                          <CreditCard className="w-5 h-5 text-gold" />
+   777→                        </div>
+   778→                      </div>
+   779→                    </CardContent>
+   780→                  </Card>
+   781→                  <Card>
+   782→                    <CardContent className="p-4">
+   783→                      <div className="flex items-center justify-between">
+   784→                        <div>
+   785→                          <p className="text-sm text-muted-foreground">Pesanan Menunggu</p>
+   786→                          <p className="text-xl font-bold text-yellow-600">{adminStats.pendingOrders}</p>
+   787→                        </div>
+   788→                        <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
+   789→                          <Clock className="w-5 h-5 text-yellow-600" />
+   790→                        </div>
+   791→                      </div>
+   792→                    </CardContent>
+   793→                  </Card>
+   794→                  <Card>
+   795→                    <CardContent className="p-4">
+   796→                      <div className="flex items-center justify-between">
+   797→                        <div>
+   798→                          <p className="text-sm text-muted-foreground">Project Aktif</p>
+   799→                          <p className="text-xl font-bold text-blue-600">{adminStats.activeProjects}</p>
+   800→                        </div>
+   801→                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+   802→                          <FolderKanban className="w-5 h-5 text-blue-600" />
+   803→                        </div>
+   804→                      </div>
+   805→                    </CardContent>
+   806→                  </Card>
+   807→                  <Card>
+   808→                    <CardContent className="p-4">
+   809→                      <div className="flex items-center justify-between">
+   810→                        <div>
+   811→                          <p className="text-sm text-muted-foreground">Project Online</p>
+   812→                          <p className="text-xl font-bold text-emerald-600">{adminStats.onlineProjects}</p>
+   813→                        </div>
+   814→                        <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+   815→                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+   816→                        </div>
+   817→                      </div>
+   818→                    </CardContent>
+   819→                  </Card>
+   820→                </div>
+   821→
+   822→                {/* Order Summary & Recent Orders */}
+   823→                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   824→                  <Card>
+   825→                    <CardHeader className="pb-3">
+   826→                      <CardTitle className="text-base">Ringkasan Pesanan</CardTitle>
+   827→                    </CardHeader>
+   828→                    <CardContent>
+   829→                      <div className="space-y-3">
+   830→                        {Object.entries(orderStatusConfig).map(([key, config]) => {
+   831→                          const count = adminOrders.filter((o) => o.status === key).length;
+   832→                          if (count === 0) return null;
+   833→                          return (
+   834→                            <div key={key} className="flex items-center justify-between">
+   835→                              <div className="flex items-center gap-2">
+   836→                                <config.icon className="w-4 h-4 text-muted-foreground" />
+   837→                                <span className="text-sm">{config.label}</span>
+   838→                              </div>
+   839→                              <Badge variant="secondary" className={config.color}>
+   840→                                {count}
+   841→                              </Badge>
+   842→                            </div>
+   843→                          );
+   844→                        })}
+   845→                      </div>
+   846→                    </CardContent>
+   847→                  </Card>
+   848→                  <Card>
+   849→                    <CardHeader className="pb-3">
+   850→                      <CardTitle className="text-base">Pesanan Terbaru</CardTitle>
+   851→                    </CardHeader>
+   852→                    <CardContent>
+   853→                      <div className="space-y-3 max-h-64 overflow-y-auto">
+   854→                        {adminStats.recentOrders.length === 0 && (
+   855→                          <p className="text-sm text-muted-foreground text-center py-4">Belum ada pesanan</p>
+   856→                        )}
+   857→                        {adminStats.recentOrders.map((order) => (
+   858→                          <div
+   859→                            key={order.id}
+   860→                            className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+   861→                          >
+   862→                            <div className="min-w-0 flex-1">
+   863→                              <p className="text-sm font-medium truncate">{order.packageName}</p>
+   864→                              <p className="text-xs text-muted-foreground">
+   865→                                {order.customerName} • {formatDate(order.createdAt)}
+   866→                              </p>
+   867→                            </div>
+   868→                            <StatusBadge status={order.status} />
+   869→                          </div>
+   870→                        ))}
+   871→                      </div>
+   872→                    </CardContent>
+   873→                  </Card>
+   874→                </div>
+   875→
+   876→                {/* Project Summary */}
+   877→                <Card>
+   878→                  <CardHeader className="pb-3">
+   879→                    <CardTitle className="text-base">Ringkasan Project</CardTitle>
+   880→                  </CardHeader>
+   881→                  <CardContent>
+   882→                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   883→                      {Object.entries(projectStatusConfig).map(([key, config]) => {
+   884→                        const count = adminProjects.filter((p) => p.status === key).length;
+   885→                        if (count === 0) return null;
+   886→                        return (
+   887→                          <div key={key} className="text-center p-3 rounded-lg bg-muted/50">
+   888→                            <Badge variant="secondary" className={`${config.color} mb-2`}>
+   889→                              {config.label}
+   890→                            </Badge>
+   891→                            <p className="text-2xl font-bold">{count}</p>
+   892→                          </div>
+   893→                        );
+   894→                      })}
+   895→                    </div>
+   896→                  </CardContent>
+   897→                </Card>
+   898→              </TabsContent>
+   899→
+   900→              {/* ---- PESANAN TAB ---- */}
+   901→              <TabsContent value="pesanan" className="space-y-4">
+   902→                <div className="flex items-center justify-between flex-wrap gap-3">
+   903→                  <h2 className="text-lg font-semibold">Semua Pesanan</h2>
+   904→                  <Select value={orderFilter} onValueChange={setOrderFilter}>
+   905→                    <SelectTrigger className="w-44">
+   906→                      <SelectValue placeholder="Filter status" />
+   907→                    </SelectTrigger>
+   908→                    <SelectContent>
+   909→                      <SelectItem value="all">Semua Status</SelectItem>
+   910→                      {Object.entries(orderStatusConfig).map(([key, config]) => (
+   911→                        <SelectItem key={key} value={key}>
+   912→                          {config.label}
+   913→                        </SelectItem>
+   914→                      ))}
+   915→                    </SelectContent>
+   916→                  </Select>
+   917→                </div>
+   918→
+   919→                {filteredAdminOrders.length === 0 ? (
+   920→                  <Card>
+   921→                    <CardContent className="py-12 text-center">
+   922→                      <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+   923→                      <p className="text-muted-foreground">Belum ada pesanan</p>
+   924→                    </CardContent>
+   925→                  </Card>
+   926→                ) : (
+   927→                  <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+   928→                    {filteredAdminOrders.map((order) => (
+   929→                      <Card key={order.id} className="hover:shadow-md transition-shadow">
+   930→                        <CardContent className="p-4">
+   931→                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+   932→                            <div className="flex-1 min-w-0">
+   933→                              <div className="flex items-center gap-2 mb-1">
+   934→                                <span className="text-xs font-mono text-muted-foreground">{order.orderId}</span>
+   935→                                <StatusBadge status={order.status} />
+   936→                              </div>
+   937→                              <p className="font-medium truncate">{order.packageName}</p>
+   938→                              <p className="text-sm text-muted-foreground">
+   939→                                {order.customerName} • {order.customerEmail}
+   940→                              </p>
+   941→                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+   942→                                <span className="flex items-center gap-1">
+   943→                                  <Calendar className="w-3 h-3" />
+   944→                                  {formatDate(order.createdAt)}
+   945→                                </span>
+   946→                                <span className="font-semibold text-foreground">
+   947→                                  {formatPrice(order.payAmount)}
+   948→                                </span>
+   949→                              </div>
+   950→                            </div>
+   951→                            <div className="flex items-center gap-2 flex-wrap">
+   952→                              <Button
+   953→                                variant="outline"
+   954→                                size="sm"
+   955→                                onClick={() => {
+   956→                                  setOrderDetailData(order);
+   957→                                  setOrderDetailDialog(true);
+   958→                                }}
+   959→                              >
+   960→                                <Eye className="w-3 h-3 mr-1" /> Detail
+   961→                              </Button>
+   962→                              <Button
+   963→                                variant="outline"
+   964→                                size="sm"
+   965→                                onClick={() => sendWhatsApp(order.customerPhone, order.orderId, order.packageName)}
+   966→                              >
+   967→                                <MessageCircle className="w-3 h-3 mr-1" /> WA
+   968→                              </Button>
+   969→                              <Button
+   970→                                variant="outline"
+   971→                                size="sm"
+   972→                                onClick={() => openEditOrder(order)}
+   973→                                className="text-gold border-gold/30 hover:bg-gold/10"
+   974→                              >
+   975→                                <Edit3 className="w-3 h-3" />
+   976→                              </Button>
+   977→                              {isSuperAdmin && (
+   978→                                <Button
+   979→                                  variant="outline"
+   980→                                  size="sm"
+   981→                                  onClick={() => openDeleteDialog("order", order.id, order.orderId)}
+   982→                                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+   983→                                >
+   984→                                  <Trash2 className="w-3 h-3" />
+   985→                                </Button>
+   986→                              )}
+   987→                            </div>
+   988→                          </div>
+   989→                        </CardContent>
+   990→                      </Card>
+   991→                    ))}
+   992→                  </div>
+   993→                )}
+   994→              </TabsContent>
+   995→
+   996→              {/* ---- PROJECT TAB ---- */}
+   997→              <TabsContent value="project" className="space-y-4">
+   998→                <div className="flex items-center justify-between flex-wrap gap-3">
+   999→                  <h2 className="text-lg font-semibold">Semua Project</h2>
+  1000→                  <Select value={projectFilter} onValueChange={setProjectFilter}>
+  1001→                    <SelectTrigger className="w-44">
+  1002→                      <SelectValue placeholder="Filter status" />
+  1003→                    </SelectTrigger>
+  1004→                    <SelectContent>
+  1005→                      <SelectItem value="all">Semua Status</SelectItem>
+  1006→                      {Object.entries(projectStatusConfig).map(([key, config]) => (
+  1007→                        <SelectItem key={key} value={key}>
+  1008→                          {config.label}
+  1009→                        </SelectItem>
+  1010→                      ))}
+  1011→                    </SelectContent>
+  1012→                  </Select>
+  1013→                </div>
+  1014→
+  1015→                {filteredAdminProjects.length === 0 ? (
+  1016→                  <Card>
+  1017→                    <CardContent className="py-12 text-center">
+  1018→                      <FolderKanban className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+  1019→                      <p className="text-muted-foreground">Belum ada project</p>
+  1020→                    </CardContent>
+  1021→                  </Card>
+  1022→                ) : (
+  1023→                  <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+  1024→                    {filteredAdminProjects.map((project) => (
+  1025→                      <Card key={project.id} className="hover:shadow-md transition-shadow">
+  1026→                        <CardContent className="p-4">
+  1027→                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+  1028→                            <div className="flex-1 min-w-0">
+  1029→                              <div className="flex items-center gap-2 mb-1">
+  1030→                                <ProjectStatusBadge status={project.status} />
+  1031→                                <span className="text-xs text-muted-foreground">{project.packageCategory}</span>
+  1032→                              </div>
+  1033→                              <p className="font-medium truncate">{project.projectName}</p>
+  1034→                              {project.user && (
+  1035→                                <p className="text-sm text-muted-foreground">
+  1036→                                  {project.user.name} • {project.user.email}
+  1037→                                </p>
+  1038→                              )}
+  1039→                              {project.order && (
+  1040→                                <p className="text-xs text-muted-foreground mt-0.5">
+  1041→                                  {project.order.orderId} • {project.order.packageName} • {formatPrice(project.order.packagePrice)}
+  1042→                                </p>
+  1043→                              )}
+  1044→                              <div className="mt-2">
+  1045→                                <ProjectStageVisualization status={project.status} />
+  1046→                              </div>
+  1047→                              <div className="flex items-center gap-3 mt-2">
+  1048→                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+  1049→                                  <div
+  1050→                                    className="h-full bg-gold rounded-full transition-all duration-500"
+  1051→                                    style={{ width: `${project.progress}%` }}
+  1052→                                  />
+  1053→                                </div>
+  1054→                                <span className="text-xs font-medium text-muted-foreground">{project.progress}%</span>
+  1055→                              </div>
+  1056→                              {project.milestones.length > 0 && (
+  1057→                                <div className="mt-3 pt-3 border-t border-border/50">
+  1058→                                  <p className="text-xs font-medium text-muted-foreground mb-1">Milestones</p>
+  1059→                                  <MilestoneTimeline milestones={project.milestones} />
+  1060→                                </div>
+  1061→                              )}
+  1062→                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+  1063→                                <span className="flex items-center gap-1">
+  1064→                                  <Calendar className="w-3 h-3" /> Mulai: {formatDate(project.startedAt)}
+  1065→                                </span>
+  1066→                                {project.estimatedDone && (
+  1067→                                  <span className="flex items-center gap-1">
+  1068→                                    Estimasi: {formatDate(project.estimatedDone)}
+  1069→                                  </span>
+  1070→                                )}
+  1071→                              </div>
+  1072→                            </div>
+  1073→                            <div className="flex items-center gap-2 flex-wrap">
+  1074→                              <Button
+  1075→                                variant="outline"
+  1076→                                size="sm"
+  1077→                                onClick={() => {
+  1078→                                  setProjectDetailData(project);
+  1079→                                  setProjectDetailDialog(true);
+  1080→                                }}
+  1081→                              >
+  1082→                                <Eye className="w-3 h-3 mr-1" /> Detail
+  1083→                              </Button>
+  1084→                              <Button
+  1085→                                variant="outline"
+  1086→                                size="sm"
+  1087→                                onClick={() => {
+  1088→                                  setAddMilestoneProjectId(project.id);
+  1089→                                  setAddMilestoneDialog(true);
+  1090→                                }}
+  1091→                                className="text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:border-emerald-700 dark:hover:bg-emerald-900/20"
+  1092→                              >
+  1093→                                <Plus className="w-3 h-3" />
+  1094→                              </Button>
+  1095→                              <Button
+  1096→                                variant="outline"
+  1097→                                size="sm"
+  1098→                                onClick={() => openEditProject(project)}
+  1099→                                className="text-gold border-gold/30 hover:bg-gold/10"
+  1100→                              >
+  1101→                                <Edit3 className="w-3 h-3" />
+  1102→                              </Button>
+  1103→                              {isSuperAdmin && (
+  1104→                                <Button
+  1105→                                  variant="outline"
+  1106→                                  size="sm"
+  1107→                                  onClick={() => openDeleteDialog("project", project.id, project.projectName)}
+  1108→                                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+  1109→                                >
+  1110→                                  <Trash2 className="w-3 h-3" />
+  1111→                                </Button>
+  1112→                              )}
+  1113→                            </div>
+  1114→                          </div>
+  1115→                        </CardContent>
+  1116→                      </Card>
+  1117→                    ))}
+  1118→                  </div>
+  1119→                )}
+  1120→              </TabsContent>
+  1121→
+  1122→              {/* ---- USERS TAB (Super Admin Only) ---- */}
+  1123→              {isSuperAdmin && (
+  1124→                <TabsContent value="users" className="space-y-4">
+  1125→                  <div className="flex items-center justify-between flex-wrap gap-3">
+  1126→                    <h2 className="text-lg font-semibold">Manajemen Pengguna</h2>
+  1127→                    <div className="relative w-64">
+  1128→                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+  1129→                      <Input
+  1130→                        placeholder="Cari pengguna..."
+  1131→                        value={userSearch}
+  1132→                        onChange={(e) => setUserSearch(e.target.value)}
+  1133→                        className="pl-10"
+  1134→                      />
+  1135→                    </div>
+  1136→                  </div>
+  1137→
+  1138→                  {filteredUsers.length === 0 ? (
+  1139→                    <Card>
+  1140→                      <CardContent className="py-12 text-center">
+  1141→                        <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+  1142→                        <p className="text-muted-foreground">Tidak ada pengguna ditemukan</p>
+  1143→                      </CardContent>
+  1144→                    </Card>
+  1145→                  ) : (
+  1146→                    <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+  1147→                      {filteredUsers.map((user) => (
+  1148→                        <Card key={user.id} className="hover:shadow-md transition-shadow">
+  1149→                          <CardContent className="p-4">
+  1150→                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  1151→                              <div className="flex items-center gap-3 min-w-0">
+  1152→                                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center border border-gold/20 shrink-0">
+  1153→                                  {user.image ? (
+  1154→                                    <img src={user.image} alt={user.name || ""} className="w-full h-full rounded-full object-cover" />
+  1155→                                  ) : (
+  1156→                                    <User className="w-5 h-5 text-gold" />
+  1157→                                  )}
+  1158→                                </div>
+  1159→                                <div className="min-w-0">
+  1160→                                  <div className="flex items-center gap-2">
+  1161→                                    <p className="font-medium truncate">{user.name || "Tanpa Nama"}</p>
+  1162→                                    <RoleBadge role={user.role} />
+  1163→                                  </div>
+  1164→                                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+  1165→                                  <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+  1166→                                    {user.phone && <span>{user.phone}</span>}
+  1167→                                    {user.businessName && <span>• {user.businessName}</span>}
+  1168→                                    <span>• Pesanan: {user._count.orders}</span>
+  1169→                                    <span>• Project: {user._count.projects}</span>
+  1170→                                  </div>
+  1171→                                </div>
+  1172→                              </div>
+  1173→                              <div className="flex items-center gap-2">
+  1174→                                <Button
+  1175→                                  variant="outline"
+  1176→                                  size="sm"
+  1177→                                  onClick={() => openEditRole(user)}
+  1178→                                  className="text-gold border-gold/30 hover:bg-gold/10"
+  1179→                                >
+  1180→                                  <Edit3 className="w-3 h-3 mr-1" /> Role
+  1181→                                </Button>
+  1182→                                {user.role !== "super-admin" && (
+  1183→                                  <Button
+  1184→                                    variant="outline"
+  1185→                                    size="sm"
+  1186→                                    onClick={() => openDeleteDialog("user", user.id, user.name || user.email)}
+  1187→                                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
+  1188→                                  >
+  1189→                                    <Trash2 className="w-3 h-3" />
+  1190→                                  </Button>
+  1191→                                )}
+  1192→                              </div>
+  1193→                            </div>
+  1194→                          </CardContent>
+  1195→                        </Card>
+  1196→                      ))}
+  1197→                    </div>
+  1198→                  )}
+  1199→                </TabsContent>
+  1200→              )}
+  1201→
+  1202→              {/* ---- PESANAN SAYA TAB ---- */}
+  1203→              <TabsContent value="pesanan-saya" className="space-y-4">
+  1204→                <h2 className="text-lg font-semibold">Pesanan Saya</h2>
+  1205→                {orders.length === 0 ? (
+  1206→                  <Card>
+  1207→                    <CardContent className="py-12 text-center">
+  1208→                      <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+  1209→                      <p className="text-muted-foreground">Anda belum memiliki pesanan</p>
+  1210→                    </CardContent>
+  1211→                  </Card>
+  1212→                ) : (
+  1213→                  <div className="space-y-3 max-h-[calc(100vh-240px)] overflow-y-auto pr-1">
+  1214→                    {orders.map((order) => (
+  1215→                      <Card key={order.id} className="hover:shadow-md transition-shadow">
+  1216→                        <CardContent className="p-4">
+  1217→                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  1218→                            <div className="flex-1 min-w-0">
+  1219→                              <div className="flex items-center gap-2 mb-1">
+  1220→                                <span className="text-xs font-mono text-muted-foreground">{order.orderId}</span>
+  1221→                                <StatusBadge status={order.status} />
+  1222→                              </div>
+  1223→                              <p className="font-medium truncate">{order.packageName}</p>
+  1224→                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+  1225→                                <span className="flex items-center gap-1">
+  1226→                                  <Calendar className="w-3 h-3" />
+  1227→                                  {formatDate(order.createdAt)}
+  1228→                                </span>
+  1229→                                <span className="font-semibold text-foreground">
+  1230→                                  {formatPrice(order.payAmount)}
+  1231→                                </span>
+  1232→                              </div>
+  1233→                            </div>
+  1234→                            <Button
+  1235→                              variant="outline"
+  1236→                              size="sm"
+  1237→                              onClick={() => {
+  1238→                                setOrderDetailData(order);
+  1239→                                setOrderDetailDialog(true);
+  1240→                              }}
+  1241→                            >
+  1242→                              <Eye className="w-3 h-3 mr-1" /> Detail
+  1243→                            </Button>
+  1244→                          </div>
+  1245→                        </CardContent>
+  1246→                      </Card>
+  1247→                    ))}
+  1248→                  </div>
+  1249→                )}
+  1250→              </TabsContent>
+  1251→            </Tabs>
+  1252→          ) : (
+  1253→            // ============================================================
+  1254→            // CUSTOMER DASHBOARD
+  1255→            // ============================================================
+  1256→            <div className="space-y-6">
+  1257→              <div>
+  1258→                <h1 className="text-2xl font-bold">
+  1259→                  Halo, <span className="text-gold">{session.user?.name || "Customer"}</span> 👋
+  1260→                </h1>
+  1261→                <p className="text-muted-foreground mt-1">Selamat datang di dashboard Anda</p>
+  1262→              </div>
+  1263→
+  1264→              {/* Customer Quick Stats */}
+  1265→              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+  1266→                <Card>
+  1267→                  <CardContent className="p-4 text-center">
+  1268→                    <Package className="w-6 h-6 text-gold mx-auto mb-1" />
+  1269→                    <p className="text-2xl font-bold">{orders.length}</p>
+  1270→                    <p className="text-xs text-muted-foreground">Total Pesanan</p>
+  1271→                  </CardContent>
+  1272→                </Card>
+  1273→                <Card>
+  1274→                  <CardContent className="p-4 text-center">
+  1275→                    <Clock className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
+  1276→                    <p className="text-2xl font-bold">
+  1277→                      {orders.filter((o) => o.status === "pending").length}
+  1278→                    </p>
+  1279→                    <p className="text-xs text-muted-foreground">Menunggu</p>
+  1280→                  </CardContent>
+  1281→                </Card>
+  1282→                <Card>
+  1283→                  <CardContent className="p-4 text-center">
+  1284→                    <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-1" />
+  1285→                    <p className="text-2xl font-bold">
+  1286→                      {orders.filter((o) => o.status === "paid" || o.status === "confirmed").length}
+  1287→                    </p>
+  1288→                    <p className="text-xs text-muted-foreground">Dibayar</p>
+  1289→                  </CardContent>
+  1290→                </Card>
+  1291→                <Card>
+  1292→                  <CardContent className="p-4 text-center">
+  1293→                    <FolderKanban className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+  1294→                    <p className="text-2xl font-bold">{projects.length}</p>
+  1295→                    <p className="text-xs text-muted-foreground">Project</p>
+  1296→                  </CardContent>
+  1297→                </Card>
+  1298→              </div>
+  1299→
+  1300→              {/* Customer Orders */}
+  1301→              <Tabs value={customerTab} onValueChange={setCustomerTab}>
+  1302→                <TabsList className="mb-4 flex-wrap h-auto gap-1 bg-muted/50 p-1">
+  1303→                  <TabsTrigger value="semua">Semua</TabsTrigger>
+  1304→                  <TabsTrigger value="menunggu">Menunggu</TabsTrigger>
+  1305→                  <TabsTrigger value="dibayar">Dibayar</TabsTrigger>
+  1306→                  <TabsTrigger value="project">Project</TabsTrigger>
+  1307→                </TabsList>
+  1308→
+  1309→                <TabsContent value={customerTab} className="space-y-3">
+  1310→                  {filteredCustomerOrders.length === 0 ? (
+  1311→                    <Card>
+  1312→                      <CardContent className="py-12 text-center">
+  1313→                        <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+  1314→                        <p className="text-muted-foreground">Belum ada pesanan</p>
+  1315→                      </CardContent>
+  1316→                    </Card>
+  1317→                  ) : (
+  1318→                    filteredCustomerOrders.map((order) => (
+  1319→                      <Card key={order.id} className="hover:shadow-md transition-shadow">
+  1320→                        <CardContent className="p-4">
+  1321→                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  1322→                            <div className="flex-1 min-w-0">
+  1323→                              <div className="flex items-center gap-2 mb-1">
+  1324→                                <span className="text-xs font-mono text-muted-foreground">{order.orderId}</span>
+  1325→                                <StatusBadge status={order.status} />
+  1326→                              </div>
+  1327→                              <p className="font-medium truncate">{order.packageName}</p>
+  1328→                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+  1329→                                <span className="flex items-center gap-1">
+  1330→                                  <Calendar className="w-3 h-3" />
+  1331→                                  {formatDate(order.createdAt)}
+  1332→                                </span>
+  1333→                                <span className="font-semibold text-foreground">
+  1334→                                  {formatPrice(order.payAmount)}
+  1335→                                </span>
+  1336→                              </div>
+  1337→                            </div>
+  1338→                            <Button
+  1339→                              variant="outline"
+  1340→                              size="sm"
+  1341→                              onClick={() => {
+  1342→                                setOrderDetailData(order);
+  1343→                                setOrderDetailDialog(true);
+  1344→                              }}
+  1345→                            >
+  1346→                              <Eye className="w-3 h-3 mr-1" /> Detail
+  1347→                            </Button>
+  1348→                          </div>
+  1349→                        </CardContent>
+  1350→                      </Card>
+  1351→                    ))
+  1352→                  )}
+  1353→                </TabsContent>
+  1354→              </Tabs>
+  1355→
+  1356→              {/* Customer Projects */}
+  1357→              {projects.length > 0 && (
+  1358→                <div>
+  1359→                  <h2 className="text-lg font-semibold mb-4">Project Saya</h2>
+  1360→                  <div className="space-y-3">
+  1361→                    {projects.map((project) => (
+  1362→                      <Card key={project.id} className="hover:shadow-md transition-shadow">
+  1363→                        <CardContent className="p-4">
+  1364→                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+  1365→                            <div className="flex-1 min-w-0">
+  1366→                              <div className="flex items-center gap-2 mb-1">
+  1367→                                <ProjectStatusBadge status={project.status} />
+  1368→                                <span className="text-xs text-muted-foreground">{project.packageCategory}</span>
+  1369→                              </div>
+  1370→                              <p className="font-medium truncate">{project.projectName}</p>
+  1371→                              {project.order && (
+  1372→                                <p className="text-xs text-muted-foreground mt-0.5">
+  1373→                                  {project.order.orderId} • {project.order.packageName}
+  1374→                                </p>
+  1375→                              )}
+  1376→                              <div className="mt-2">
+  1377→                                <ProjectStageVisualization status={project.status} />
+  1378→                              </div>
+  1379→                              <div className="flex items-center gap-3 mt-2">
+  1380→                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden max-w-xs">
+  1381→                                  <div
+  1382→                                    className="h-full bg-gold rounded-full transition-all duration-500"
+  1383→                                    style={{ width: `${project.progress}%` }}
+  1384→                                  />
+  1385→                                </div>
+  1386→                                <span className="text-xs font-medium text-muted-foreground">{project.progress}%</span>
+  1387→                              </div>
+  1388→                              {project.milestones.length > 0 && (
+  1389→                                <div className="mt-3 pt-3 border-t border-border/50">
+  1390→                                  <p className="text-xs font-medium text-muted-foreground mb-1">Milestones</p>
+  1391→                                  <MilestoneTimeline milestones={project.milestones} />
+  1392→                                </div>
+  1393→                              )}
+  1394→                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+  1395→                                <span className="flex items-center gap-1">
+  1396→                                  <Calendar className="w-3 h-3" /> Mulai: {formatDate(project.startedAt)}
+  1397→                                </span>
+  1398→                                {project.estimatedDone && (
+  1399→                                  <span>Estimasi: {formatDate(project.estimatedDone)}</span>
+  1400→                                )}
+  1401→                              </div>
+  1402→                              {project.liveUrl && (
+  1403→                                <a
+  1404→                                  href={project.liveUrl}
+  1405→                                  target="_blank"
+  1406→                                  rel="noopener noreferrer"
+  1407→                                  className="text-xs text-gold hover:underline mt-1 inline-block"
+  1408→                                >
+  1409→                                  {project.liveUrl}
+  1410→                                </a>
+  1411→                              )}
+  1412→                            </div>
+  1413→                            <Button
+  1414→                              variant="outline"
+  1415→                              size="sm"
+  1416→                              onClick={() => {
+  1417→                                setProjectDetailData(project);
+  1418→                                setProjectDetailDialog(true);
+  1419→                              }}
+  1420→                            >
+  1421→                              <Eye className="w-3 h-3 mr-1" /> Detail
+  1422→                            </Button>
+  1423→                          </div>
+  1424→                        </CardContent>
+  1425→                      </Card>
+  1426→                    ))}
+  1427→                  </div>
+  1428→                </div>
+  1429→              )}
+  1430→            </div>
+  1431→          )}
+  1432→        </motion.div>
+  1433→      </main>
+  1434→
+  1435→      {/* ============================================================ */}
+  1436→      {/* DIALOGS */}
+  1437→      {/* ============================================================ */}
+  1438→
+  1439→      {/* Order Detail Dialog */}
+  1440→      <Dialog open={orderDetailDialog} onOpenChange={setOrderDetailDialog}>
+  1441→        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+  1442→          <DialogHeader>
+  1443→            <DialogTitle>Detail Pesanan</DialogTitle>
+  1444→            <DialogDescription>{orderDetailData?.orderId}</DialogDescription>
+  1445→          </DialogHeader>
+  1446→          {orderDetailData && (
+  1447→            <div className="space-y-4">
+  1448→              <div className="grid grid-cols-2 gap-3">
+  1449→                <div>
+  1450→                  <p className="text-xs text-muted-foreground">Status</p>
+  1451→                  <StatusBadge status={orderDetailData.status} />
+  1452→                </div>
+  1453→                <div>
+  1454→                  <p className="text-xs text-muted-foreground">Paket</p>
+  1455→                  <p className="text-sm font-medium">{orderDetailData.packageName}</p>
+  1456→                </div>
+  1457→                <div>
+  1458→                  <p className="text-xs text-muted-foreground">Nama Customer</p>
+  1459→                  <p className="text-sm">{orderDetailData.customerName}</p>
+  1460→                </div>
+  1461→                <div>
+  1462→                  <p className="text-xs text-muted-foreground">Email</p>
+  1463→                  <p className="text-sm break-all">{orderDetailData.customerEmail}</p>
+  1464→                </div>
+  1465→                <div>
+  1466→                  <p className="text-xs text-muted-foreground">WhatsApp</p>
+  1467→                  <p className="text-sm">{orderDetailData.customerPhone}</p>
+  1468→                </div>
+  1469→                <div>
+  1470→                  <p className="text-xs text-muted-foreground">Bisnis</p>
+  1471→                  <p className="text-sm">{orderDetailData.businessName || "-"}</p>
+  1472→                </div>
+  1473→              </div>
+  1474→              <div className="border-t pt-3 space-y-2">
+  1475→                <div className="flex justify-between text-sm">
+  1476→                  <span className="text-muted-foreground">Harga Paket</span>
+  1477→                  <span>{formatPrice(orderDetailData.packagePrice)}</span>
+  1478→                </div>
+  1479→                <div className="flex justify-between text-sm">
+  1480→                  <span className="text-muted-foreground">PPN (11%)</span>
+  1481→                  <span>{formatPrice(orderDetailData.ppnAmount)}</span>
+  1482→                </div>
+  1483→                <div className="flex justify-between text-sm">
+  1484→                  <span className="text-muted-foreground">Biaya Transaksi</span>
+  1485→                  <span>{formatPrice(orderDetailData.transactionFee)}</span>
+  1486→                </div>
+  1487→                <div className="flex justify-between text-sm font-semibold border-t pt-2">
+  1488→                  <span>Total Bayar</span>
+  1489→                  <span className="text-gold">{formatPrice(orderDetailData.payAmount)}</span>
+  1490→                </div>
+  1491→                {orderDetailData.isDP && (
+  1492→                  <div className="flex justify-between text-sm">
+  1493→                    <span className="text-muted-foreground">DP Minimal</span>
+  1494→                    <span>{formatPrice(orderDetailData.dpMinimal)}</span>
+  1495→                  </div>
+  1496→                )}
+  1497→              </div>
+  1498→              {orderDetailData.notes && (
+  1499→                <div>
+  1500→                  <p className="text-xs text-muted-foreground">Catatan</p>
+  1501→                  <p className="text-sm">{orderDetailData.notes}</p>
+  1502→                </div>
+  1503→              )}
+  1504→              <div className="border-t pt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+  1505→                <span>Dibuat: {formatDateTime(orderDetailData.createdAt)}</span>
+  1506→                <span>Diperbarui: {formatDateTime(orderDetailData.updatedAt)}</span>
+  1507→                {orderDetailData.paidAt && <span>Dibayar: {formatDateTime(orderDetailData.paidAt)}</span>}
+  1508→                {orderDetailData.expiredAt && <span>Expired: {formatDateTime(orderDetailData.expiredAt)}</span>}
+  1509→              </div>
+  1510→              {orderDetailData.transactions.length > 0 && (
+  1511→                <div>
+  1512→                  <p className="text-xs font-medium text-muted-foreground mb-2">Transaksi</p>
+  1513→                  <div className="space-y-2">
+  1514→                    {orderDetailData.transactions.map((tx) => (
+  1515→                      <div key={tx.id} className="p-2 rounded bg-muted/50 text-xs">
+  1516→                        <div className="flex justify-between">
+  1517→                          <span>ID: {tx.transactionId || "-"}</span>
+  1518→                          <span>{tx.transactionStatus || "-"}</span>
+  1519→                        </div>
+  1520→                        {tx.grossAmount && (
+  1521→                          <span className="text-muted-foreground">{formatPrice(tx.grossAmount)} • {tx.paymentType || "-"}</span>
+  1522→                        )}
+  1523→                      </div>
+  1524→                    ))}
+  1525→                  </div>
+  1526→                </div>
+  1527→              )}
+  1528→            </div>
+  1529→          )}
+  1530→          <DialogFooter>
+  1531→            <Button variant="outline" onClick={() => setOrderDetailDialog(false)}>
+  1532→              Tutup
+  1533→            </Button>
+  1534→          </DialogFooter>
+  1535→        </DialogContent>
+  1536→      </Dialog>
+  1537→
+  1538→      {/* Project Detail Dialog */}
+  1539→      <Dialog open={projectDetailDialog} onOpenChange={setProjectDetailDialog}>
+  1540→        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+  1541→          <DialogHeader>
+  1542→            <DialogTitle>Detail Project</DialogTitle>
+  1543→            <DialogDescription>{projectDetailData?.projectName}</DialogDescription>
+  1544→          </DialogHeader>
+  1545→          {projectDetailData && (
+  1546→            <div className="space-y-4">
+  1547→              <div className="flex items-center gap-2">
+  1548→                <ProjectStatusBadge status={projectDetailData.status} />
+  1549→                <span className="text-sm text-muted-foreground">{projectDetailData.packageCategory}</span>
+  1550→              </div>
+  1551→              <div>
+  1552→                <p className="text-xs text-muted-foreground mb-2">Stage</p>
+  1553→                <ProjectStageVisualization status={projectDetailData.status} />
+  1554→              </div>
+  1555→              <div className="flex items-center gap-3">
+  1556→                <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+  1557→                  <div
+  1558→                    className="h-full bg-gold rounded-full transition-all duration-500"
+  1559→                    style={{ width: `${projectDetailData.progress}%` }}
+  1560→                  />
+  1561→                </div>
+  1562→                <span className="text-sm font-semibold">{projectDetailData.progress}%</span>
+  1563→              </div>
+  1564→              {projectDetailData.milestones.length > 0 && (
+  1565→                <div>
+  1566→                  <p className="text-xs font-medium text-muted-foreground mb-2">Milestones</p>
+  1567→                  <MilestoneTimeline milestones={projectDetailData.milestones} />
+  1568→                </div>
+  1569→              )}
+  1570→              {projectDetailData.notes && (
+  1571→                <div>
+  1572→                  <p className="text-xs text-muted-foreground">Catatan</p>
+  1573→                  <p className="text-sm">{projectDetailData.notes}</p>
+  1574→                </div>
+  1575→              )}
+  1576→              {projectDetailData.liveUrl && (
+  1577→                <div>
+  1578→                  <p className="text-xs text-muted-foreground">Live URL</p>
+  1579→                  <a href={projectDetailData.liveUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-gold hover:underline">
+  1580→                    {projectDetailData.liveUrl}
+  1581→                  </a>
+  1582→                </div>
+  1583→              )}
+  1584→              <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground border-t pt-3">
+  1585→                <span>Mulai: {formatDate(projectDetailData.startedAt)}</span>
+  1586→                <span>Estimasi: {formatDate(projectDetailData.estimatedDone)}</span>
+  1587→                {projectDetailData.completedAt && <span>Selesai: {formatDate(projectDetailData.completedAt)}</span>}
+  1588→              </div>
+  1589→              {projectDetailData.user && (
+  1590→                <div className="text-xs text-muted-foreground border-t pt-3">
+  1591→                  <p>Customer: {projectDetailData.user.name} • {projectDetailData.user.email}</p>
+  1592→                  {projectDetailData.user.phone && <p>Phone: {projectDetailData.user.phone}</p>}
+  1593→                </div>
+  1594→              )}
+  1595→            </div>
+  1596→          )}
+  1597→          <DialogFooter>
+  1598→            <Button variant="outline" onClick={() => setProjectDetailDialog(false)}>
+  1599→              Tutup
+  1600→            </Button>
+  1601→          </DialogFooter>
+  1602→        </DialogContent>
+  1603→      </Dialog>
+  1604→
+  1605→      {/* Edit Order Status Dialog */}
+  1606→      <Dialog open={editOrderDialog} onOpenChange={setEditOrderDialog}>
+  1607→        <DialogContent>
+  1608→          <DialogHeader>
+  1609→            <DialogTitle>Edit Status Pesanan</DialogTitle>
+  1610→            <DialogDescription>{editOrderData?.orderId}</DialogDescription>
+  1611→          </DialogHeader>
+  1612→          <div className="space-y-4">
+  1613→            <div>
+  1614→              <p className="text-sm text-muted-foreground mb-1">Paket: {editOrderData?.packageName}</p>
+  1615→              <p className="text-sm text-muted-foreground">Customer: {editOrderData?.customerName}</p>
+  1616→            </div>
+  1617→            <Select value={editOrderStatus} onValueChange={setEditOrderStatus}>
+  1618→              <SelectTrigger>
+  1619→                <SelectValue placeholder="Pilih status" />
+  1620→              </SelectTrigger>
+  1621→              <SelectContent>
+  1622→                {Object.entries(orderStatusConfig).map(([key, config]) => (
+  1623→                  <SelectItem key={key} value={key}>
+  1624→                    {config.label}
+  1625→                  </SelectItem>
+  1626→                ))}
+  1627→              </SelectContent>
+  1628→            </Select>
+  1629→          </div>
+  1630→          <DialogFooter>
+  1631→            <Button variant="outline" onClick={() => setEditOrderDialog(false)}>
+  1632→              Batal
+  1633→            </Button>
+  1634→            <Button onClick={handleUpdateOrderStatus} disabled={actionLoading} className="bg-gold hover:bg-gold-hover text-navy">
+  1635→              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+  1636→              Simpan
+  1637→            </Button>
+  1638→          </DialogFooter>
+  1639→        </DialogContent>
+  1640→      </Dialog>
+  1641→
+  1642→      {/* Edit Project Dialog */}
+  1643→      <Dialog open={editProjectDialog} onOpenChange={setEditProjectDialog}>
+  1644→        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+  1645→          <DialogHeader>
+  1646→            <DialogTitle>Edit Project</DialogTitle>
+  1647→            <DialogDescription>{editProjectData?.projectName}</DialogDescription>
+  1648→          </DialogHeader>
+  1649→          <div className="space-y-4">
+  1650→            <div className="space-y-2">
+  1651→              <Label className="text-sm font-medium">Nama Project</Label>
+  1652→              <Input
+  1653→                value={editProjectForm.projectName}
+  1654→                onChange={(e) => setEditProjectForm({ ...editProjectForm, projectName: e.target.value })}
+  1655→              />
+  1656→            </div>
+  1657→            <div className="space-y-2">
+  1658→              <Label className="text-sm font-medium">Status</Label>
+  1659→              <Select value={editProjectForm.status} onValueChange={(v) => setEditProjectForm({ ...editProjectForm, status: v })}>
+  1660→                <SelectTrigger>
+  1661→                  <SelectValue />
+  1662→                </SelectTrigger>
+  1663→                <SelectContent>
+  1664→                  {Object.entries(projectStatusConfig).map(([key, config]) => (
+  1665→                    <SelectItem key={key} value={key}>
+  1666→                      {config.label}
+  1667→                    </SelectItem>
+  1668→                  ))}
+  1669→                </SelectContent>
+  1670→              </Select>
+  1671→            </div>
+  1672→            <div className="space-y-2">
+  1673→              <Label className="text-sm font-medium">Progress ({editProjectForm.progress}%)</Label>
+  1674→              <Input
+  1675→                type="number"
+  1676→                min={0}
+  1677→                max={100}
+  1678→                value={editProjectForm.progress}
+  1679→                onChange={(e) => setEditProjectForm({ ...editProjectForm, progress: Number(e.target.value) })}
+  1680→              />
+  1681→            </div>
+  1682→            <div className="space-y-2">
+  1683→              <Label className="text-sm font-medium">Catatan</Label>
+  1684→              <Input
+  1685→                value={editProjectForm.notes}
+  1686→                onChange={(e) => setEditProjectForm({ ...editProjectForm, notes: e.target.value })}
+  1687→                placeholder="Opsional"
+  1688→              />
+  1689→            </div>
+  1690→            <div className="space-y-2">
+  1691→              <Label className="text-sm font-medium">Live URL</Label>
+  1692→              <Input
+  1693→                value={editProjectForm.liveUrl}
+  1694→                onChange={(e) => setEditProjectForm({ ...editProjectForm, liveUrl: e.target.value })}
+  1695→                placeholder="https://..."
+  1696→              />
+  1697→            </div>
+  1698→            <div className="space-y-2">
+  1699→              <Label className="text-sm font-medium">Estimasi Selesai</Label>
+  1700→              <Input
+  1701→                type="date"
+  1702→                value={editProjectForm.estimatedDone}
+  1703→                onChange={(e) => setEditProjectForm({ ...editProjectForm, estimatedDone: e.target.value })}
+  1704→              />
+  1705→            </div>
+  1706→          </div>
+  1707→          <DialogFooter>
+  1708→            <Button variant="outline" onClick={() => setEditProjectDialog(false)}>
+  1709→              Batal
+  1710→            </Button>
+  1711→            <Button onClick={handleUpdateProject} disabled={actionLoading} className="bg-gold hover:bg-gold-hover text-navy">
+  1712→              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+  1713→              Simpan
+  1714→            </Button>
+  1715→          </DialogFooter>
+  1716→        </DialogContent>
+  1717→      </Dialog>
+  1718→
+  1719→      {/* Add Milestone Dialog */}
+  1720→      <Dialog open={addMilestoneDialog} onOpenChange={setAddMilestoneDialog}>
+  1721→        <DialogContent>
+  1722→          <DialogHeader>
+  1723→            <DialogTitle>Tambah Milestone</DialogTitle>
+  1724→            <DialogDescription>Tambahkan milestone baru ke project</DialogDescription>
+  1725→          </DialogHeader>
+  1726→          <div className="space-y-4">
+  1727→            <div className="space-y-2">
+  1728→              <Label className="text-sm font-medium">Judul Milestone</Label>
+  1729→              <Input
+  1730→                value={newMilestoneTitle}
+  1731→                onChange={(e) => setNewMilestoneTitle(e.target.value)}
+  1732→                placeholder="Contoh: Desain homepage selesai"
+  1733→              />
+  1734→            </div>
+  1735→          </div>
+  1736→          <DialogFooter>
+  1737→            <Button variant="outline" onClick={() => setAddMilestoneDialog(false)}>
+  1738→              Batal
+  1739→            </Button>
+  1740→            <Button onClick={handleAddMilestone} disabled={actionLoading || !newMilestoneTitle.trim()} className="bg-gold hover:bg-gold-hover text-navy">
+  1741→              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+  1742→              Tambah
+  1743→            </Button>
+  1744→          </DialogFooter>
+  1745→        </DialogContent>
+  1746→      </Dialog>
+  1747→
+  1748→      {/* Edit Role Dialog */}
+  1749→      <Dialog open={editRoleDialog} onOpenChange={setEditRoleDialog}>
+  1750→        <DialogContent>
+  1751→          <DialogHeader>
+  1752→            <DialogTitle>Edit Role Pengguna</DialogTitle>
+  1753→            <DialogDescription>
+  1754→              {editRoleUser?.name || editRoleUser?.email}
+  1755→            </DialogDescription>
+  1756→          </DialogHeader>
+  1757→          <div className="space-y-4">
+  1758→            <div>
+  1759→              <p className="text-sm text-muted-foreground">Role saat ini:</p>
+  1760→              <RoleBadge role={editRoleUser?.role || "customer"} />
+  1761→            </div>
+  1762→            <Select value={editRoleValue} onValueChange={setEditRoleValue}>
+  1763→              <SelectTrigger>
+  1764→                <SelectValue placeholder="Pilih role" />
+  1765→              </SelectTrigger>
+  1766→              <SelectContent>
+  1767→                <SelectItem value="customer">Customer</SelectItem>
+  1768→                <SelectItem value="admin">Admin</SelectItem>
+  1769→                <SelectItem value="super-admin">Super Admin</SelectItem>
+  1770→              </SelectContent>
+  1771→            </Select>
+  1772→          </div>
+  1773→          <DialogFooter>
+  1774→            <Button variant="outline" onClick={() => setEditRoleDialog(false)}>
+  1775→              Batal
+  1776→            </Button>
+  1777→            <Button onClick={handleUpdateRole} disabled={actionLoading} className="bg-gold hover:bg-gold-hover text-navy">
+  1778→              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+  1779→              Simpan
+  1780→            </Button>
+  1781→          </DialogFooter>
+  1782→        </DialogContent>
+  1783→      </Dialog>
+  1784→
+  1785→      {/* Delete Confirmation Dialog */}
+  1786→      <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
+  1787→        <DialogContent>
+  1788→          <DialogHeader>
+  1789→            <DialogTitle>Konfirmasi Hapus</DialogTitle>
+  1790→            <DialogDescription>
+  1791→              Apakah Anda yakin ingin menghapus{" "}
+  1792→              {deleteType === "order"
+  1793→                ? "pesanan"
+  1794→                : deleteType === "project"
+  1795→                ? "project"
+  1796→                : "pengguna"}{" "}
+  1797→              <strong>{deleteName}</strong>? Tindakan ini tidak dapat dibatalkan.
+  1798→            </DialogDescription>
+  1799→          </DialogHeader>
+  1800→          <DialogFooter>
+  1801→            <Button variant="outline" onClick={() => setDeleteDialog(false)}>
+  1802→              Batal
+  1803→            </Button>
+  1804→            <Button variant="destructive" onClick={handleDelete} disabled={actionLoading}>
+  1805→              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+  1806→              Hapus
+  1807→            </Button>
+  1808→          </DialogFooter>
+  1809→        </DialogContent>
+  1810→      </Dialog>
+  1811→    </div>
+  1812→  );
+  1813→}
+  1814→

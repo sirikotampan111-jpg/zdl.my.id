@@ -75,7 +75,7 @@ export function HomeGuarantee() {
             Jaminan <span className="gold-gradient-text">Anti-Scam</span>
           </h2>
           <p className="mt-4 text-foreground/80 max-w-lg leading-relaxed text-base md:text-[1.05rem]">
-            Zheng Digital Lab hadir untuk mengubah standar industri web development. Anti-scam bukan sekadar fitur — ini komitmen kami untuk transparansi dan akuntabilitas.
+            Zheng Digital Studio hadir untuk mengubah standar industri web development. Anti-scam bukan sekadar fitur — ini komitmen kami untuk transparansi dan akuntabilitas.
           </p>
         </motion.div>
 

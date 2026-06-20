@@ -402,7 +402,7 @@ export function CheckoutModal({
                   <div className="flex justify-between">
                     <span>Invoice</span>
                     <span className="font-mono text-gold">
-                      {orderId || "ZDL-..."}
+                      {orderId || "ZDS-..."}
                     </span>
                   </div>
                   <Separator className="my-2" />

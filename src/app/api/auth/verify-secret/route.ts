@@ -52,7 +52,7 @@ export async function GET() {
           code: "4/dummy-test-code-for-verification",
           client_id: clientId,
           client_secret: clientSecret,
-          redirect_uri: "https://www.zdl.my.id/api/auth/callback/google",
+          redirect_uri: "https://www.zds.asia/api/auth/callback/google",
           grant_type: "authorization_code",
         }),
       });

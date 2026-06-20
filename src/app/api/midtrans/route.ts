@@ -236,9 +236,9 @@ export async function POST(req: NextRequest) {
           phone: customerPhone,
         },
         callbacks: {
-          finish: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id"}/dashboard?payment=finish`,
-          error: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id"}/dashboard?payment=error`,
-          pending: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id"}/dashboard?payment=pending`,
+          finish: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zds.asia"}/dashboard?payment=finish`,
+          error: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zds.asia"}/dashboard?payment=error`,
+          pending: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.zds.asia"}/dashboard?payment=pending`,
         },
       };
 

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { CityPageClient } from "@/components/city-page";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zds.asia";
 
 export const metadata: Metadata = {
-  title: "Jasa Pembuatan Website Bekasi — Zheng Digital Lab | Terjamin & Anti-Scam",
+  title: "Jasa Pembuatan Website Bekasi — Zheng Digital Studio | Terjamin & Anti-Scam",
   description:
-    "Jasa pembuatan website profesional di Bekasi. Zheng Digital Lab — garansi uang kembali, anti-scam, proses transparan. Website UMKM, Properti, Kuliner & Pendidikan. Mulai Rp600rb.",
+    "Jasa pembuatan website profesional di Bekasi. Zheng Digital Studio — garansi uang kembali, anti-scam, proses transparan. Website UMKM, Properti, Kuliner & Pendidikan. Mulai Rp600rb.",
   keywords: [
     "jasa pembuatan website Bekasi",
     "jasa website Bekasi",
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     "jasa website terpercaya Bekasi",
     "website UMKM Bekasi",
     "website bisnis Bekasi",
-    "Zheng Digital Lab Bekasi",
+    "Zheng Digital Studio Bekasi",
   ],
   alternates: {
     canonical: `${SITE_URL}/jasa-website-bekasi`,
   },
   openGraph: {
-    title: "Jasa Pembuatan Website Bekasi — Zheng Digital Lab",
+    title: "Jasa Pembuatan Website Bekasi — Zheng Digital Studio",
     description: "Website profesional di Bekasi. Garansi uang kembali, anti-scam. Mulai Rp600rb.",
     url: `${SITE_URL}/jasa-website-bekasi`,
     type: "website",
@@ -42,10 +42,10 @@ export default function BekasiPage() {
       <CityPageClient
         city="Bekasi"
         region="Bekasi & Jabodetabek"
-        description="Zheng Digital Lab — jasa pembuatan website profesional di Bekasi dan sekitarnya. Garansi uang kembali, anti-scam, proses transparan. Website UMKM, Properti, Kuliner & Pendidikan mulai Rp600rb."
+        description="Zheng Digital Studio — jasa pembuatan website profesional di Bekasi dan sekitarnya. Garansi uang kembali, anti-scam, proses transparan. Website UMKM, Properti, Kuliner & Pendidikan mulai Rp600rb."
         longDescription={`Bekasi adalah kota dengan pertumbuhan penduduk dan bisnis tertinggi di kawasan Jabodetabek. Ribuan UMKM, perumahan baru, pusat kuliner, dan jasa bermunculan setiap bulannya — dan semuanya butuh kehadiran digital yang kuat untuk bisa bersaing.
 
-Zheng Digital Lab hadir di Bekasi dengan misi yang sama: memberikan jasa pembuatan website yang terjamin dan anti-scam. Kami tahu banyak cerita tentang web developer yang minta DP besar lalu menghilang. Zheng Digital Lab lahir justru dari kejadian itu — teman kami ditipu, dan kami bertekad agar hal serupa tidak terjadi pada Anda.
+Zheng Digital Studio hadir di Bekasi dengan misi yang sama: memberikan jasa pembuatan website yang terjamin dan anti-scam. Kami tahu banyak cerita tentang web developer yang minta DP besar lalu menghilang. Zheng Digital Studio lahir justru dari kejadian itu — teman kami ditipu, dan kami bertekad agar hal serupa tidak terjadi pada Anda.
 
 Dari kafe di Summarecon Bekasi, properti di Cikarang, hingga toko online di Bekasi Timur — kami siap membangun website yang profesional, SEO-ready, dan terbukti membantu bisnis Anda tampil di Google.`}
         portfolios={[]}

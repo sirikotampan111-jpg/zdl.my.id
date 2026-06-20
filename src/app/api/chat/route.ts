@@ -3,12 +3,12 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { checkRateLimit, safeParseJson } from "@/lib/rate-limit";
 
-const SYSTEM_PROMPT = `Kamu adalah asisten virtual Zheng Digital Lab (ZDL), perusahaan jasa pembuatan website profesional. Gunakan Bahasa Indonesia.
+const SYSTEM_PROMPT = `Kamu adalah asisten virtual Zheng Digital Studio (ZDS), perusahaan jasa pembuatan website profesional. Gunakan Bahasa Indonesia.
 
 ## Identitas
-Kamu adalah konsultan web dan digital marketing yang berpengalaman. Kamu bisa menjawab pertanyaan teknis mendalam tentang website, SEO, digital marketing, dan rekomendasi teknologi. Selain itu, kamu juga melayani pertanyaan umum tentang layanan ZDL.
+Kamu adalah konsultan web dan digital marketing yang berpengalaman. Kamu bisa menjawab pertanyaan teknis mendalam tentang website, SEO, digital marketing, dan rekomendasi teknologi. Selain itu, kamu juga melayani pertanyaan umum tentang layanan ZDS.
 
-## Layanan Utama ZDL
+## Layanan Utama ZDS
 1. HTML Website — Rp600.000 - Rp1.500.000 (statis, ringan, cepat)
 2. Next.js Website — Rp1.500.000 - Rp3.000.000 (modern, dinamis, SEO optimal)
 3. Admin Panel — Rp2.000.000 (dashboard, CRUD, autentikasi)
@@ -21,7 +21,7 @@ Maintenance: Basic Rp150K/bln, Pro Rp300K/bln, Premium Rp500K/bln
 
 Pembayaran: DP minimal Rp500K, PPN 11% + Rp4.000 biaya transaksi. Seabank: 901913604812. QRIS, Bank Transfer, E-Wallet, CC.
 
-Kontak: WhatsApp 0889-7374-5596, zdl.my.id
+Kontak: WhatsApp 0889-7374-5596, zds.asia
 Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangerang, Banten 17510
 
 ## Pengetahuan Teknis — Kamu WAJIB bisa menjawab topik berikut:
@@ -74,11 +74,11 @@ Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangeran
 - Jika ditanya harga, berikan range yang sesuai
 - Jika ditanya rekomendasi teknologi, berikan analisis berdasarkan budget dan kebutuhan
 - Jika ditanya SEO/backlink, jelaskan dengan bahasa yang mudah dipahami awam, tapi tetap teknis jika ditanya lebih lanjut
-- Jika klien tertarik order, arahkan ke WhatsApp 0889-7374-5596 atau langsung order di zdl.my.id
-- JANGAN pernah bilang kamu AI atau chatbot — kamu adalah konsultan ZDL
+- Jika klien tertarik order, arahkan ke WhatsApp 0889-7374-5596 atau langsung order di zds.asia
+- JANGAN pernah bilang kamu AI atau chatbot — kamu adalah konsultan ZDS
 - Gunakan emoji secukupnya, jangan berlebihan
 - Jika tidak yakin, sarankan untuk konsultasi langsung via WhatsApp
-- Selalu berikan value dulu (edukasi), baru tawarkan layanan ZDL jika relevan`;
+- Selalu berikan value dulu (edukasi), baru tawarkan layanan ZDS jika relevan`;
 
 // ─── Zod schema ───────────────────────────────────────────────────────────────
 
@@ -105,17 +105,17 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/backlin[gk]|link.?building|taut.?balik|back.?lin/i],
     response:
-      "Backlink adalah link dari website lain yang mengarah ke website Anda. Ini adalah salah satu faktor ranking terpenting di Google!\n\nJenis backlink yang berkualitas:\n- Editorial (disebutkan secara natural di artikel)\n- Guest post (menulis artikel di website lain)\n- Directory listing (daftar di direktori bisnis)\n- Social profiles (link dari sosial media)\n- Platform web 2.0 (Blogspot, WordPress.com, Google Sites)\n\nYang harus dihindari: link farm, PBN, spam comments — ini bisa membuat website kena penalti Google.\n\nFungsi backlink:\n1. Meningkatkan otoritas domain (DA/PA) website Anda\n2. Membantu Google mengenali website Anda sebagai sumber terpercaya\n3. Meningkatkan posisi ranking di hasil pencarian\n4. Mendatangkan traffic dari website lain yang memberi link\n\nHasil backlink biasanya baru terasa dalam 2-6 bulan. Layanan ZDL SEO + 4 Backlink Medium seharga Rp1.200.000 sudah termasuk backlink dari Google Business Profile, Blogspot, Linktree, dan Google Sites. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi! 😊",
+      "Backlink adalah link dari website lain yang mengarah ke website Anda. Ini adalah salah satu faktor ranking terpenting di Google!\n\nJenis backlink yang berkualitas:\n- Editorial (disebutkan secara natural di artikel)\n- Guest post (menulis artikel di website lain)\n- Directory listing (daftar di direktori bisnis)\n- Social profiles (link dari sosial media)\n- Platform web 2.0 (Blogspot, WordPress.com, Google Sites)\n\nYang harus dihindari: link farm, PBN, spam comments — ini bisa membuat website kena penalti Google.\n\nFungsi backlink:\n1. Meningkatkan otoritas domain (DA/PA) website Anda\n2. Membantu Google mengenali website Anda sebagai sumber terpercaya\n3. Meningkatkan posisi ranking di hasil pencarian\n4. Mendatangkan traffic dari website lain yang memberi link\n\nHasil backlink biasanya baru terasa dalam 2-6 bulan. Layanan ZDS SEO + 4 Backlink Medium seharga Rp1.200.000 sudah termasuk backlink dari Google Business Profile, Blogspot, Linktree, dan Google Sites. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi! 😊",
   },
   {
     patterns: [/seo|optimasi.?mesin.?cari|ranking.?google|peringkat|fungsi.?seo|seo.?apa|apa.?itu.?seo/i],
     response:
-      "SEO (Search Engine Optimization) adalah strategi agar website muncul di halaman pertama Google. Ada 3 pilar utama:\n\n1. On-Page SEO: meta tags, heading structure, keyword, schema markup, internal linking\n2. Off-Page SEO: backlink building, social signals, brand mentions\n3. Technical SEO: Core Web Vitals, page speed, mobile-friendly, sitemap, robots.txt\n\nFungsi SEO untuk bisnis:\n- Menambah visibilitas website di Google\n- Mendatangkan pengunjung secara organik (tanpa bayar iklan)\n- Meningkatkan kepercayaan pelanggan\n- Mengungguli kompetitor di hasil pencarian\n- Jangka panjang: traffic gratis yang konsisten\n\nSemua website ZDL sudah SEO-friendly! Paket HTML mendapat basic SEO, dan paket Next.js sudah full optimized (SSR/SSG untuk performa terbaik). Kami juga punya layanan SEO + 4 Backlink Medium seharga Rp1.200.000 (termasuk backlink Google Business, Blogspot, Linktree, Google Sites).\n\nMau konsultasi strategi SEO untuk bisnis Anda? Hubungi WhatsApp 0889-7374-5596 😊",
+      "SEO (Search Engine Optimization) adalah strategi agar website muncul di halaman pertama Google. Ada 3 pilar utama:\n\n1. On-Page SEO: meta tags, heading structure, keyword, schema markup, internal linking\n2. Off-Page SEO: backlink building, social signals, brand mentions\n3. Technical SEO: Core Web Vitals, page speed, mobile-friendly, sitemap, robots.txt\n\nFungsi SEO untuk bisnis:\n- Menambah visibilitas website di Google\n- Mendatangkan pengunjung secara organik (tanpa bayar iklan)\n- Meningkatkan kepercayaan pelanggan\n- Mengungguli kompetitor di hasil pencarian\n- Jangka panjang: traffic gratis yang konsisten\n\nSemua website ZDS sudah SEO-friendly! Paket HTML mendapat basic SEO, dan paket Next.js sudah full optimized (SSR/SSG untuk performa terbaik). Kami juga punya layanan SEO + 4 Backlink Medium seharga Rp1.200.000 (termasuk backlink Google Business, Blogspot, Linktree, Google Sites).\n\nMau konsultasi strategi SEO untuk bisnis Anda? Hubungi WhatsApp 0889-7374-5596 😊",
   },
   {
     patterns: [/core.?web.?vital|lcp|fid|cls|page.?speed|kecepatan.?website/i],
     response:
-      "Core Web Vitals adalah metrik kecepatan dari Google yang mempengaruhi ranking:\n\n- LCP (Largest Contentful Paint): kecepatan tampil konten utama. Target: <2.5 detik\n- FID (First Input Delay): responsivitas interaksi pertama. Target: <100ms\n- CLS (Cumulative Layout Shift): stabilitas layout. Target: <0.1\n\nWebsite Next.js dari ZDL sudah dioptimasi untuk Core Web Vitals karena menggunakan SSR/SSG, lazy loading, dan image optimization. Website HTML kami juga ringan dan cepat secara default.\n\nMau cek kecepatan website Anda? Gunakan Google PageSpeed Insights. Atau konsultasi gratis via WhatsApp 0889-7374-5596 😊",
+      "Core Web Vitals adalah metrik kecepatan dari Google yang mempengaruhi ranking:\n\n- LCP (Largest Contentful Paint): kecepatan tampil konten utama. Target: <2.5 detik\n- FID (First Input Delay): responsivitas interaksi pertama. Target: <100ms\n- CLS (Cumulative Layout Shift): stabilitas layout. Target: <0.1\n\nWebsite Next.js dari ZDS sudah dioptimasi untuk Core Web Vitals karena menggunakan SSR/SSG, lazy loading, dan image optimization. Website HTML kami juga ringan dan cepat secara default.\n\nMau cek kecepatan website Anda? Gunakan Google PageSpeed Insights. Atau konsultasi gratis via WhatsApp 0889-7374-5596 😊",
   },
   // ─── Technical: Technology Recommendations ──────────────────────────
   {
@@ -131,7 +131,7 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/nextjs|next\.?js|react|ssr|ssg/i],
     response:
-      "Next.js adalah framework React terbaik untuk website modern. Kelebihannya:\n\n- SSR/SSG: konten bisa di-render di server → SEO optimal & cepat\n- Performa tinggi: otomatis code splitting, lazy loading, image optimization\n- SEO terbaik: meta tags dinamis, schema markup, URL clean\n- Scalable: bisa berkembang seiring bisnis Anda\n\nPaket Next.js ZDL mulai dari Rp1.500.000 (Landing Page) hingga Rp3.000.000 (5 Halaman), sudah termasuk domain gratis (.id/.co.id/.com/.net/.org), hosting, dan revisi 1 bulan.\n\nMau konsultasi? Hubungi WhatsApp 0889-7374-5596 😊",
+      "Next.js adalah framework React terbaik untuk website modern. Kelebihannya:\n\n- SSR/SSG: konten bisa di-render di server → SEO optimal & cepat\n- Performa tinggi: otomatis code splitting, lazy loading, image optimization\n- SEO terbaik: meta tags dinamis, schema markup, URL clean\n- Scalable: bisa berkembang seiring bisnis Anda\n\nPaket Next.js ZDS mulai dari Rp1.500.000 (Landing Page) hingga Rp3.000.000 (5 Halaman), sudah termasuk domain gratis (.id/.co.id/.com/.net/.org), hosting, dan revisi 1 bulan.\n\nMau konsultasi? Hubungi WhatsApp 0889-7374-5596 😊",
   },
   {
     patterns: [/budget|anggaran|dana|modal/i],
@@ -147,7 +147,7 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/local.?seo|google.?business|google.?maps|bisnis.?lokal|nap|google.?profil|profil.?bisnis/i],
     response:
-      "Local SEO sangat penting untuk bisnis yang melayani area tertentu! Langkah-langkahnya:\n\n1. Daftar Google Business Profile (gratis!) — ini yang muncul di Google Maps\n2. Pastikan NAP konsisten (Name, Address, Phone) di semua platform\n3. Daftar di direktori bisnis lokal (Foursquare, Yelp, dll)\n4. Kumpulkan review positif dari pelanggan\n5. Optimasi website dengan keyword lokal (contoh: 'jasa interior Tangerang')\n6. Tambahkan Google Maps embed di website\n\nLayanan SEO + 4 Backlink Medium kami sudah termasuk Google Business Profile sebagai salah satu backlink berkualitas. Hanya Rp1.200.000!\n\nSemua website ZDL sudah support Google Maps embed dan schema markup untuk local SEO. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
+      "Local SEO sangat penting untuk bisnis yang melayani area tertentu! Langkah-langkahnya:\n\n1. Daftar Google Business Profile (gratis!) — ini yang muncul di Google Maps\n2. Pastikan NAP konsisten (Name, Address, Phone) di semua platform\n3. Daftar di direktori bisnis lokal (Foursquare, Yelp, dll)\n4. Kumpulkan review positif dari pelanggan\n5. Optimasi website dengan keyword lokal (contoh: 'jasa interior Tangerang')\n6. Tambahkan Google Maps embed di website\n\nLayanan SEO + 4 Backlink Medium kami sudah termasuk Google Business Profile sebagai salah satu backlink berkualitas. Hanya Rp1.200.000!\n\nSemua website ZDS sudah support Google Maps embed dan schema markup untuk local SEO. Hubungi WhatsApp 0889-7374-5596 untuk konsultasi 😊",
   },
   // ─── General: Sales & Info ─────────────────────────────────────────
   {
@@ -188,7 +188,7 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/kontak|hubungi|wa|whatsapp|telepon|phone|alamat/i],
     response:
-      "Anda bisa menghubungi kami melalui:\n📱 WhatsApp: 0889-7374-5596\n🌐 Website: zdl.my.id\n📍 Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangerang, Banten 17510\n\nTim kami siap membantu Anda! 😊",
+      "Anda bisa menghubungi kami melalui:\n📱 WhatsApp: 0889-7374-5596\n🌐 Website: zds.asia\n📍 Alamat: Kp. Jawaringan, RT.003/RW.004, Mekar Bakti, Kec. Panongan, Kab. Tangerang, Banten 17510\n\nTim kami siap membantu Anda! 😊",
   },
   {
     patterns: [/bundle|paket|promo|diskon|paket combo/i],
@@ -208,17 +208,17 @@ const fallbackRules: FallbackRule[] = [
   {
     patterns: [/portofolio|portfolio|hasil|contoh|sample|project/i],
     response:
-      "Kami telah menyelesaikan 150+ project untuk berbagai kategori: Properti, Interior, Kuliner, dan Bisnis & Edukasi. Beberapa klien kami: Livia Real Estate, Liana Home Interior, Kopikir Store, Bimbel Starlish, dan masih banyak lagi. Kunjungi halaman Portofolio di zdl.my.id untuk melihat hasil karya kami! 😊",
+      "Kami telah menyelesaikan 150+ project untuk berbagai kategori: Properti, Interior, Kuliner, dan Bisnis & Edukasi. Beberapa klien kami: Livia Real Estate, Liana Home Interior, Kopikir Store, Bimbel Starlish, dan masih banyak lagi. Kunjungi halaman Portofolio di zds.asia untuk melihat hasil karya kami! 😊",
   },
   {
     patterns: [/order|pesan|daftar|mulai|booking/i],
     response:
-      "Untuk memesan, Anda bisa:\n1️⃣ Kunjungi zdl.my.id dan pilih paket yang diinginkan\n2️⃣ Hubungi kami via WhatsApp 0889-7374-5596\n3️⃣ Konsultasi gratis dulu, baru order\n\nProsesnya: Konsultasi → Pilih Paket → Bayar DP → Development → Review → Pelunasan → Online! 😊",
+      "Untuk memesan, Anda bisa:\n1️⃣ Kunjungi zds.asia dan pilih paket yang diinginkan\n2️⃣ Hubungi kami via WhatsApp 0889-7374-5596\n3️⃣ Konsultasi gratis dulu, baru order\n\nProsesnya: Konsultasi → Pilih Paket → Bayar DP → Development → Review → Pelunasan → Online! 😊",
   },
   {
     patterns: [/halo|hai|hi|hello|selamat|assalam|salam/i],
     response:
-      "Halo! 👋 Selamat datang di Zheng Digital Lab! Kami siap membantu Anda membuat website profesional. Tanyakan tentang layanan, harga, SEO, teknologi, atau cara memesan! 😊",
+      "Halo! 👋 Selamat datang di Zheng Digital Studio! Kami siap membantu Anda membuat website profesional. Tanyakan tentang layanan, harga, SEO, teknologi, atau cara memesan! 😊",
   },
   {
     patterns: [/terima kasih|makasih|thanks|thank/i],
@@ -233,7 +233,7 @@ function getSmartFallback(userMessage: string): string {
       return rule.response;
     }
   }
-  return "Terima kasih atas pertanyaan Anda! Untuk informasi lebih detail, silakan hubungi kami via WhatsApp di 0889-7374-5596 atau kunjungi zdl.my.id. Tim kami siap membantu! 😊";
+  return "Terima kasih atas pertanyaan Anda! Untuk informasi lebih detail, silakan hubungi kami via WhatsApp di 0889-7374-5596 atau kunjungi zds.asia. Tim kami siap membantu! 😊";
 }
 
 // ─── ZAI SDK Init ─────────────────────────────────────────────────────────────

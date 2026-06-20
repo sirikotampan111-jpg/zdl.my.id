@@ -102,13 +102,13 @@ export function Navbar() {
             <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden">
               <img
                 src="/logo.png"
-                alt="Zheng Digital Lab"
+                alt="Zheng Digital Studio"
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex items-baseline gap-0.5">
               <span className="heading-serif text-lg text-foreground">
-                Zheng Digital Lab
+                Zheng Digital Studio
               </span>
             </div>
           </button>
@@ -216,9 +216,9 @@ export function Navbar() {
                   {/* Mobile brand */}
                   <div className="flex items-center gap-2 px-4 pb-4 mb-2 border-b border-border">
                     <div className="w-8 h-8 rounded flex items-center justify-center overflow-hidden">
-                      <img src="/logo.png" alt="Zheng Digital Lab" className="w-full h-full object-contain" />
+                      <img src="/logo.png" alt="Zheng Digital Studio" className="w-full h-full object-contain" />
                     </div>
-                    <span className="heading-serif text-base text-foreground">Zheng Digital Lab</span>
+                    <span className="heading-serif text-base text-foreground">Zheng Digital Studio</span>
                   </div>
                   {navLinks.map((link) => (
                     <button
