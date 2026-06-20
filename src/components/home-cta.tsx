@@ -33,7 +33,7 @@ export function HomeCta() {
               <span className="text-gold">ditipu</span> web developer
             </h2>
             <p className="text-background/70 text-lg max-w-xl leading-relaxed">
-              Zheng Digital Lab hadir untuk memastikan setiap klien mendapatkan website yang dijanjikan. 
+              Zheng Digital Studio hadir untuk memastikan setiap klien mendapatkan website yang dijanjikan. 
               Garansi uang kembali, proses transparan, DP ringan — semuanya dirancang untuk kepercayaan Anda.
             </p>
           </motion.div>

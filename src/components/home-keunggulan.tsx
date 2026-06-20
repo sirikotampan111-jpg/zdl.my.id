@@ -36,7 +36,7 @@ export function HomeKeunggulan() {
             <span className="text-xs font-semibold text-gold tracking-widest uppercase">Keunggulan</span>
           </div>
           <h2 className="heading-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
-            Kenapa <span className="zheng-mark">Zheng Digital Lab</span>?
+            Kenapa <span className="zheng-mark">Zheng Digital Studio</span>?
           </h2>
           <p className="mt-3 text-muted-foreground max-w-lg leading-relaxed">
             Bukan cuma bikin website — kami bikin website yang bikin bisnis kamu maju, tanpa rasa takut ditipu.
