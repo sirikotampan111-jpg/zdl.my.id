@@ -1,9 +1,9 @@
 import { WHATSAPP_NUMBER, BUSINESS_ADDRESS, SITE_URL as CONFIG_SITE_URL } from "@/lib/config";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || CONFIG_SITE_URL || "https://www.zdl.my.id";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || CONFIG_SITE_URL || "https://www.zds.asia";
 
 /**
- * JSON-LD Structured Data for Zheng Digital Lab
+ * JSON-LD Structured Data for Zheng Digital Studio
  * Helps Google understand the business, services, and pages for better indexing & rich results.
  */
 
@@ -11,8 +11,8 @@ export function LocalBusinessJsonLd() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
-    name: "Zheng Digital Lab",
-    alternateName: ["ZDL", "Zheng Digital Lab Jakarta", "Zheng Digital Lab Tangerang", "Zheng Digital Lab Bandung", "Zheng Digital Lab Surabaya"],
+    name: "Zheng Digital Studio",
+    alternateName: ["ZDS", "Zheng Digital Studio Jakarta", "Zheng Digital Studio Tangerang", "Zheng Digital Studio Bandung", "Zheng Digital Studio Surabaya"],
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     description:
@@ -72,30 +72,10 @@ export function LocalBusinessJsonLd() {
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
-            name: "Website Next.js",
-            description: "Website multi-halaman Next.js dengan domain gratis, hosting, SEO friendly, dan support teknis.",
+            name: "Website Next.js 3 Halaman",
+            description: "Website Next.js 3 halaman, SEO friendly, domain gratis, admin panel ready",
           },
-          price: "1500000",
-          priceCurrency: "IDR",
-        },
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "Admin Panel & Database",
-            description: "Dashboard admin, login admin, database, CRUD data, dan sistem pemesanan.",
-          },
-          price: "2000000",
-          priceCurrency: "IDR",
-        },
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "SEO + 4 Backlink Medium",
-            description: "Optimasi SEO website + 4 backlink dari Google Business Profile, Blogspot, Linktree, dan Google Sites.",
-          },
-          price: "1200000",
+          price: "2400000",
           priceCurrency: "IDR",
         },
       ],
@@ -103,56 +83,6 @@ export function LocalBusinessJsonLd() {
   };
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
-}
-
-export function BreadcrumbJsonLd({ items }: { items: { name: string; url: string }[] }) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.name,
-      item: item.url,
-    })),
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
-}
-
-export function WebSiteJsonLd() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Zheng Digital Lab",
-    alternateName: "ZDL",
-    url: SITE_URL,
-    description: "Jasa pembuatan website profesional terjamin & anti-scam. Melayani Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang.",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${SITE_URL}/?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-    inLanguage: "id",
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
   );
 }

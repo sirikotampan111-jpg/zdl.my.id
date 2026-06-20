@@ -23,10 +23,10 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zdl.my.id";
-const SITE_NAME = "Zheng Digital Lab";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zds.asia";
+const SITE_NAME = "Zheng Digital Studio";
 const SITE_DESCRIPTION =
-  "Jasa pembuatan website profesional Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Zheng Digital Lab — terjamin, anti-scam, garansi uang kembali. Website UMKM, Properti, Kuliner & Pendidikan.";
+  "Jasa pembuatan website profesional Jakarta, Depok, Bogor, Bekasi, Tangerang, Bandung, Surabaya, Sidoarjo, Gresik, Solo, Bali & Kupang. Zheng Digital Studio — terjamin, anti-scam, garansi uang kembali.";
 
 // Guard: ensure SITE_URL is a valid URL for metadataBase
 function safeMetadataBase(url: string): URL | undefined {
@@ -40,8 +40,8 @@ function safeMetadataBase(url: string): URL | undefined {
 export const metadata: Metadata = {
   ...(safeMetadataBase(SITE_URL) ? { metadataBase: safeMetadataBase(SITE_URL) } : {}),
   title: {
-    default: "Jasa Pembuatan Website Profesional — Zheng Digital Lab | Terjamin & Anti-Scam",
-    template: "%s | Zheng Digital Lab",
+    default: "Jasa Pembuatan Website Profesional — Zheng Digital Studio | Terjamin & Anti-Scam",
+    template: "%s | Zheng Digital Studio",
   },
   description: SITE_DESCRIPTION,
   keywords: [
@@ -65,8 +65,8 @@ export const metadata: Metadata = {
     "website kuliner",
     "website anti scam",
     "website garansi uang kembali",
-    "Zheng Digital Lab",
-    "ZDL",
+    "Zheng Digital Studio",
+    "ZDS",
     "jasa website murah",
     "website modern",
     "website siap SEO",
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
   },
   openGraph: {
-    title: "Jasa Pembuatan Website Profesional — Zheng Digital Lab | Terjamin & Anti-Scam",
+    title: "Jasa Pembuatan Website Profesional — Zheng Digital Studio | Terjamin & Anti-Scam",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
@@ -110,7 +110,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jasa Pembuatan Website Profesional — Zheng Digital Lab | Terjamin & Anti-Scam",
+    title: "Jasa Pembuatan Website Profesional — Zheng Digital Studio | Terjamin & Anti-Scam",
     description: SITE_DESCRIPTION,
   },
   alternates: {
