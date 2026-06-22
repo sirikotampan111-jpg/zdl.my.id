@@ -1,7 +1,0 @@
-   618→  const sendWhatsApp = (phone: string, orderId: string, pkgName: string) => {
-   619→    const cleanPhone = phone.replace(/^0/, "62").replace(/\D/g, "");
-   620→    const msg = encodeURIComponent(
-   621→      `Halo, terkait pesanan *${orderId}* untuk paket *${pkgName}*. Kami ingin mengonfirmasi pesanan Anda. Terima kasih! - Zheng Digital Studio`
-   622→    );
-   623→    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
-   624→  };
