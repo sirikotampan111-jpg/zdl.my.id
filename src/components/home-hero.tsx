@@ -1,66 +1,125 @@
-      {/* Subtle warm radial accent only — no full-bg photo overlay */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-gold/[0.06] via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-gradient-to-tr from-gold/[0.04] via-transparent to-transparent" />
+"use client";
+
+import { motion } from "framer-motion";
+import { useStore } from "@/store/use-store";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, ExternalLink, Zap, Search, Globe, Smartphone } from "lucide-react";
+import { WHATSAPP_LINK } from "@/lib/config";
+
+const badges = [
+  { icon: Search, label: "SEO Friendly" },
+  { icon: Globe, label: "Domain Gratis" },
+  { icon: Zap, label: "Next.js Performance" },
+  { icon: Smartphone, label: "Support Revisi" },
+];
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
+
+export function HomeHero() {
+  const { setCurrentPage } = useStore();
+
+  return (
+    <section className="relative min-h-[90vh] flex items-center pt-16 overflow-hidden animated-grid">
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-navy/5 dark:bg-gold/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left content — 6 cols */}
-          <div className="lg:col-span-6 space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-6"
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="max-w-3xl mx-auto text-center space-y-6"
+        >
+          {/* Badge */}
+          <motion.div variants={item}>
+            <Badge className="bg-gold/10 text-gold border-gold/20 px-4 py-1.5 text-sm">
+              🚀 Zheng Digital Studio - Website Profesional
+            </Badge>
+          </motion.div>
+
+          {/* Heading */}
+          <motion.h1
+            variants={item}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight"
+          >
+            Website Profesional yang{" "}
+            <span className="gold-gradient-text">Membantu Bisnis Anda Tumbuh</span>
+          </motion.h1>
+
+          {/* Subheading */}
+          <motion.p
+            variants={item}
+            className="text-lg text-muted-foreground max-w-2xl mx-auto"
+          >
+            Kami membantu UMKM, Properti, Kuliner, Pendidikan, dan berbagai bisnis
+            lainnya memiliki website modern yang cepat, profesional, dan siap bersaing
+            di Google.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                setCurrentPage("portofolio");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="w-full sm:w-auto border-navy dark:border-white/20 text-foreground hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy"
             >
-              {/* Eyebrow */}
-              <div className="zheng-badge">
-                <Shield className="w-3.5 h-3.5" />
-                Zheng Digital Studio
-              </div>
-
-              {/* H1 */}
-              <h1 className="heading-serif text-4xl sm:text-5xl md:text-[3.25rem] lg:text-6xl leading-[1.08] text-foreground">
-                Jasa Pembuatan Website{" "}
-                <span className="zheng-mark">Terjamin</span>
-                <br />
-                <span className="text-gold">&amp;</span> Anti-Scam
-              </h1>
-
-              {/* Subheading */}
-              <p className="text-lg md:text-xl text-foreground/80 max-w-xl leading-relaxed">
-                Kami memahami risiko mempercayakan website bisnis Anda kepada orang lain.{" "}
-                <strong className="text-foreground">Zheng Digital Studio</strong> hadir sebagai solusi —{" "}
-                jasa pembuatan website dengan{" "}
-                <span className="hand-underline">garansi uang kembali</span> dan proses yang transparan.
-              </p>
-            </motion.div>
-
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col sm:flex-row items-start gap-3"
+              Lihat Portofolio
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button
+              size="lg"
+              asChild
+              className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-navy font-semibold"
             >
-              <Button
-                size="lg"
-                asChild
-                className="bg-foreground text-background hover:bg-foreground/90 font-semibold rounded-lg px-7 h-12"
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                  Konsultasi Gratis
-                  <ExternalLink className="w-4 h-4 ml-1.5" />
-                </a>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => navigateTo("portofolio", setCurrentPage, router)}
-                className="border-border text-foreground hover:bg-foreground hover:text-background rounded-lg px-7 h-12"
-              >
-                Lihat Portofolio
-              </Button>
-            </motion.div>
-          </div>
+                Konsultasi Gratis
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </Button>
+          </motion.div>
+
+          {/* Badges */}
+          <motion.div
+            variants={container}
+            className="flex flex-wrap items-center justify-center gap-3 pt-4"
+          >
+            {badges.map((badge) => (
+              <motion.div key={badge.label} variants={item}>
+                <Badge
+                  variant="secondary"
+                  className="px-3 py-1.5 text-sm flex items-center gap-1.5"
+                >
+                  <badge.icon className="w-3.5 h-3.5 text-gold" />
+                  {badge.label}
+                </Badge>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
