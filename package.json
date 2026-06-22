@@ -1,6 +1,7 @@
 {
-  "name": "nextjs_tailwind_shadcn_ts",
-  "version": "0.2.0",
+  "name": "zds-website",
+  "version": "1.0.0",
+  "description": "Zheng Digital Studio - Jasa Pembuatan Website Profesional",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
